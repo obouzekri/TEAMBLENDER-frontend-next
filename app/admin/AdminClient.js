@@ -1727,7 +1727,6 @@ export default function AdminClient() {
       is_active: Boolean(draft.is_active),
       highlighted: Boolean(draft.highlighted),
       max_users: draft.max_users === '' ? null : Number(draft.max_users),
-      max_sessions_per_month: draft.max_sessions_per_month === '' ? null : Number(draft.max_sessions_per_month),
       support_level: String(draft.support_level || '').trim() || null,
       trial_days: draft.trial_days === '' ? null : Number(draft.trial_days),
       display_order: draft.display_order === '' ? 0 : Number(draft.display_order),
@@ -3931,10 +3930,7 @@ export default function AdminClient() {
                         </select>
                       </label>
                       <label>{t('adminConsole.ctaButtonLabel')}<input value={newPricingPlan.cta_label} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, cta_label: e.target.value }))} /></label>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                        <label>{t('adminConsole.maxUsers')}<input type="number" min="0" value={newPricingPlan.max_users} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, max_users: e.target.value }))} /></label>
-                        <label>{t('adminConsole.maxSessionsMonth')}<input type="number" min="0" value={newPricingPlan.max_sessions_per_month} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, max_sessions_per_month: e.target.value }))} /></label>
-                      </div>
+                      <label>{t('adminConsole.maxUsers')}<input type="number" min="0" value={newPricingPlan.max_users} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, max_users: e.target.value }))} /></label>
                       <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
                         <label>{t('adminConsole.supportLevel')}<input value={newPricingPlan.support_level} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, support_level: e.target.value }))} placeholder={t('adminConsole.emailPriority')} /></label>
                         <label>{t('adminConsole.trialDays')}<input type="number" min="0" value={newPricingPlan.trial_days} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, trial_days: e.target.value }))} /></label>
@@ -4004,10 +4000,7 @@ export default function AdminClient() {
                           </select>
                         </label>
                         <label>{t('adminConsole.ctaButtonLabel')}<input value={editingPricingPlan.cta_label} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, cta_label: e.target.value }))} /></label>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                          <label>{t('adminConsole.maxUsers')}<input type="number" min="0" value={editingPricingPlan.max_users} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, max_users: e.target.value }))} /></label>
-                          <label>{t('adminConsole.maxSessionsMonth')}<input type="number" min="0" value={editingPricingPlan.max_sessions_per_month} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, max_sessions_per_month: e.target.value }))} /></label>
-                        </div>
+                        <label>{t('adminConsole.maxUsers')}<input type="number" min="0" value={editingPricingPlan.max_users} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, max_users: e.target.value }))} /></label>
                         <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
                           <label>{t('adminConsole.supportLevel')}<input value={editingPricingPlan.support_level} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, support_level: e.target.value }))} /></label>
                           <label>{t('adminConsole.trialDays')}<input type="number" min="0" value={editingPricingPlan.trial_days} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, trial_days: e.target.value }))} /></label>

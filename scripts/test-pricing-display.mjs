@@ -1,51 +1,28 @@
 import assert from 'node:assert/strict';
-import { currencyFromCountry, formatPlanAmount, getAnnualSavings, getPlanAmountDh } from '../lib/pricing-display.mjs';
-import { normalizePricingPlanName } from '../lib/pricing-labels.js';
+import { createRequire } from 'node:module';
 import { getPricingPlansFallback } from '../lib/pricingFallbackPlans.js';
 
-const plans = Object.fromEntries(getPricingPlansFallback().map((plan) => [plan.slug, plan]));
-const nbsp = (value) => value.replace(/[  ]/g, ' ');
+const require = createRequire(import.meta.url);
+const { CANONICAL_PRICING_PLANS } = require('../../backend/src/config/canonical-pricing-plans.js');
+const fallbackPlans = getPricingPlansFallback();
+const fallbackByCode = Object.fromEntries(fallbackPlans.map((plan) => [plan.plan_code, plan]));
 
-// Plans without the legacy price_cents field must keep their own name.
 assert.deepEqual(
-  getPricingPlansFallback().map((plan) => normalizePricingPlanName(plan)),
-  ['Free', 'Pay-per-session', 'Pro', 'Pro+'],
+  fallbackPlans.map((plan) => plan.plan_code),
+  ['trial', 'team', 'enterprise'],
 );
 
-// Monthly and annual amounts come from the MAD prices billing charges.
-assert.equal(getPlanAmountDh(plans.pro, 'monthly'), 390);
-assert.equal(getPlanAmountDh(plans.pro, 'annual'), 3744);
-assert.equal(getPlanAmountDh(plans['pro+'], 'monthly'), 696);
-assert.equal(getPlanAmountDh(plans['pro+'], 'annual'), 6681.6);
-assert.equal(getPlanAmountDh(plans.free, 'annual'), 0);
-// A single session keeps its price whatever the billing toggle says.
-assert.equal(getPlanAmountDh(plans['pay-per-session'], 'annual'), 49);
-// Without an annual price, the annual discount is applied to 12 months.
-assert.equal(getPlanAmountDh({ price_mad_cents: 10000, annual_price_mad_cents: null }, 'annual'), 960);
+for (const canonicalPlan of CANONICAL_PRICING_PLANS) {
+  const { id, is_fallback, ...fallbackContract } = fallbackByCode[canonicalPlan.plan_code];
+  assert.deepEqual(fallbackContract, canonicalPlan, `${canonicalPlan.plan_code} fallback must match backend seed`);
+}
 
-// Annual savings: crossed-out amount is 12 monthly payments, not one.
-assert.deepEqual(getAnnualSavings(plans.pro, 'annual'), { originalAmountDh: 4680, percentage: 20 });
-assert.deepEqual(getAnnualSavings(plans['pro+'], 'annual'), { originalAmountDh: 8352, percentage: 20 });
-assert.equal(getAnnualSavings(plans.pro, 'monthly'), null);
-assert.equal(getAnnualSavings(plans.free, 'annual'), null);
-assert.equal(getAnnualSavings(plans['pay-per-session'], 'annual'), null);
+assert.equal(fallbackByCode.trial.max_users, 20);
+assert.equal(fallbackByCode.trial.trial_days, 30);
+assert.equal(fallbackByCode.team.max_users, 25);
+assert.equal(fallbackByCode.team.price_cents, 3900);
+assert.equal(fallbackByCode.team.annual_price_cents, 34800);
+assert.equal(fallbackByCode.enterprise.max_users, 100);
+assert.equal(fallbackPlans.every((plan) => plan.max_sessions_per_month === null), true);
 
-// Display currencies: whole amounts, locale formatting.
-assert.equal(nbsp(formatPlanAmount(3744, 'MAD', 'fr')), '3 744 DH');
-assert.equal(formatPlanAmount(3744, 'MAD', 'en'), '3,744 DH');
-assert.equal(formatPlanAmount(390, 'EUR', 'fr'), '36 €');
-assert.equal(formatPlanAmount(3744, 'EUR', 'fr'), '344 €');
-assert.equal(formatPlanAmount(3744, 'USD', 'fr'), '374 $');
-assert.equal(formatPlanAmount(696, 'USD', 'en'), '$70');
-assert.equal(formatPlanAmount(390, 'EUR', 'en'), '€36');
-assert.equal(formatPlanAmount(6681.6, 'EUR', 'fr'), '615 €');
-
-// Display currency from the IP country: DH for Morocco, $ for the US, € otherwise.
-assert.equal(currencyFromCountry('MA'), 'MAD');
-assert.equal(currencyFromCountry('us'), 'USD');
-assert.equal(currencyFromCountry('FR'), 'EUR');
-assert.equal(currencyFromCountry('GB'), 'EUR');
-assert.equal(currencyFromCountry(null), 'EUR');
-assert.equal(currencyFromCountry('XX'), 'EUR');
-
-console.log('PASS pricing display');
+console.log('PASS canonical pricing contract');

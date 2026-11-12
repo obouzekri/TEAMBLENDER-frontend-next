@@ -24,21 +24,17 @@ import {
 } from '@/lib/account';
 import { clearStoredAuth } from '@/lib/auth';
 import useI18n from '@/lib/i18n/useI18n';
-import { fetchSessionsWithRetry } from '@/lib/api';
 import {
   ensureUserAvatarProfile,
   resolveUserAvatar,
   updateUserAvatarProfile,
 } from '@/lib/avatar-profile';
-import { getPricingPlanBadgeLabel, normalizePricingPlanName } from '@/lib/pricing-labels';
 import {
-  ACCOUNT_CURRENCY_OPTIONS,
   buildDhPriceByPlanId,
   buildInvoiceDownload,
-  formatAccountPrice,
   formatDhAmount,
   getAccountFeatureLabel,
-  getAccountPlanAmountDh,
+  getAccountPlanPriceLabel,
   getAccountPlanCopy,
   getPlanCycleLabel,
   getRenewalDate,
@@ -78,10 +74,8 @@ export default function AccountPage() {
   });
   const [selectedPlanId, setSelectedPlanId] = useState('');
   const [selectedBilling, setSelectedBilling] = useState('monthly');
-  const [selectedCurrency, setSelectedCurrency] = useState('MAD');
   const [planHistory, setPlanHistory] = useState([]);
   const [activeTab, setActiveTab] = useState('profile');
-  const [sessionsThisMonth, setSessionsThisMonth] = useState(0);
   const [checkoutModalOpen, setCheckoutModalOpen] = useState(false);
   const [checkoutPlan, setCheckoutPlan] = useState(null);
   const [openingCheckout, setOpeningCheckout] = useState(false);
@@ -94,36 +88,6 @@ export default function AccountPage() {
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
-
-  useEffect(() => {
-    if (!guard.allowed) return;
-    let cancelled = false;
-
-    fetchSessionsWithRetry()
-      .then((payload) => {
-        if (cancelled) return;
-        const source = Array.isArray(payload) ? payload : (payload?.sessions || payload?.data || []);
-        const list = Array.isArray(source) ? source : [];
-        const now = new Date();
-        const y = now.getFullYear();
-        const m = now.getMonth();
-        const count = list.filter((session) => {
-          const raw = session?.createdAt || session?.created_at || session?.updatedAt || null;
-          if (!raw) return false;
-          const parsed = new Date(raw);
-          if (Number.isNaN(parsed.getTime())) return false;
-          return parsed.getFullYear() === y && parsed.getMonth() === m;
-        }).length;
-        setSessionsThisMonth(count);
-      })
-      .catch(() => {
-        if (!cancelled) setSessionsThisMonth(0);
-      });
-
-    return () => {
-      cancelled = true;
-    };
-  }, [guard.allowed]);
 
   useEffect(() => {
     function readAccountLocation() {
@@ -146,7 +110,6 @@ export default function AccountPage() {
 
   useEffect(() => {
     const current = getStoredCurrentUser();
-
     if (!current) {
       window.location.replace(withLocalePath('/login'));
       return;
@@ -358,7 +321,7 @@ export default function AccountPage() {
       const slug = String(plan?.slug || '').toLowerCase();
       const name = String(plan?.name || '').toLowerCase();
       const cents = Number(plan?.price_cents || 0);
-      return slug === 'free' || name === 'free' || cents === 0;
+      return plan?.plan_code === 'trial' || slug === 'free' || name === 'free' || cents === 0;
     }) || null;
   }, [plans]);
 
@@ -373,7 +336,7 @@ export default function AccountPage() {
 
   const isPaywallEntry = entrySource === 'paywall';
   const isParticipantAccount = String(guard.user?.role || '').toLowerCase() === 'participant';
-  const currentPlanLabel = activePlan?.name || t('account.noPlan');
+  const currentPlanLabel = activePlan?.localized_content?.[locale]?.name || activePlan?.name || t('account.noPlan');
   const historyCount = planHistory.length;
   const roleLabel = isParticipantAccount
     ? t('account.roleParticipant')
@@ -382,20 +345,14 @@ export default function AccountPage() {
       : t('account.roleManager');
   const cycleLabel = getPlanCycleLabel(locale, me, activePlan);
   const renewalLabel = getRenewalDate(me, locale);
-  const planSeats = activePlan?.max_users || me?.max_users || 0;
-  const planSessions = activePlan?.max_sessions_per_month || me?.max_sessions_per_month || 0;
+  const planSeats = activePlan?.plan_code === 'enterprise'
+    ? (me?.participant_limit || activePlan?.max_users || 100)
+    : (activePlan?.max_users || me?.max_users || 0);
   const dhPriceByPlanId = useMemo(() => buildDhPriceByPlanId(plans), [plans]);
-  const sessionLimitValue = Number(planSessions || 0);
-  const usageLabel = sessionLimitValue > 0
-    ? `${formatCount(sessionsThisMonth, locale)}/${formatCount(sessionLimitValue, locale)} ${t('pricingPage.sessionsThisMonth')}`
-    : t('pricingPage.countSessionsThisMonth', { count: formatCount(sessionsThisMonth, locale) });
-  const sessionsConsumed = Number(sessionsThisMonth || 0);
-  const sessionsQuota = Number(planSessions || 0);
-  const sessionsUsagePercent = sessionsQuota > 0 ? Math.min(100, Math.round((sessionsConsumed / sessionsQuota) * 100)) : 0;
-  const isFreePlanActive = String(activePlan?.slug || activePlan?.name || '').toLowerCase().includes('free') || Number(activePlan?.price_cents || 0) === 0;
-  const usageSubtitle = isFreePlanActive
-    ? t('account.freeUsageSubtitle')
-    : t('account.fullCatalogUsageSubtitle', { count: formatCount(planSeats, locale) });
+  const isFreePlanActive = activePlan?.plan_code === 'trial'
+    || String(activePlan?.slug || activePlan?.name || '').toLowerCase().includes('free')
+    || Number(activePlan?.price_cents || 0) === 0;
+  const usageSubtitle = t('account.planUsageSummary', { count: formatCount(planSeats, locale) });
 
   const lastPaidHistory = useMemo(() => {
     if (!Array.isArray(planHistory) || planHistory.length === 0) return null;
@@ -416,10 +373,7 @@ export default function AccountPage() {
   }, [isFreePlanActive, lastPaidHistory, locale, t]);
 
   const recommendedPlan = useMemo(() => {
-    const bySlug = plans.find((plan) => String(plan.slug || '').toLowerCase() === 'pro');
-    if (bySlug) return bySlug;
-    const byName = plans.find((plan) => normalizePricingPlanName(plan).toLowerCase() === 'pro');
-    return byName || null;
+    return plans.find((plan) => plan.plan_code === 'team') || null;
   }, [plans]);
 
   const isProfileDirty = useMemo(() => {
@@ -601,9 +555,7 @@ export default function AccountPage() {
     }
 
     const targetPlan = plans.find((plan) => String(plan.id) === String(targetPlanId)) || null;
-    const amountDh = getAccountPlanAmountDh(targetPlan, selectedBilling, dhPriceByPlanId);
-
-    if (amountDh <= 0) {
+    if (Number(targetPlan?.price_cents || 0) <= 0) {
       setSelectedPlanId(String(targetPlanId));
       showSuccess('Formule Free sélectionnée.');
       return;
@@ -1021,33 +973,17 @@ export default function AccountPage() {
                     {t('account.monthly')}
                   </button>
                   <button type="button" className={selectedBilling === 'annual' ? 'is-active' : ''} onClick={() => setSelectedBilling('annual')}>
-                    <span>{t('account.annual')}</span><span className="account-pricing-savings">{t('account.savings')}</span>
+                    {t('account.annual')}
                   </button>
                 </div>
               </div>
-              <label className="account-pricing-control-group">
-                <span className="account-pricing-control-label">{t('account.currency')}</span>
-                <select value={selectedCurrency} onChange={(event) => setSelectedCurrency(event.target.value)}>
-                  {ACCOUNT_CURRENCY_OPTIONS.map((option) => (
-                    <option key={option.code} value={option.code}>{option.label}</option>
-                  ))}
-                </select>
-              </label>
             </div>
 
             <div className="account-usage-banner" aria-label="Résumé d’utilisation">
               <div className="account-usage-banner__head">
-                <p className="account-usage-banner__plan">{t('account.currentPlanLabel')} <strong>{isFreePlanActive ? 'Free' : (activePlan?.name || t('account.noActivePlan'))}</strong></p>
+                <p className="account-usage-banner__plan">{t('account.currentPlanLabel')} <strong>{currentPlanLabel}</strong></p>
               </div>
 
-              <div className="account-usage-progress">
-                <div className="account-usage-progress__meta">
-                  <span>{t('account.sessionsUsedThisMonth', { used: formatCount(sessionsConsumed, locale), quota: formatCount(sessionsQuota, locale) })}</span>
-                </div>
-                <div className="account-usage-progress__track" aria-hidden="true">
-                  <span className="account-usage-progress__fill" style={{ width: `${sessionsUsagePercent}%` }} />
-                </div>
-              </div>
               <p className="account-usage-banner__details">{usageSubtitle}</p>
               {billingStatusHint ? <p className="account-usage-banner__hint">{billingStatusHint}</p> : null}
             </div>
@@ -1056,46 +992,35 @@ export default function AccountPage() {
               <div className="account-plan-cards-grid account-plan-cards-grid--aligned">
                 {plans.map((plan, planIndex) => {
                   const planId = String(plan.id);
-                  const isPro = String(plan.slug || plan.name || '').toLowerCase().includes('pro');
-                  const isLastProCard = isPro && !plans.slice(planIndex + 1).some((nextPlan) => String(nextPlan.slug || nextPlan.name || '').toLowerCase().includes('pro'));
-                  const cardVariant = isLastProCard ? 'enterprise' : 'standard';
-                  const planCopy = getAccountPlanCopy(plan, locale, cardVariant);
+                    const planCopy = getAccountPlanCopy(plan, locale);
                   const isCurrent = planId === String(currentPlanId || '');
-                  const isRecommended = recommendedPlan && planId === String(recommendedPlan.id);
-                  const isFreePlan = String(plan.slug || plan.name || '').toLowerCase().includes('free') || Number(plan?.price_cents || 0) === 0;
+                    const isFreePlan = plan.plan_code === 'trial' || String(plan.slug || plan.name || '').toLowerCase().includes('free') || Number(plan?.price_cents || 0) === 0;
                   const currentPriceCents = Number(activePlan?.price_cents || 0);
                   const planPriceCents = Number(plan?.price_cents || 0);
                   const isUpgrade = isFreePlanActive ? !isFreePlan : planPriceCents > currentPriceCents;
-                  const isProPlus = normalizePricingPlanName(plan).toLowerCase() === 'pro+';
-                  const amountDh = getAccountPlanAmountDh(plan, selectedBilling, dhPriceByPlanId);
-                  const priceFmt = formatAccountPrice(amountDh, selectedCurrency);
-                  const priceSuffix = selectedBilling === 'annual' ? t('pricingPage.year') : t('account.monthlySuffix');
-                  const actionLabel = planCopy.ctaLabel || (isProPlus
-                    ? t('account.startFreeTrial')
-                    : (isUpgrade ? t('account.upgradeToPro') : t('account.changePlan')));
+                    const priceFmt = getAccountPlanPriceLabel(plan, selectedBilling, locale);
+                    const actionLabel = planCopy.ctaLabel || (isUpgrade ? t('account.upgradeToPro') : t('account.changePlan'));
                   return (
                     <article
                       key={planId}
                       className={[
                         'pricing-card account-pricing-card',
                         isCurrent ? 'account-pricing-card--current' : '',
-                        isRecommended ? 'pricing-card-featured account-pricing-card--recommended' : '',
-                        isPro ? 'account-pricing-card--pro' : '',
+                          plan.plan_code === 'enterprise' ? 'account-pricing-card--pro' : '',
                       ].filter(Boolean).join(' ')}
                     >
                       <div className="pricing-card-top">
                         {isCurrent ? <span className="account-current-badge">{t('account.yourPlan')}</span> : null}
                         <div className="account-pricing-title-row">
                           <p className="eyebrow">{planCopy.displayName}</p>
-                          {isRecommended ? <span className="pricing-badge account-pricing-badge">{getPricingPlanBadgeLabel(plan) || 'Plus populaire'}</span> : null}
+                            {planCopy.badge ? <span className="pricing-badge account-pricing-badge">{planCopy.badge}</span> : null}
                         </div>
                       </div>
                       <h3 className="pricing-price account-pricing-price">
                         {priceFmt}
-                        <span>{priceSuffix}</span>
                       </h3>
-                      <p className="pricing-tax-note">HT</p>
-                      {plan.description ? <p className="pricing-description">{plan.description}</p> : null}
+                      {selectedBilling === 'annual' && planCopy.priceSecondaryLabel ? <p className="pricing-tax-note">{planCopy.priceSecondaryLabel}</p> : null}
+                      {planCopy.description ? <p className="pricing-description">{planCopy.description}</p> : null}
                       {Array.isArray(planCopy.features) && planCopy.features.length > 0 ? (
                         <ul className="pricing-feature-list">
                           {planCopy.features.map((item, i) => (
@@ -1155,7 +1080,7 @@ export default function AccountPage() {
         >
           <div className="account-checkout-modal-content">
             <p>
-              {`Vous avez sélectionné ${checkoutPlan?.name || 'votre formule'} (${formatAccountPrice(getAccountPlanAmountDh(checkoutPlan, selectedBilling, dhPriceByPlanId), selectedCurrency)} HT).`}
+              {`Vous avez sélectionné ${checkoutPlan?.localized_content?.[locale]?.name || checkoutPlan?.name || 'votre formule'} (${getAccountPlanPriceLabel(checkoutPlan, selectedBilling, locale)}).`}
             </p>
             <div className="account-checkout-modal-actions">
               <button type="button" className="btn-primary" onClick={() => handleStartPlanCheckout('paypal')} disabled={openingCheckout}>

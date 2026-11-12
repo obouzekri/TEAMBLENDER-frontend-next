@@ -5,236 +5,36 @@ import Link from 'next/link';
 import TopNav from '@/components/TopNav';
 import Footer from '@/components/Footer';
 import { getApiUrl } from '@/lib/config';
-import { startBillingCheckout } from '@/lib/account';
 import useI18n from '@/lib/i18n/useI18n';
-import { getCheckoutRedirectUrl } from '@/lib/billing-utils';
-import { getPricingPlanBadgeLabel, getPricingPlanVariantLabel, normalizePricingPlanName } from '@/lib/pricing-labels';
 import { getPricingPlansFallback } from '@/lib/pricingFallbackPlans';
-import { DEFAULT_PRICING_CURRENCY, PRICING_CURRENCY_OPTIONS, formatPlanAmount, getAnnualSavings, getPlanAmountDh } from '@/lib/pricing-display.mjs';
-import { translate, pickLocalized } from '@/lib/i18n';
 
-function getStoredCurrentUser() {
-  if (typeof window === 'undefined') return null;
-  try {
-    const raw = sessionStorage.getItem('currentUser');
-    return raw ? JSON.parse(raw) : null;
-  } catch {
-    return null;
-  }
+function getPlanContent(plan, locale) {
+  return plan?.localized_content?.[locale] || plan?.localized_content?.fr || {};
 }
 
-function getPricingPeriodSuffix(plan, selectedBilling, locale = 'fr') {
-  const billingCycle = String(plan?.billing_cycle || '').trim().toLowerCase();
+function getPlanPriceLabel(plan, content, selectedBilling, locale) {
+  const isAnnual = selectedBilling === 'annual';
+  const configuredLabel = isAnnual ? content.price_annual_label : content.price_monthly_label;
+  if (configuredLabel || content.price_label) return configuredLabel || content.price_label;
 
-  if (billingCycle === 'one_time') {
-    return '/session';
-  }
-
-  if (selectedBilling === 'annual' || selectedBilling === 'yearly') {
-    return translate(locale, 'pricingPage.year');
-  }
-
-  return translate(locale, 'pricingPage.month');
+  const cents = isAnnual && plan.annual_price_cents != null
+    ? Number(plan.annual_price_cents)
+    : Number(plan.price_cents || 0);
+  return new Intl.NumberFormat(locale, {
+    style: 'currency',
+    currency: plan.currency || 'EUR',
+    maximumFractionDigits: 2,
+  }).format(cents / 100);
 }
 
-function getPricingPlanCopy(plan, selectedBilling, cardVariant = 'standard', locale = 'fr') {
-  const normalizedName = normalizePricingPlanName(plan);
-  const planKey = normalizedName.toLowerCase();
-  const billingCycle = String(plan?.billing_cycle || '').trim().toLowerCase();
-  const isOneTimeSession = billingCycle === 'one_time';
-
-  if (planKey === 'free') {
-    return {
-      displayName: 'Free',
-      priceSuffix: getPricingPeriodSuffix(plan, selectedBilling, locale),
-      meta: [],
-      features: pickLocalized({ en: [
-        '1 user (admin/manager)',
-        '1 session / month - max 6 participants',
-        'Limited catalog access (4 challenges)',
-        'No export',
-        'No advanced insights',
-      ], fr: [
-        '1 utilisateur (admin/manager)',
-        '1 session / mois · max 6 participants',
-        'Accès catalogue limité (4 challenges)',
-        'Pas d’export',
-        'Pas d’analyses avancées',
-      ], ar: [
-        'مستخدم واحد (مسؤول أو مدير)',
-        'جلسة واحدة شهريًا، بحد أقصى 6 مشاركين',
-        'وصول محدود إلى الكتالوج (4 تحديات)',
-        'لا يتضمن التصدير',
-        'لا يتضمن التحليلات المتقدمة',
-      ] }, locale),
-      ctaLabel: translate(locale, 'pricingPage.startForFree'),
-    };
-  }
-
-  if (planKey === 'pay-per-session') {
-    return {
-      displayName: isOneTimeSession ? translate(locale, 'pricingPage.payPerSession') : translate(locale, 'pricingPage.sessionPackage'),
-      priceSuffix: getPricingPeriodSuffix(plan, selectedBilling, locale),
-      meta: [],
-      features: pickLocalized({ en: [
-        '1 user max',
-        '6 participants max',
-        '1 session included',
-        'Full catalog access',
-        'Results & scoring',
-        'Manager dashboard',
-        'Live facilitation',
-        'Insights',
-      ], fr: [
-        '1 utilisateur max',
-        '6 participants max',
-        '1 session incluse',
-        'Accès catalogue complet',
-        'Résultats et scores',
-        'Espace manager',
-        'Animation en direct',
-        'Analyses avancées',
-      ], ar: [
-        'مستخدم واحد كحد أقصى',
-        '6 مشاركين كحد أقصى',
-        'جلسة واحدة مشمولة',
-        'وصول كامل إلى الكتالوج',
-        'النتائج والنقاط',
-        'لوحة تحكم المدير',
-        'إدارة الجلسة مباشرة',
-        'التحليلات المتقدمة',
-      ] }, locale),
-      ctaLabel: translate(locale, 'pricingPage.buyASession'),
-    };
-  }
-
-  if (planKey === 'pro') {
-    if (cardVariant === 'enterprise') {
-      return {
-        displayName: 'Pro +',
-        priceSuffix: getPricingPeriodSuffix(plan, selectedBilling, locale),
-        meta: [],
-        features: pickLocalized({ en: [
-          '5 users (admins/managers)',
-          'Up to 150 participants, split into teams of 4 to 6',
-          '60 sessions',
-          'All features included in the PRO plan',
-          'Multi-account manager management',
-        ], fr: [
-          '5 utilisateurs (admins/managers)',
-          'Jusqu’à 150 participants, répartis en équipes de 4 à 6',
-          '60 sessions',
-          'Toutes les fonctionnalités incluses dans l’offre PRO',
-          'Gestion multi-comptes managers',
-        ], ar: [
-          '5 مستخدمين (مسؤولين أو مديرين)',
-          'حتى 150 مشاركًا، موزعين على فرق من 4 إلى 6',
-          '60 جلسة',
-          'جميع مزايا باقة PRO',
-          'إدارة حسابات متعددة للمديرين',
-        ] }, locale),
-        ctaLabel: translate(locale, 'pricingPage.subscribe'),
-      };
-    }
-
-    return {
-      displayName: getPricingPlanVariantLabel(plan, cardVariant),
-      priceSuffix: getPricingPeriodSuffix(plan, selectedBilling, locale),
-      meta: [],
-      features: pickLocalized({ en: [
-        '1 user (admin/manager)',
-        'Up to 30 participants, split into teams of 4 to 6',
-        '10 sessions',
-        'Full catalog access',
-        'Results & scoring',
-        'Manager dashboard',
-        'Live facilitation',
-        'Insights',
-      ], fr: [
-        '1 utilisateur (admin/manager)',
-        'Jusqu’à 30 participants, répartis en équipes de 4 à 6',
-        '10 sessions',
-        'Accès catalogue complet',
-        'Résultats et scores',
-        'Espace manager',
-        'Animation en direct',
-        'Analyses avancées',
-      ], ar: [
-        'مستخدم واحد (مسؤول أو مدير)',
-        'حتى 30 مشاركًا، موزعين على فرق من 4 إلى 6',
-        '10 جلسات',
-        'وصول كامل إلى الكتالوج',
-        'النتائج والنقاط',
-        'لوحة تحكم المدير',
-        'إدارة الجلسة مباشرة',
-        'التحليلات المتقدمة',
-      ] }, locale),
-      highlightedLabel: getPricingPlanBadgeLabel(plan, cardVariant) || translate(locale, 'pricingPage.mostPopular'),
-      ctaLabel: translate(locale, 'pricingPage.subscribe'),
-      ctaHref: cardVariant === 'enterprise' ? '/contact' : null,
-    };
-  }
-
-  if (planKey === 'pro+') {
-    return {
-      displayName: 'Pro +',
-      priceSuffix: getPricingPeriodSuffix(plan, selectedBilling, locale),
-      meta: [],
-      features: pickLocalized({ en: [
-        '5 users (admins/managers)',
-        'Up to 150 participants, split into teams of 4 to 6',
-        '60 sessions',
-        'All features included in the PRO plan',
-        'Multi-account manager management',
-      ], fr: [
-        '5 utilisateurs (admins/managers)',
-        'Jusqu’à 150 participants, répartis en équipes de 4 à 6',
-        '60 sessions',
-        'Toutes les fonctionnalités incluses dans l’offre PRO',
-        'Gestion multi-comptes managers',
-      ], ar: [
-        '5 مستخدمين (مسؤولين أو مديرين)',
-        'حتى 150 مشاركًا، موزعين على فرق من 4 إلى 6',
-        '60 جلسة',
-        'جميع مزايا باقة PRO',
-        'إدارة حسابات متعددة للمديرين',
-      ] }, locale),
-      ctaLabel: translate(locale, 'pricingPage.subscribe'),
-    };
-  }
-
-  return {
-    displayName: String(plan?.name || 'Plan').trim() || 'Plan',
-    priceSuffix: getPricingPeriodSuffix(plan, selectedBilling),
-    meta: [],
-    features: Array.isArray(plan?.features) ? plan.features : [],
-  };
-}
-
-function buildPricingCards(plans, selectedBilling, locale = 'fr') {
-  let proVariantIndex = 0;
-
+function buildPricingCards(plans, selectedBilling, locale) {
   return plans.map((plan) => {
-    const normalizedName = normalizePricingPlanName(plan).toLowerCase();
-    let cardVariant = 'standard';
-
-    if (normalizedName === 'pro') {
-      proVariantIndex += 1;
-      if (proVariantIndex > 1) {
-        cardVariant = 'enterprise';
-      }
-    }
-
-    const annualSavings = getAnnualSavings(plan, selectedBilling);
-
+    const content = getPlanContent(plan, locale);
     return {
       ...plan,
-      cardVariant,
-      isFeatured: normalizedName === 'pro' && cardVariant === 'standard',
-      displayAmountDh: getPlanAmountDh(plan, selectedBilling),
-      originalAmountDh: annualSavings?.originalAmountDh ?? null,
-      discountPercentage: annualSavings?.percentage ?? 0,
-      planCopy: getPricingPlanCopy(plan, selectedBilling, cardVariant, locale),
+      content,
+      priceLabel: getPlanPriceLabel(plan, content, selectedBilling, locale),
+      isFeatured: Boolean(plan.highlighted),
     };
   });
 }
@@ -255,14 +55,12 @@ function getDarkModeHeadingStyle() {
   return { color: 'var(--text-strong, #e2e8f0)' };
 }
 
-export default function PricingPageClient({ initialPlans = [], initialCurrency = DEFAULT_PRICING_CURRENCY }) {
+export default function PricingPageClient({ initialPlans = [] }) {
   const { locale, t, withLocalePath } = useI18n();
   const [plans, setPlans] = useState(initialPlans);
   const [loading, setLoading] = useState(initialPlans.length === 0);
   const [error, setError] = useState('');
   const [selectedBilling, setSelectedBilling] = useState('monthly');
-  const [selectedCurrency, setSelectedCurrency] = useState(initialCurrency);
-  const [checkoutPlanId, setCheckoutPlanId] = useState('');
 
   const hasInitialLivePlans = initialPlans.some((plan) => !plan?.is_fallback);
   const hasFallbackPlans = useMemo(() => plans.some((plan) => Boolean(plan?.is_fallback)), [plans]);
@@ -316,48 +114,6 @@ export default function PricingPageClient({ initialPlans = [], initialCurrency =
 
   const displayedPlans = useMemo(() => buildPricingCards(sortedPlans, selectedBilling, locale), [sortedPlans, selectedBilling, locale]);
 
-  async function handleProviderCheckout(plan, provider) {
-    const currentUser = getStoredCurrentUser();
-
-    if (!currentUser) {
-      window.location.assign(withLocalePath(`/login?next=${encodeURIComponent('/pricing')}`));
-      return;
-    }
-
-    setCheckoutPlanId(String(plan?.id || ''));
-    setError('');
-
-    try {
-      const response = await startBillingCheckout({
-        pricing_plan_id: plan.id,
-        method: provider,
-        // A single session has no annual price: never send the annual cycle for it.
-        billing_cycle: String(plan?.billing_cycle || '').toLowerCase() === 'one_time' ? 'monthly' : selectedBilling,
-      });
-
-      const checkoutUrl = getCheckoutRedirectUrl(response);
-      if (checkoutUrl) {
-        window.location.assign(checkoutUrl);
-        return;
-      }
-
-      if (response?.mode === 'manual_pro_request') {
-        window.location.assign(withLocalePath(`/account?source=pricing&billing=manual&reference=${encodeURIComponent(String(response?.reference || ''))}`));
-        return;
-      }
-
-      throw new Error(provider === 'payoneer'
-        ? t('pricingPage.payoneerCheckoutIsTemporarilyUnavailable')
-        : t('pricingPage.paypalCheckoutIsTemporarilyUnavailable'));
-    } catch (err) {
-      setError(err.message || (provider === 'payoneer'
-        ? t('pricingPage.payoneerPaymentIsCurrentlyUnavailable')
-        : t('pricingPage.paypalPaymentIsCurrentlyUnavailable')));
-    } finally {
-      setCheckoutPlanId('');
-    }
-  }
-
   return (
     <>
       <TopNav />
@@ -392,24 +148,9 @@ export default function PricingPageClient({ initialPlans = [], initialCurrency =
                     aria-pressed={selectedBilling === 'annual'}
                     onClick={() => setSelectedBilling('annual')}
                   >
-                    <span>{t('pricingPage.yearly')}</span>
-                    <span className="toggle-savings-badge">-20%</span>
+                    {t('pricingPage.yearly')}
                   </button>
                 </div>
-              </div>
-
-              <div className="control-section pricing-controls__currency">
-                <label htmlFor="pricing-currency" style={getDarkModeTextStyle()}>{t('account.displayCurrency')}</label>
-                <select
-                  id="pricing-currency"
-                  className="currency-select currency-select--compact"
-                  value={selectedCurrency}
-                  onChange={(event) => setSelectedCurrency(event.target.value)}
-                >
-                  {PRICING_CURRENCY_OPTIONS.map((option) => (
-                    <option key={option.code} value={option.code}>{option.label}</option>
-                  ))}
-                </select>
               </div>
             </div>
           </section>
@@ -452,80 +193,47 @@ export default function PricingPageClient({ initialPlans = [], initialCurrency =
 
         {!loading && sortedPlans.length > 0 ? (
           <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
-            <section className="pricing-grid reveal-up grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-4 xl:gap-6" aria-label={t('pricingPage.availablePlans')} style={{ background: 'transparent' }}>
+            <section className="pricing-grid reveal-up grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3 xl:gap-6" aria-label={t('pricingPage.availablePlans')} style={{ background: 'transparent' }}>
             {displayedPlans.map((plan) => {
-              const isFallbackPlan = Boolean(plan?.is_fallback);
-              const isContactPlan = Boolean(plan.planCopy.ctaHref) || isFallbackPlan;
-              const ctaLabel = isContactPlan
-                ? t('pricingPage.talkToAnExpert')
-                : (plan.planCopy.ctaLabel || t('pricingPage.payNow'));
-              const ctaHref = isContactPlan ? withLocalePath(plan.planCopy.ctaHref || '/contact') : null;
-                  const badgeLabel = plan.isFeatured ? t('pricingPage.mostPopular') : '';
+              const content = plan.content;
+              const planName = content.name || plan.name;
+              const ctaHref = plan.plan_code === 'trial' ? '/signup' : '/contact';
 
               return (
               <article key={String(plan.id)} className={`feature-card pricing-card flex h-full flex-col${plan.isFeatured ? ' pricing-card-featured' : ''}`}>
                 <div className="pricing-card-top">
-                  {plan.discountPercentage > 0 ? (
-                    <span className="pricing-discount-badge">{t('pricingPage.saveDiscountpercentage', { discountPercentage: plan.discountPercentage })}</span>
-                  ) : null}
                   <div className="pricing-plan-title-row">
-                    <p className="eyebrow" style={getDarkModeTextStyle()}>{plan.planCopy.displayName}</p>
-                    {badgeLabel ? <span className="pricing-badge pricing-badge--featured">{badgeLabel}</span> : null}
+                    <p className="eyebrow" style={getDarkModeTextStyle()}>{planName}</p>
+                    {content.badge ? <span className="pricing-badge pricing-badge--featured">{content.badge}</span> : null}
                   </div>
                 </div>
 
                 <h2 className="pricing-price" style={getDarkModeHeadingStyle()}>
-                  {plan.planCopy.priceLabel || formatPlanAmount(plan.displayAmountDh, selectedCurrency, locale)}
-                  <span style={getDarkModeTextStyle()}>{plan.planCopy.priceSuffix}</span>
+                  {plan.priceLabel}
                 </h2>
-                {!plan.planCopy.priceLabel && plan.originalAmountDh ? (
-                  <p className="pricing-original" style={getDarkModeTextStyle()}>
-                    <s>{formatPlanAmount(plan.originalAmountDh, selectedCurrency, locale)}</s>
-                  </p>
+                {selectedBilling === 'annual' && content.price_secondary_label ? (
+                  <p className="pricing-original" style={getDarkModeTextStyle()}>{content.price_secondary_label}</p>
                 ) : null}
-                {plan.description ? <p className="pricing-description" style={getDarkModeTextStyle()}>{plan.description}</p> : null}
+                {content.description ? <p className="pricing-description" style={getDarkModeTextStyle()}>{content.description}</p> : null}
 
-                {Array.isArray(plan.planCopy.features) && plan.planCopy.features.length > 0 ? (
+                {Array.isArray(content.features) && content.features.length > 0 ? (
                   <ul className="pricing-feature-list">
-                    {plan.planCopy.features.map((item, index) => (
+                    {content.features.map((item, index) => (
                       <li key={`${plan.id}-${index}`} style={getDarkModeTextStyle()}>{item}</li>
                     ))}
                   </ul>
                 ) : null}
 
-                <div className="pricing-meta-row">
-                  {plan.planCopy.meta.map((item, index) => (
-                    <span key={`${plan.id}-meta-${index}`} style={getDarkModeTextStyle()}>{item}</span>
-                  ))}
-                  {plan.trial_days ? <span>{plan.trial_days} {t('pricingPage.trialDays')}</span> : null}
-                  {plan.support_level ? <span>{t('pricingPage.support')} {plan.support_level}</span> : null}
-                </div>
-
                 <div className="pricing-actions pricing-actions--card mt-auto">
-                  {isContactPlan ? (
-                    <Link href={ctaHref || withLocalePath('/contact')} className="btn-outline pricing-cta pricing-cta--enterprise cta-surface">
-                      {ctaLabel}
-                    </Link>
-                  ) : (
-                    <button
-                      type="button"
-                      className={`btn-primary pricing-cta pricing-cta--main cta-surface${plan.isFeatured ? ' pricing-cta--featured' : ''}`}
-                      onClick={() => handleProviderCheckout(plan, 'payoneer')}
-                      disabled={checkoutPlanId === String(plan.id)}
-                    >
-                      {checkoutPlanId === String(plan.id) ? t('pricingPage.openingCheckout') : ctaLabel}
-                    </button>
-                  )}
+                  <Link href={withLocalePath(ctaHref)} className="btn-primary pricing-cta pricing-cta--main cta-surface">
+                    {content.cta_label || plan.cta_label}
+                  </Link>
                 </div>
               </article>
             );
             })}
             </section>
-            <p className="pricing-terms-note" style={getDarkModeTextStyle()}>
-              {t('pricingPage.pricesIncludeVatNoCommitmentCancel')}
-              <a href="mailto:contact@teamblender.io">contact@teamblender.io</a>
-              {t('pricingPage.effectiveAtTheEndOfThe')}
-            </p>
+            <p className="pricing-terms-note" style={getDarkModeTextStyle()}>{t('pricingPage.unlimitedSessionsNote')}</p>
           </div>
         ) : null}
 

@@ -407,6 +407,22 @@ export default function ManagerHome({
     terminee: sessions.filter((s) => s.status === 'terminee').length,
   }), [sessions]);
 
+  const distinctParticipantCount = useMemo(() => {
+    const identities = new Set();
+    members.forEach((member) => {
+      const email = String(member?.email || '').replace(/\s+/gu, '').toLowerCase();
+      identities.add(email || `participant:${member?.id}`);
+    });
+    return identities.size;
+  }, [members]);
+  const participantLimit = Number(
+    guard.user?.participant_limit
+    || guard.user?.pricing_plan?.max_users
+    || guard.user?.max_users
+    || 0
+  );
+  const participantLimitReached = participantLimit > 0 && distinctParticipantCount >= participantLimit;
+
   const visibleSessions = useMemo(() => sessions, [sessions]);
   const hasActiveSessionFilters = useMemo(() => (
     sessionStatusFilter !== 'all'
@@ -1325,9 +1341,15 @@ export default function ManagerHome({
 
           <div className="participants-panel-kpis" aria-label={t('managerHome.participantSummary')}>
             <span>
-              {t('managerHome.participantsTotal', { count: members.length })}
+              {t('managerHome.participantsTotal', { count: distinctParticipantCount })}
             </span>
           </div>
+
+          {participantLimitReached ? (
+            <p className="form-error participant-limit-alert" role="alert" aria-live="assertive">
+              {t('managerHome.teamParticipantLimitReached')}
+            </p>
+          ) : null}
 
           {loadingMembers ? (
             <p>{t('managerHome.loadingParticipants')}</p>
