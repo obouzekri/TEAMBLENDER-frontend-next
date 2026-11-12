@@ -14,8 +14,7 @@ export const metadata = {
 const COPY = {
   fr: {
     title: 'Mentions légales',
-    publisher: 'Éditeur : TeamBlender est un projet édité par [Prénom Nom], entrepreneur individuel en cours d’immatriculation (Maroc).',
-    director: 'Directeur de la publication : [Prénom Nom].',
+    publisher: 'Éditeur : TeamBlender',
     contact: 'Contact :',
     hosting: 'Hébergement : le site et ses données sont hébergés par Railway Corporation, San Francisco, Californie, États-Unis',
     intellectualProperty: 'Propriété intellectuelle : les contenus du site (textes, défis, visuels) et la marque TeamBlender sont protégés. Toute reproduction sans autorisation est interdite.',
@@ -24,8 +23,7 @@ const COPY = {
   },
   en: {
     title: 'Legal notice',
-    publisher: 'Publisher: TeamBlender is a project published by [First name Last name], a sole proprietor in the process of registration (Morocco).',
-    director: 'Publication director: [First name Last name].',
+    publisher: 'Publisher: TeamBlender',
     contact: 'Contact:',
     hosting: 'Hosting: the website and its data are hosted by Railway Corporation, San Francisco, California, United States',
     intellectualProperty: 'Intellectual property: the website content (texts, challenges, visuals) and the TeamBlender brand are protected. Any reproduction without permission is prohibited.',
@@ -34,8 +32,7 @@ const COPY = {
   },
   ar: {
     title: 'الإشعار القانوني',
-    publisher: 'الناشر: TeamBlender مشروع ينشره [الاسم الشخصي والعائلي]، وهو صاحب مشروع فردي في طور التسجيل (المغرب).',
-    director: 'مدير النشر: [الاسم الشخصي والعائلي].',
+    publisher: 'الناشر: TeamBlender',
     contact: 'التواصل:',
     hosting: 'الاستضافة: يستضيف الموقع وبياناته Railway Corporation، سان فرانسيسكو، كاليفورنيا، الولايات المتحدة',
     intellectualProperty: 'الملكية الفكرية: محتويات الموقع (النصوص والتحديات والعناصر المرئية) والعلامة TeamBlender محمية. يُحظر أي نسخ دون إذن.',
@@ -56,7 +53,6 @@ export default async function MentionsLegalesPage() {
         <h1>{copy.title}</h1>
         <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem', marginTop: '2rem', lineHeight: 1.7 }}>
           <p>{copy.publisher}</p>
-          <p>{copy.director}</p>
           <p>{copy.contact} <a href="mailto:contact@teamblender.io" dir="ltr">contact@teamblender.io</a></p>
           <p>{copy.hosting} — <a href="https://railway.com" dir="ltr">https://railway.com</a></p>
           <p>{copy.intellectualProperty}</p>
