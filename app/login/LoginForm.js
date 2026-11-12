@@ -103,7 +103,8 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
   const joinSessionCodeRequired = !normalizedRequestedInviteToken;
   const canSubmitJoin = (Boolean(normalizedRequestedInviteToken) || String(joinSessionCode || '').trim().length > 0)
     && String(joinFirstName || '').trim().length > 0
-    && String(joinLastName || '').trim().length > 0;
+    && String(joinLastName || '').trim().length > 0
+    && looksLikeEmail(String(joinEmail || '').replace(/\s+/gu, ''));
 
   useEffect(() => {
     ensureCsrfToken().catch(() => {});
@@ -373,12 +374,12 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
     const email = String(joinEmail || '').trim();
     const inviteToken = normalizedRequestedInviteToken;
 
-    if ((!sessionCode && !inviteToken) || !firstName || !lastName) {
+    if ((!sessionCode && !inviteToken) || !firstName || !lastName || !email) {
       setJoinMessage(t('auth.sessionCodeFirstNameAndLast'));
       return;
     }
 
-    if (email && !looksLikeEmail(email)) {
+    if (!looksLikeEmail(email)) {
       setJoinMessage(t('auth.enterAValidEmailAddress'));
       return;
     }
@@ -396,11 +397,14 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
       if (!res.ok) {
         const codeRejected = res.status === 404 || data?.code === 'SESSION_NOT_FOUND';
         const loginRequired = data?.code === 'JOIN_LOGIN_REQUIRED';
+        const otherOrganization = data?.code === 'PARTICIPANT_EMAIL_OTHER_ORGANIZATION';
         setJoinCodeInvalid(codeRejected);
         setJoinMessage(codeRejected
           ? t('auth.invalidCode')
           : loginRequired
             ? t('auth.thisParticipantAccountIsProtectedSign')
+            : otherOrganization
+              ? t('auth.emailUsedInAnotherOrganization')
             : (data?.error || t('auth.unableToJoinSessionRightNow')));
         return;
       }
@@ -605,28 +609,27 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
                   />
                 </AuthField>
               </div>
-              {!normalizedRequestedInviteToken ? (
-                <AuthField
+              <AuthField
+                id="join-email"
+                label={t('auth.workEmail')}
+                help={(
+                  <span id="join-email-help" className="auth-field-help">
+                    {t('auth.professionalEmailForTeamIdentity')}
+                  </span>
+                )}
+              >
+                <input
                   id="join-email"
-                  label={t('auth.emailOptional')}
-                  help={(
-                    <span id="join-email-help" className="auth-field-help">
-                      {t('auth.addYourEmailToAccessYour')}
-                    </span>
-                  )}
-                >
-                  <input
-                    id="join-email"
-                    type="email"
-                    value={joinEmail}
-                    onChange={(e) => setJoinEmail(e.target.value)}
-                    placeholder={t('auth.sophieCompanyCom')}
-                    autoComplete="email"
-                    className="join-field-input"
-                    aria-describedby="join-email-help"
-                  />
-                </AuthField>
-              ) : null}
+                  type="email"
+                  value={joinEmail}
+                    onChange={(e) => setJoinEmail(e.target.value.replace(/\s+/gu, ''))}
+                  placeholder={t('auth.sophieCompanyCom')}
+                  autoComplete="email"
+                  className="join-field-input"
+                  aria-describedby="join-email-help"
+                  required
+                />
+              </AuthField>
               <button
                 type="submit"
                 className="btn-primary wide login-submit-btn join-submit-btn"

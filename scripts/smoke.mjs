@@ -111,16 +111,24 @@ async function checkPages(sessionId, sessionName, token, user) {
   const page = await context.newPage();
 
   try {
+    const cookieLogin = await context.request.post(`${BACKEND_URL}/api/auth/login`, {
+      data: { email: MANAGER_EMAIL, password: MANAGER_PASSWORD },
+    });
+    assert(cookieLogin.ok(), `Browser-context login failed (${cookieLogin.status()})`);
+
     await page.goto(`${FRONTEND_URL}/login`, { waitUntil: 'domcontentloaded' });
 
     await page.evaluate(({ tokenValue, userValue }) => {
-      localStorage.setItem('jwt', tokenValue);
-      sessionStorage.setItem('jwt', tokenValue);
       sessionStorage.setItem('currentUser', JSON.stringify(userValue));
     }, { tokenValue: token, userValue: user });
 
     await page.goto(`${FRONTEND_URL}/home`, { waitUntil: 'domcontentloaded' });
-    await page.waitForSelector('text=ESPACE MANAGER', { timeout: 15000 });
+    try {
+      await page.waitForSelector('text=ESPACE MANAGER', { timeout: 15000 });
+    } catch (error) {
+      const bodyText = await page.locator('body').innerText().catch(() => 'unavailable');
+      throw new Error(`Home smoke failed. url=${page.url()} body=${bodyText.slice(0, 400)} ${error.message}`);
+    }
 
     await page.goto(`${FRONTEND_URL}/session-builder`, { waitUntil: 'domcontentloaded' });
     await page.waitForSelector('h1:has-text("Créer une session")', { timeout: 15000 });

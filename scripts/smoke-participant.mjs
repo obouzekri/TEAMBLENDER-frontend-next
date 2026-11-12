@@ -193,7 +193,12 @@ async function checkParticipantPage({ sessionId, sessionCode, managerToken }) {
     // Joining through the browser context keeps the auth cookie that the participant page relies on.
     assert(sessionCode, 'Session creation did not return a join code');
     const join = await context.request.post(`${BACKEND_URL}/api/auth/join-participant`, {
-      data: { sessionCode, first_name: 'Smoke', last_name: 'Participant' },
+      data: {
+        sessionCode,
+        first_name: 'Smoke',
+        last_name: 'Participant',
+        email: `smoke.participant.${Date.now()}@example.test`,
+      },
     });
     assert(join.ok(), `Participant join failed (${join.status()})`);
     const joined = await join.json();
