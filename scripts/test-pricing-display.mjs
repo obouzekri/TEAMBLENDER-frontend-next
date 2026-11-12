@@ -26,13 +26,27 @@ if (existsSync(backendConfig)) {
 
 assert.equal(fallbackByCode.trial.max_users, 20);
 assert.equal(fallbackByCode.trial.trial_days, 30);
-assert.equal(fallbackByCode.team.max_users, 25);
+// Trial: 5 sessions in total over the trial (the backend reads this field as a total for `trial`).
+assert.equal(fallbackByCode.trial.max_sessions_per_month, 5);
+assert.equal(fallbackByCode.team.name, 'Essentiel');
+assert.equal(fallbackByCode.team.max_users, 40);
+assert.equal(fallbackByCode.team.max_sessions_per_month, null);
 assert.equal(fallbackByCode.team.price_cents, 3900);
 assert.equal(fallbackByCode.team.annual_price_cents, 34800);
+assert.equal(fallbackByCode.enterprise.name, 'Organisation');
 assert.equal(fallbackByCode.enterprise.max_users, 100);
+assert.equal(fallbackByCode.enterprise.max_sessions_per_month, null);
 assert.equal(fallbackByCode.enterprise.price_cents, 180000);
 assert.equal(fallbackPlans.every((plan) => plan.currency === 'EUR'), true);
-assert.equal(fallbackPlans.every((plan) => plan.max_sessions_per_month === null), true);
+// Every card opens with "all challenges" and lists the end-of-session summary.
+for (const plan of fallbackPlans) {
+  for (const locale of ['fr', 'en', 'ar']) {
+    const features = plan.localized_content[locale].features;
+    assert.equal(features.length >= 5, true, `${plan.plan_code}/${locale} lists the comparison lines`);
+  }
+  assert.equal(plan.localized_content.fr.features[0], 'Tous les défis');
+  assert.equal(plan.localized_content.fr.features.includes('Synthèse à la fin de chaque session'), true);
+}
 assert.equal(fallbackPlans.every((plan) => ['fr', 'en', 'ar'].every((locale) => plan.localized_content[locale])), true);
 
 console.log('PASS canonical pricing contract');

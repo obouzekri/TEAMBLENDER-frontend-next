@@ -36,6 +36,7 @@ function getPlanCtaHref(plan) {
 }
 
 const FAQ_ITEMS = [
+  { q: 'pricingPage.faqSessionQ', a: 'pricingPage.faqSessionA' },
   { q: 'pricingPage.faqParticipantQ', a: 'pricingPage.faqParticipantA' },
   { q: 'pricingPage.faqTrialEndQ', a: 'pricingPage.faqTrialEndA' },
   { q: 'pricingPage.faqPaymentQ', a: 'pricingPage.faqPaymentA' },
@@ -145,19 +146,6 @@ export default function PricingPageClient({ initialPlans = [] }) {
             </p>
           </div>
         </section>
-
-        {!loading && sortedPlans.length > 0 ? (
-          <section className="pricing-how reveal-up" aria-label={t('pricingPage.howTitle')}>
-            <ol className="pricing-how__steps">
-              <li><strong>20</strong><span style={getDarkModeTextStyle()}>{t('pricingPage.howStep1')}</span></li>
-              <li aria-hidden="true" className="pricing-how__arrow">→</li>
-              <li><strong>4 × 5</strong><span style={getDarkModeTextStyle()}>{t('pricingPage.howStep2')}</span></li>
-              <li aria-hidden="true" className="pricing-how__arrow">→</li>
-              <li><strong>1</strong><span style={getDarkModeTextStyle()}>{t('pricingPage.howStep3')}</span></li>
-            </ol>
-            <p className="pricing-how__note" style={getDarkModeTextStyle()}>{t('pricingPage.joinNote')}</p>
-          </section>
-        ) : null}
 
         {/* Billing cycle selector */}
         {!loading && sortedPlans.length > 0 ? (
@@ -282,7 +270,7 @@ export default function PricingPageClient({ initialPlans = [] }) {
             );
             })}
             </section>
-            <p className="pricing-terms-note" style={getDarkModeTextStyle()}>{t('pricingPage.unlimitedSessionsNote')}</p>
+            <p className="pricing-terms-note" style={getDarkModeTextStyle()}>{t('pricingPage.plansNote')}</p>
           </div>
         ) : null}
 
@@ -391,61 +379,6 @@ export default function PricingPageClient({ initialPlans = [] }) {
           border: 0;
           background: transparent;
           box-shadow: none;
-        }
-
-        .pricing-page .pricing-how {
-          width: min(100%, 60rem);
-          margin: 0 auto 1.75rem;
-          padding: 1.1rem 1.25rem;
-          border: 1px solid rgba(47, 98, 255, 0.14);
-          border-radius: 20px;
-          background: linear-gradient(135deg, rgba(241, 246, 255, 0.9), rgba(255, 255, 255, 0.96));
-          text-align: center;
-        }
-
-        .pricing-page .pricing-how__steps {
-          display: flex;
-          flex-wrap: wrap;
-          align-items: center;
-          justify-content: center;
-          gap: 0.75rem 1.25rem;
-          margin: 0;
-          padding: 0;
-          list-style: none;
-        }
-
-        .pricing-page .pricing-how__steps li {
-          display: grid;
-          gap: 0.15rem;
-          min-width: 9rem;
-        }
-
-        .pricing-page .pricing-how__steps strong {
-          font-size: 1.6rem;
-          line-height: 1;
-          letter-spacing: -0.03em;
-          color: #1f46d2;
-        }
-
-        .pricing-page .pricing-how__steps span {
-          font-size: 0.88rem;
-          line-height: 1.4;
-        }
-
-        .pricing-page .pricing-how__arrow {
-          min-width: 0;
-          font-size: 1.4rem;
-          color: rgba(47, 98, 255, 0.5);
-        }
-
-        [dir='rtl'] .pricing-page .pricing-how__arrow {
-          transform: scaleX(-1);
-        }
-
-        .pricing-page .pricing-how__note {
-          margin: 0.85rem 0 0;
-          font-size: 0.88rem;
-          line-height: 1.5;
         }
 
         .pricing-page .pricing-grid-wrap {
@@ -974,13 +907,11 @@ export default function PricingPageClient({ initialPlans = [] }) {
           background: color-mix(in srgb, var(--surface-panel) 76%, transparent);
         }
 
-        :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-how,
         :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-faq__item {
           border-color: var(--surface-soft-border, rgba(148, 163, 184, 0.16));
           background: var(--surface-panel);
         }
 
-        :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-how__steps strong,
         :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-cta--outline,
         :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-badge--soft {
           color: var(--text-strong, #e2e8f0);
@@ -1040,15 +971,6 @@ export default function PricingPageClient({ initialPlans = [] }) {
             grid-template-columns: minmax(0, 1fr);
             gap: 0.6rem;
             justify-items: center;
-          }
-
-          .pricing-page .pricing-how__steps {
-            flex-direction: column;
-          }
-
-          .pricing-page .pricing-how__arrow,
-          [dir='rtl'] .pricing-page .pricing-how__arrow {
-            transform: rotate(90deg);
           }
 
           .pricing-page .pricing-controls__toggle {

@@ -352,7 +352,11 @@ export default function AccountPage() {
   const isFreePlanActive = activePlan?.plan_code === 'trial'
     || String(activePlan?.slug || activePlan?.name || '').toLowerCase().includes('free')
     || Number(activePlan?.price_cents || 0) === 0;
-  const usageSubtitle = t('account.planUsageSummary', { count: formatCount(planSeats, locale) });
+  // Trial: `max_sessions_per_month` is a total over the trial; paid plans have no session cap.
+  const planSessionCap = Number(activePlan?.max_sessions_per_month || 0);
+  const usageSubtitle = planSessionCap > 0
+    ? t('account.planUsageSummaryLimited', { count: formatCount(planSeats, locale), sessions: formatCount(planSessionCap, locale) })
+    : t('account.planUsageSummary', { count: formatCount(planSeats, locale) });
 
   const lastPaidHistory = useMemo(() => {
     if (!Array.isArray(planHistory) || planHistory.length === 0) return null;
