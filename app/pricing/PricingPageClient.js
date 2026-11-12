@@ -27,6 +27,21 @@ function getPlanPriceLabel(plan, content, selectedBilling, locale) {
   }).format(cents / 100);
 }
 
+// Trial starts self-service; paid plans are activated by the team after a request.
+function getPlanCtaHref(plan) {
+  const code = String(plan?.plan_code || '').toLowerCase();
+  if (code === 'trial') return '/signup';
+  if (code === 'team' || code === 'enterprise') return `/contact?plan=${code}`;
+  return '/contact';
+}
+
+const FAQ_ITEMS = [
+  { q: 'pricingPage.faqParticipantQ', a: 'pricingPage.faqParticipantA' },
+  { q: 'pricingPage.faqTrialEndQ', a: 'pricingPage.faqTrialEndA' },
+  { q: 'pricingPage.faqPaymentQ', a: 'pricingPage.faqPaymentA' },
+  { q: 'pricingPage.faqBiggerTeamQ', a: 'pricingPage.faqBiggerTeamA' },
+];
+
 function buildPricingCards(plans, selectedBilling, locale) {
   return plans.map((plan) => {
     const content = getPlanContent(plan, locale);
@@ -113,6 +128,10 @@ export default function PricingPageClient({ initialPlans = [] }) {
   }, [plans]);
 
   const displayedPlans = useMemo(() => buildPricingCards(sortedPlans, selectedBilling, locale), [sortedPlans, selectedBilling, locale]);
+  const annualDiscount = useMemo(
+    () => Math.max(0, ...sortedPlans.map((plan) => Number(plan.annual_discount_percentage || 0))),
+    [sortedPlans]
+  );
 
   return (
     <>
@@ -127,30 +146,44 @@ export default function PricingPageClient({ initialPlans = [] }) {
           </div>
         </section>
 
-        {/* Billing Cycle & Currency Selector */}
         {!loading && sortedPlans.length > 0 ? (
-          <section className="pricing-controls reveal-up mb-8" aria-label="Options d'affichage">
-            <div className="pricing-controls__row mx-auto w-full max-w-6xl">
-              <div className="control-section pricing-controls__toggle">
-                <span id="pricing-billing-label" className="pricing-controls__label" style={getDarkModeTextStyle()}>{t('pricingPage.billingCycle')}</span>
-                <div className="toggle-group toggle-group--compact" role="group" aria-labelledby="pricing-billing-label">
-                  <button
-                    type="button"
-                    className={`toggle-btn toggle-btn--soft ${selectedBilling === 'monthly' ? 'active' : ''}`}
-                    aria-pressed={selectedBilling === 'monthly'}
-                    onClick={() => setSelectedBilling('monthly')}
-                  >
-                    {t('pricingPage.monthly')}
-                  </button>
-                  <button
-                    type="button"
-                    className={`toggle-btn toggle-btn--soft ${selectedBilling === 'annual' ? 'active' : ''}`}
-                    aria-pressed={selectedBilling === 'annual'}
-                    onClick={() => setSelectedBilling('annual')}
-                  >
-                    {t('pricingPage.yearly')}
-                  </button>
-                </div>
+          <section className="pricing-how reveal-up" aria-label={t('pricingPage.howTitle')}>
+            <ol className="pricing-how__steps">
+              <li><strong>20</strong><span style={getDarkModeTextStyle()}>{t('pricingPage.howStep1')}</span></li>
+              <li aria-hidden="true" className="pricing-how__arrow">→</li>
+              <li><strong>4 × 5</strong><span style={getDarkModeTextStyle()}>{t('pricingPage.howStep2')}</span></li>
+              <li aria-hidden="true" className="pricing-how__arrow">→</li>
+              <li><strong>1</strong><span style={getDarkModeTextStyle()}>{t('pricingPage.howStep3')}</span></li>
+            </ol>
+            <p className="pricing-how__note" style={getDarkModeTextStyle()}>{t('pricingPage.joinNote')}</p>
+          </section>
+        ) : null}
+
+        {/* Billing cycle selector */}
+        {!loading && sortedPlans.length > 0 ? (
+          <section className="pricing-controls reveal-up" aria-label={t('pricingPage.billingCycle')}>
+            <div className="pricing-controls__row">
+              <span id="pricing-billing-label" className="pricing-controls__label" style={getDarkModeTextStyle()}>{t('pricingPage.billingCycle')}</span>
+              <div className="toggle-group toggle-group--compact" role="group" aria-labelledby="pricing-billing-label">
+                <button
+                  type="button"
+                  className={`toggle-btn toggle-btn--soft ${selectedBilling === 'monthly' ? 'active' : ''}`}
+                  aria-pressed={selectedBilling === 'monthly'}
+                  onClick={() => setSelectedBilling('monthly')}
+                >
+                  {t('pricingPage.monthly')}
+                </button>
+                <button
+                  type="button"
+                  className={`toggle-btn toggle-btn--soft ${selectedBilling === 'annual' ? 'active' : ''}`}
+                  aria-pressed={selectedBilling === 'annual'}
+                  onClick={() => setSelectedBilling('annual')}
+                >
+                  {t('pricingPage.yearly')}
+                  {annualDiscount > 0 ? (
+                    <span className="toggle-savings-badge">{t('pricingPage.saveDiscountpercentage', { discountPercentage: annualDiscount })}</span>
+                  ) : null}
+                </button>
               </div>
             </div>
           </section>
@@ -192,28 +225,39 @@ export default function PricingPageClient({ initialPlans = [] }) {
         ) : null}
 
         {!loading && sortedPlans.length > 0 ? (
-          <div className="mx-auto w-full max-w-7xl px-4 sm:px-6 lg:px-8">
-            <section className="pricing-grid reveal-up grid grid-cols-1 gap-5 md:grid-cols-2 xl:grid-cols-3 xl:gap-6" aria-label={t('pricingPage.availablePlans')} style={{ background: 'transparent' }}>
+          <div className="pricing-grid-wrap">
+            <section className="pricing-grid reveal-up" aria-label={t('pricingPage.availablePlans')} style={{ background: 'transparent' }}>
             {displayedPlans.map((plan) => {
               const content = plan.content;
               const planName = content.name || plan.name;
-              const ctaHref = plan.plan_code === 'trial' ? '/signup' : '/contact';
+              const ctaHref = getPlanCtaHref(plan);
+              const badge = content.badge || (plan.isFeatured ? t('pricingPage.recommended') : null);
+              // Trial and Enterprise have one price line: their secondary label is always shown.
+              const showSecondary = Boolean(content.price_secondary_label)
+                && (selectedBilling === 'annual' || !content.price_monthly_label);
 
               return (
               <article key={String(plan.id)} className={`feature-card pricing-card flex h-full flex-col${plan.isFeatured ? ' pricing-card-featured' : ''}`}>
                 <div className="pricing-card-top">
                   <div className="pricing-plan-title-row">
                     <p className="eyebrow" style={getDarkModeTextStyle()}>{planName}</p>
-                    {content.badge ? <span className="pricing-badge pricing-badge--featured">{content.badge}</span> : null}
+                    {badge ? (
+                      <span className={`pricing-badge ${plan.isFeatured ? 'pricing-badge--featured' : 'pricing-badge--soft'}`}>{badge}</span>
+                    ) : null}
                   </div>
                 </div>
 
-                <h2 className="pricing-price" style={getDarkModeHeadingStyle()}>
-                  {plan.priceLabel}
-                </h2>
-                {selectedBilling === 'annual' && content.price_secondary_label ? (
-                  <p className="pricing-original" style={getDarkModeTextStyle()}>{content.price_secondary_label}</p>
-                ) : null}
+                <div className="pricing-price-block">
+                  {content.price_prefix_label ? (
+                    <p className="pricing-price-prefix" style={getDarkModeTextStyle()}>{content.price_prefix_label}</p>
+                  ) : null}
+                  <h2 className="pricing-price" style={getDarkModeHeadingStyle()}>
+                    {plan.priceLabel}
+                  </h2>
+                  {showSecondary ? (
+                    <p className="pricing-original" style={getDarkModeTextStyle()}>{content.price_secondary_label}</p>
+                  ) : null}
+                </div>
                 {content.description ? <p className="pricing-description" style={getDarkModeTextStyle()}>{content.description}</p> : null}
 
                 {Array.isArray(content.features) && content.features.length > 0 ? (
@@ -225,7 +269,12 @@ export default function PricingPageClient({ initialPlans = [] }) {
                 ) : null}
 
                 <div className="pricing-actions pricing-actions--card mt-auto">
-                  <Link href={withLocalePath(ctaHref)} className="btn-primary pricing-cta pricing-cta--main cta-surface">
+                  <Link
+                    href={withLocalePath(ctaHref)}
+                    className={plan.isFeatured
+                      ? 'btn-primary pricing-cta pricing-cta--main cta-surface'
+                      : 'btn-secondary pricing-cta pricing-cta--outline'}
+                  >
                     {content.cta_label || plan.cta_label}
                   </Link>
                 </div>
@@ -235,6 +284,20 @@ export default function PricingPageClient({ initialPlans = [] }) {
             </section>
             <p className="pricing-terms-note" style={getDarkModeTextStyle()}>{t('pricingPage.unlimitedSessionsNote')}</p>
           </div>
+        ) : null}
+
+        {!loading && sortedPlans.length > 0 ? (
+          <section className="pricing-faq reveal-up" aria-label={t('pricingPage.faqTitle')}>
+            <h2 style={getDarkModeHeadingStyle()}>{t('pricingPage.faqTitle')}</h2>
+            <div className="pricing-faq__grid">
+              {FAQ_ITEMS.map(({ q, a }) => (
+                <article key={q} className="pricing-faq__item">
+                  <h3 style={getDarkModeHeadingStyle()}>{t(q)}</h3>
+                  <p style={getDarkModeTextStyle()}>{t(a)}</p>
+                </article>
+              ))}
+            </div>
+          </section>
         ) : null}
 
         {!loading && sortedPlans.length > 0 ? (
@@ -322,14 +385,152 @@ export default function PricingPageClient({ initialPlans = [] }) {
           display: flex;
           flex-wrap: wrap;
           align-items: center;
-          justify-content: space-between;
-          gap: 1rem 1.5rem;
-          padding: 1.05rem 1.35rem;
-          border: 1px solid rgba(47, 98, 255, 0.13);
+          justify-content: center;
+          gap: 0.75rem 1rem;
+          padding: 0;
+          border: 0;
+          background: transparent;
+          box-shadow: none;
+        }
+
+        .pricing-page .pricing-how {
+          width: min(100%, 60rem);
+          margin: 0 auto 1.75rem;
+          padding: 1.1rem 1.25rem;
+          border: 1px solid rgba(47, 98, 255, 0.14);
           border-radius: 20px;
-          background: rgba(255, 255, 255, 0.82);
-          backdrop-filter: blur(16px);
-          box-shadow: 0 12px 32px rgba(31, 55, 112, 0.07);
+          background: linear-gradient(135deg, rgba(241, 246, 255, 0.9), rgba(255, 255, 255, 0.96));
+          text-align: center;
+        }
+
+        .pricing-page .pricing-how__steps {
+          display: flex;
+          flex-wrap: wrap;
+          align-items: center;
+          justify-content: center;
+          gap: 0.75rem 1.25rem;
+          margin: 0;
+          padding: 0;
+          list-style: none;
+        }
+
+        .pricing-page .pricing-how__steps li {
+          display: grid;
+          gap: 0.15rem;
+          min-width: 9rem;
+        }
+
+        .pricing-page .pricing-how__steps strong {
+          font-size: 1.6rem;
+          line-height: 1;
+          letter-spacing: -0.03em;
+          color: #1f46d2;
+        }
+
+        .pricing-page .pricing-how__steps span {
+          font-size: 0.88rem;
+          line-height: 1.4;
+        }
+
+        .pricing-page .pricing-how__arrow {
+          min-width: 0;
+          font-size: 1.4rem;
+          color: rgba(47, 98, 255, 0.5);
+        }
+
+        [dir='rtl'] .pricing-page .pricing-how__arrow {
+          transform: scaleX(-1);
+        }
+
+        .pricing-page .pricing-how__note {
+          margin: 0.85rem 0 0;
+          font-size: 0.88rem;
+          line-height: 1.5;
+        }
+
+        .pricing-page .pricing-grid-wrap {
+          width: 100%;
+          padding: 0;
+        }
+
+        .pricing-page .pricing-grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(17rem, 22rem));
+          justify-content: center;
+          align-items: stretch;
+          width: 100%;
+        }
+
+        .pricing-page .pricing-cta--outline {
+          border: 1.5px solid rgba(47, 98, 255, 0.35);
+          background: rgba(255, 255, 255, 0.9);
+          color: #1f46d2;
+          box-shadow: none;
+        }
+
+        .pricing-page .pricing-cta--outline:hover {
+          background: rgba(47, 98, 255, 0.08);
+          border-color: #1f46d2;
+        }
+
+        .pricing-page .pricing-badge--soft {
+          border: 1px solid rgba(47, 98, 255, 0.2);
+          background: rgba(47, 98, 255, 0.08);
+          color: #1f46d2;
+          font-weight: 700;
+        }
+
+        .pricing-page .pricing-price-block {
+          display: grid;
+          gap: 0.3rem;
+          min-height: 5.6rem;
+          align-content: start;
+        }
+
+        .pricing-page .pricing-price-prefix {
+          margin: 0;
+          font-size: 0.82rem;
+          font-weight: 600;
+          letter-spacing: 0.02em;
+          text-transform: uppercase;
+        }
+
+        .pricing-page .pricing-faq {
+          width: min(100%, 64rem);
+          margin: 2.5rem auto 0;
+        }
+
+        .pricing-page .pricing-faq h2 {
+          margin: 0 0 1rem;
+          font-size: clamp(1.3rem, 2.2vw, 1.7rem);
+          letter-spacing: -0.02em;
+          text-align: center;
+        }
+
+        .pricing-page .pricing-faq__grid {
+          display: grid;
+          grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+          gap: 1rem;
+        }
+
+        .pricing-page .pricing-faq__item {
+          padding: 1.1rem 1.2rem;
+          border: 1px solid rgba(47, 70, 120, 0.12);
+          border-radius: 18px;
+          background: rgba(255, 255, 255, 0.92);
+        }
+
+        .pricing-page .pricing-faq__item h3 {
+          margin: 0 0 0.45rem;
+          font-size: 1rem;
+          font-weight: 700;
+          letter-spacing: -0.01em;
+        }
+
+        .pricing-page .pricing-faq__item p {
+          margin: 0;
+          font-size: 0.9rem;
+          line-height: 1.55;
         }
 
         .pricing-page .pricing-terms-note {
@@ -573,10 +774,11 @@ export default function PricingPageClient({ initialPlans = [] }) {
         }
 
         .pricing-page .pricing-feature-list {
-          margin: 0;
+          margin: 0 0 0.75rem;
           padding: 0;
           list-style: none;
           display: grid;
+          align-content: start;
           gap: 0.6rem;
           flex: 1;
         }
@@ -671,7 +873,8 @@ export default function PricingPageClient({ initialPlans = [] }) {
         }
 
         .pricing-page .pricing-card-featured {
-          border-color: rgba(47, 98, 255, 0.46);
+          border-color: rgba(47, 98, 255, 0.6);
+          border-width: 2px;
           background: linear-gradient(165deg, rgba(241, 246, 255, 0.98), #ffffff 42%);
           box-shadow: 0 22px 50px rgba(47, 98, 255, 0.15), 0 0 0 1px rgba(47, 98, 255, 0.1);
           transform: translateY(-5px);
@@ -771,6 +974,24 @@ export default function PricingPageClient({ initialPlans = [] }) {
           background: color-mix(in srgb, var(--surface-panel) 76%, transparent);
         }
 
+        :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-how,
+        :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-faq__item {
+          border-color: var(--surface-soft-border, rgba(148, 163, 184, 0.16));
+          background: var(--surface-panel);
+        }
+
+        :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-how__steps strong,
+        :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-cta--outline,
+        :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-badge--soft {
+          color: var(--text-strong, #e2e8f0);
+        }
+
+        :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-cta--outline,
+        :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-badge--soft {
+          background: var(--surface-control);
+          border-color: var(--surface-soft-border-strong, rgba(148, 163, 184, 0.3));
+        }
+
         .pricing-page .pricing-footer-cta__copy .eyebrow {
           margin: 0;
         }
@@ -817,9 +1038,17 @@ export default function PricingPageClient({ initialPlans = [] }) {
           .pricing-page .pricing-controls__row {
             display: grid;
             grid-template-columns: minmax(0, 1fr);
-            gap: 1rem;
-            padding: 1rem;
-            border-radius: 18px;
+            gap: 0.6rem;
+            justify-items: center;
+          }
+
+          .pricing-page .pricing-how__steps {
+            flex-direction: column;
+          }
+
+          .pricing-page .pricing-how__arrow,
+          [dir='rtl'] .pricing-page .pricing-how__arrow {
+            transform: rotate(90deg);
           }
 
           .pricing-page .pricing-controls__toggle {

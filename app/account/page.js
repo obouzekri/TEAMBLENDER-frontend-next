@@ -561,8 +561,9 @@ export default function AccountPage() {
       return;
     }
 
-    setCheckoutPlan(targetPlan);
-    setCheckoutModalOpen(true);
+    // Paid plans are activated by the team after a request: no card checkout.
+    const planCode = String(targetPlan?.plan_code || 'team').toLowerCase();
+    window.location.assign(`${withLocalePath('/contact')}?plan=${encodeURIComponent(planCode)}`);
   }
 
   function closeCheckoutModal() {

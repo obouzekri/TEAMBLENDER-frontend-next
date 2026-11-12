@@ -1,12 +1,15 @@
 "use client";
 
-import { useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Clock3, Mail } from 'lucide-react';
 import TopNav from '@/components/TopNav';
 import Footer from '@/components/Footer';
 import useI18n from '@/lib/i18n/useI18n';
 import { getApiUrl } from '@/lib/config';
 import { fetchWithCsrfRetry, withCsrfHeaders } from '@/lib/csrf';
+
+const REQUESTED_PLANS = ['team', 'enterprise'];
+const COUNTRY_KEYS = ['countryMorocco', 'countryFrance', 'countryOther'];
 
 const COMPANY_SIZES = {
   fr: ['1 à 10 personnes', '11 à 50 personnes', '51 à 200 personnes', '201 à 500 personnes', '500+ personnes'],
@@ -23,10 +26,24 @@ export default function ContactPage() {
     email: '',
     need: '',
     message: '',
+    planCode: '',
+    headcount: '',
+    country: '',
     website: '',
   });
   const [status, setStatus] = useState('idle');
   const [errorMessage, setErrorMessage] = useState('');
+
+  // Pricing CTAs land here with ?plan=team|enterprise: preselect the plan and the matching need.
+  useEffect(() => {
+    const plan = new URLSearchParams(window.location.search).get('plan');
+    if (!REQUESTED_PLANS.includes(plan)) return;
+    setForm((prev) => ({
+      ...prev,
+      planCode: plan,
+      need: prev.need || t(plan === 'team' ? 'contactPage.activateTeamPlan' : 'contactPage.requestEnterpriseDemo'),
+    }));
+  }, [t]);
 
   function updateField(key, value) {
     setForm((prev) => ({ ...prev, [key]: value }));
@@ -102,6 +119,9 @@ export default function ContactPage() {
               </div>
             ) : (
             <form className="contact-form" onSubmit={submitRequest}>
+              {form.planCode ? (
+                <p className="contact-form__activation contact-form__full">{t('contactPage.activationIntro')}</p>
+              ) : null}
               <p className="contact-form__required contact-form__full">{t('contactPage.requiredFields')}</p>
               <div className="contact-form__hp" aria-hidden="true">
                 <label>
@@ -134,10 +154,36 @@ export default function ContactPage() {
                 </select>
               </label>
 
+              <label>
+                {t('contactPage.requestedPlan')}
+                <select value={form.planCode} onChange={(e) => updateField('planCode', e.target.value)}>
+                  <option value="">{t('contactPage.requestedPlanNone')}</option>
+                  <option value="team">{t('contactPage.planTeam')}</option>
+                  <option value="enterprise">{t('contactPage.planEnterprise')}</option>
+                </select>
+              </label>
+
+              <label>
+                {t('contactPage.headcount')}
+                <input type="number" inputMode="numeric" min={1} max={100000} value={form.headcount} onChange={(e) => updateField('headcount', e.target.value)} placeholder="20" />
+              </label>
+
+              <label className="contact-form__full">
+                {t('contactPage.teamsCountry')}
+                <select className={form.country ? '' : 'is-placeholder'} value={form.country} onChange={(e) => updateField('country', e.target.value)}>
+                  <option value="">{t('contactPage.requestedPlanNone')}</option>
+                  {COUNTRY_KEYS.map((key) => (
+                    <option key={key} value={t(`contactPage.${key}`)}>{t(`contactPage.${key}`)}</option>
+                  ))}
+                </select>
+              </label>
+
               <label className="contact-form__full">
                 {t('contactPage.mainNeed')}
                 <select className={form.need ? '' : 'is-placeholder'} required value={form.need} onChange={(e) => updateField('need', e.target.value)}>
                   <option value="">{t('contactPage.selectANeed')}</option>
+                  <option value={t('contactPage.activateTeamPlan')}>{t('contactPage.activateTeamPlan')}</option>
+                  <option value={t('contactPage.requestEnterpriseDemo')}>{t('contactPage.requestEnterpriseDemo')}</option>
                   <option value={t('contactPage.requestADemo')}>{t('contactPage.requestADemo')}</option>
                   <option value={t('contactPage.prepareATeamSession')}>{t('contactPage.prepareATeamSession')}</option>
                   <option value={t('contactPage.exploreAnHrUseCase')}>{t('contactPage.exploreAnHrUseCase')}</option>
@@ -298,6 +344,16 @@ export default function ContactPage() {
           grid-template-columns: repeat(2, minmax(0, 1fr));
           gap: 1rem;
           margin-top: 1rem;
+        }
+
+        .contact-page .contact-form__activation {
+          margin: 0;
+          padding: 0.85rem 1rem;
+          border: 1px solid rgba(47, 98, 255, 0.2);
+          border-radius: 14px;
+          background: rgba(47, 98, 255, 0.07);
+          font-size: 0.92rem;
+          line-height: 1.5;
         }
 
         .contact-page .contact-form__full {
