@@ -347,6 +347,48 @@ assert.equal(createDemoScenario(DEMO_PLAY_ENGINE_KEY, { players: roomPlayers }).
   assert.equal(state.summary?.completion_percent, 100, 'The maze still ends with the visitor in it');
 }
 
+// CoPuzzle: the visitor places the pieces of slot 1; the demo plays them when the visitor stops.
+{
+  let time = 30_000_000;
+  const scenario = createDemoScenario('copuzzle_live_v1', { seed: 4, locale: 'fr', players: roomPlayers, now: () => time });
+  const ctx = { role: 'participant', participantId: DEMO_VISITOR_ID, participantSlot: 1 };
+  let state = scenario.createState();
+  const mine = () => state.puzzle.pieces.filter((piece) => piece.assigned_slot === 1);
+  const first = mine()[0];
+  const place = (piece, cell, context = ctx) => scenario.handleEvent(state, 'puzzle.place', { pieceId: piece.id, ...cell }, context);
+  assert.equal(place(first, first.correct), null, 'Pieces wait for the timer');
+  const started = applyTimerEvent(state, 'timer.start');
+  state = scenario.onTimer(started, 'timer.start', ctx);
+  const tickFor = (ms) => {
+    for (let elapsed = 0; elapsed < ms && !state.summary; elapsed += 300) {
+      time += 300;
+      state = scenario.tick(state) || state;
+    }
+  };
+  tickFor(6000);
+  assert.ok(mine().every((piece) => !piece.current), 'Bots leave the visitor pieces alone');
+  const other = state.puzzle.pieces.find((piece) => piece.assigned_slot === 2 && !piece.current);
+  if (other) assert.equal(place(other, other.correct), null, 'The visitor only moves their own pieces');
+  assert.equal(place(first, first.correct, { role: 'manager', participantId: 'demo-facilitator', participantSlot: null }), null, 'The facilitator does not play');
+  assert.equal(place(first, { x: 9, y: 0 }), null, 'Off-board cells are refused');
+  state = place(first, first.correct);
+  assert.equal(state.puzzle.pieces.find((piece) => piece.id === first.id).placed, true);
+  const occupied = mine().find((piece) => !piece.current);
+  assert.equal(place(occupied, first.correct), null, 'An occupied cell is refused');
+  state = scenario.handleEvent(state, 'puzzle.unplace', { pieceId: first.id }, ctx);
+  assert.equal(state.puzzle.pieces.find((piece) => piece.id === first.id).current, null);
+  for (const piece of mine()) state = place(piece, piece.correct) || state;
+  assert.ok(mine().every((piece) => piece.placed), 'The visitor places all their pieces');
+  tickFor(60_000);
+  assert.equal(state.summary?.completion_percent, 100, 'The team completes the puzzle');
+  assert.equal(scenario.handleEvent(state, 'puzzle.unplace', { pieceId: first.id }, ctx), null, 'The finished puzzle is locked');
+  assert.equal(
+    scenario.handleEvent(scenario.createState(), 'puzzle.reference_visibility.update', { visible: false }, ctx),
+    null,
+    'Only the facilitator hides the reference image'
+  );
+}
+
 // A visitor who reserves a layer and then goes quiet does not stall the build.
 {
   let time = 20_000_000;
