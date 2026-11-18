@@ -298,11 +298,31 @@ for (const engineKey of DEMO_PROGRAM_ENGINE_KEYS) {
   let state = scenario.createState();
   const started = applyTimerEvent(state, 'timer.start');
   state = scenario.onTimer ? scenario.onTimer(started, 'timer.start', { role: 'manager' }) : started;
-  for (let tick = 0; tick < 2000 && !state.summary; tick += 1) {
+  let ticks = 0;
+  for (; ticks < 2000 && !state.summary; ticks += 1) {
     time += 300;
     state = scenario.tick(state) || state;
   }
   assert.equal(state.summary?.completion_percent, 100, `${engineKey} ends with an idle visitor`);
+  // The server ticks every 300 ms: a challenge must stay short enough for a demo.
+  assert.ok(ticks * 0.3 <= 120, `${engineKey} lasts ${Math.round(ticks * 0.3)} s`);
+}
+assert.equal(createDemoScenario(DEMO_PLAY_ENGINE_KEY, { players: roomPlayers }).createState().pixel.selected_template.id, 'pont_croise', 'The demo builds the crossed bridge');
+
+// A visitor who reserves a layer and then goes quiet does not stall the build.
+{
+  let time = 20_000_000;
+  const scenario = createDemoScenario(DEMO_PLAY_ENGINE_KEY, { seed: 2, locale: 'fr', players: roomPlayers, now: () => time });
+  const ctx = { role: 'participant', participantId: DEMO_VISITOR_ID };
+  let state = scenario.onTimer(applyTimerEvent(scenario.createState(), 'timer.start'), 'timer.start', ctx);
+  state = scenario.handleEvent(state, 'pixel.layer.claim', { layer: 2 }, ctx);
+  let ticks = 0;
+  for (; ticks < 2000 && !state.summary; ticks += 1) {
+    time += 300;
+    state = scenario.tick(state) || state;
+  }
+  assert.equal(state.summary.completion_percent, 100);
+  assert.ok(ticks * 0.3 <= 120, `An abandoned layer delays the build to ${Math.round(ticks * 0.3)} s`);
 }
 
 // Participant preview: the visitor poses once and votes on the others' statements.
