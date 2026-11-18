@@ -2,7 +2,8 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
-import { Activity, ArrowRight, BarChart3, CalendarClock, CalendarDays, CheckCircle2, Hash, Link2, Pencil, Play, Send, Settings, Sparkles, Trash2, UserPlus, X } from 'lucide-react';
+import { useRouter } from 'next/navigation';
+import { Activity, ArrowRight, BarChart3, CalendarClock, CalendarDays, CheckCircle2, Copy, Hash, Link2, Pencil, Play, Send, Settings, Sparkles, Trash2, UserPlus, X } from 'lucide-react';
 import AppNav from '@/components/AppNav';
 import Footer from '@/components/Footer';
 import Modal from '@/components/ui/Modal';
@@ -355,6 +356,7 @@ export default function ManagerHome({
   renderDemoCreateAction = (action) => action,
 } = {}) {
   const { locale, withLocalePath, t } = useI18n();
+  const router = useRouter();
   const startupGuideSteps = useMemo(() => getStartupGuideSteps(locale), [locale]);
   const [isStartupGuideOpen, setIsStartupGuideOpen] = useState(false);
   const guard = useManagerGuard(demoMode);
@@ -365,6 +367,9 @@ export default function ManagerHome({
   const [loadingSessions, setLoadingSessions] = useState(!demoMode);
   const [loadingMembers, setLoadingMembers] = useState(!demoMode);
   const [deletingSessionId, setDeletingSessionId] = useState(null);
+  const [duplicateSource, setDuplicateSource] = useState(null);
+  const [duplicateName, setDuplicateName] = useState('');
+  const [duplicating, setDuplicating] = useState(false);
   const [deletingMemberId, setDeletingMemberId] = useState(null);
   const [creatingMember, setCreatingMember] = useState(false);
   const [editingMemberId, setEditingMemberId] = useState(null);
@@ -697,6 +702,48 @@ export default function ManagerHome({
   function logout() {
     clearStoredAuth();
     window.location.replace(withLocalePath('/login'));
+  }
+
+  function openDuplicateSession(session) {
+    const sessionIdentifier = getSessionIdentifier(session);
+    if (!sessionIdentifier) return;
+    const label = session.name || `Session #${sessionIdentifier}`;
+    setDuplicateSource({ id: sessionIdentifier, label });
+    setDuplicateName(t('managerHome.duplicateDefaultName', { label }));
+  }
+
+  function closeDuplicateSession() {
+    if (duplicating) return;
+    setDuplicateSource(null);
+    setDuplicateName('');
+  }
+
+  async function handleDuplicateSession(event) {
+    event.preventDefault();
+    const name = duplicateName.trim();
+    if (!duplicateSource || !name) return;
+
+    setDuplicating(true);
+    try {
+      const response = await fetchWithCsrfRetry(getApiUrl(`/sessions/${encodeURIComponent(duplicateSource.id)}/duplicate`), {
+        method: 'POST',
+        headers: { ...getAuthHeaders(), 'Content-Type': 'application/json' },
+        credentials: 'include',
+        body: JSON.stringify({ name }),
+      });
+      const body = await response.json().catch(() => null);
+      if (!response.ok || !body?.id) {
+        throw new Error(body?.error || `Error ${response.status}`);
+      }
+      showSuccessToast(t('managerHome.sessionDuplicated'));
+      setDuplicateSource(null);
+      setDuplicateName('');
+      router.push(withLocalePath(`/session-builder?sessionId=${encodeURIComponent(body.id)}`));
+    } catch (err) {
+      showErrorToast(err.message || t('managerHome.duplicateFailed'));
+    } finally {
+      setDuplicating(false);
+    }
   }
 
   async function handleDeleteSession(session) {
@@ -1239,6 +1286,11 @@ export default function ManagerHome({
                     href: openLink,
                   },
                   {
+                    key: 'duplicate',
+                    label: t('managerHome.duplicateSession'),
+                    onClick: () => openDuplicateSession(session),
+                  },
+                  {
                     key: 'delete',
                     label: t('managerHome.deleteSession'),
                     danger: true,
@@ -1313,6 +1365,15 @@ export default function ManagerHome({
                       >
                         {isDone ? <BarChart3 size={16} aria-hidden="true" /> : isActive ? <Play size={16} aria-hidden="true" /> : <Settings size={16} aria-hidden="true" />}
                       </Link>
+                      <button
+                        type="button"
+                        className="icon-action-btn"
+                        title={t('managerHome.duplicate')}
+                        aria-label={t('managerHome.duplicateSession')}
+                        onClick={() => openDuplicateSession(session)}
+                      >
+                        <Copy size={16} aria-hidden="true" />
+                      </button>
                       <button
                         type="button"
                         className="icon-action-btn icon-action-danger"
@@ -1717,6 +1778,43 @@ export default function ManagerHome({
                     : (editingMemberId
                       ? t('managerHome.saveChanges')
                       : t('managerHome.createParticipant'))}
+                </button>
+              </div>
+            </form>
+          </article>
+        </div>
+      </Modal>
+      <Modal
+        open={Boolean(duplicateSource)}
+        title={t('managerHome.duplicateSession')}
+        titleClassName="participant-modal-title"
+        dialogClassName="participant-modal-dialog participant-modal-dialog--form"
+        headerClassName="participant-modal-header"
+        onClose={closeDuplicateSession}
+      >
+        <p className="participant-modal-subtitle">
+          {t('managerHome.duplicateSessionHint', { label: duplicateSource?.label || '' })}
+        </p>
+        <div className="participant-modal-body">
+          <article className="participant-inline-form participant-inline-form--modal">
+            <form className="participant-form participant-form--embedded" onSubmit={handleDuplicateSession}>
+              <label>
+                {t('managerHome.newSessionName')}
+                <input
+                  type="text"
+                  value={duplicateName}
+                  onChange={(event) => setDuplicateName(event.target.value)}
+                  maxLength={160}
+                  required
+                  autoFocus
+                />
+              </label>
+              <div className="participant-form-actions">
+                <button type="button" className="btn-secondary" onClick={closeDuplicateSession} disabled={duplicating}>
+                  {t('managerHome.cancel')}
+                </button>
+                <button type="submit" className="btn-primary" disabled={duplicating || !duplicateName.trim()}>
+                  {duplicating ? t('managerHome.duplicating') : t('managerHome.duplicate')}
                 </button>
               </div>
             </form>
