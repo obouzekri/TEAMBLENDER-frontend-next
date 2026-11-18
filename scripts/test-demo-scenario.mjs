@@ -309,6 +309,44 @@ for (const engineKey of DEMO_PROGRAM_ENGINE_KEYS) {
 }
 assert.equal(createDemoScenario(DEMO_PLAY_ENGINE_KEY, { players: roomPlayers }).createState().pixel.selected_template.id, 'pont_croise', 'The demo builds the crossed bridge');
 
+// Labyrinthe: the visitor picks a start and walks their own player; the demo takes over when they stop.
+{
+  let time = 25_000_000;
+  const scenario = createDemoScenario('labyrinthe_live_v1', { seed: 3, locale: 'fr', players: roomPlayers, now: () => time });
+  const ctx = { role: 'participant', participantId: DEMO_VISITOR_ID };
+  let state = scenario.createState();
+  assert.equal(scenario.handleEvent(state, 'laby.solo.move', { dir: 'N' }, ctx), null, 'Moves wait for the timer');
+  state = scenario.onTimer(applyTimerEvent(state, 'timer.start'), 'timer.start', ctx);
+  const tickFor = (ms) => {
+    for (let elapsed = 0; elapsed < ms && !state.summary; elapsed += 300) {
+      time += 300;
+      state = scenario.tick(state) || state;
+    }
+  };
+  const visitorPart = () => state.labyrinthe.parts[DEMO_VISITOR_ID];
+  tickFor(3000);
+  assert.ok(!visitorPart().solo.ss, 'Bots leave the visitor player alone while they may still play');
+  const maze = state.labyrinthe.maze;
+  const start = (maze.start_points?.length ? maze.start_points : [maze.start])[0];
+  assert.equal(scenario.handleEvent(state, 'laby.solo.select_start', { pos: start }, { role: 'manager', participantId: 'demo-facilitator' }), null, 'The facilitator does not play');
+  state = scenario.handleEvent(state, 'laby.solo.select_start', { pos: start }, ctx);
+  assert.ok(state, 'The visitor picks a start');
+  const before = JSON.stringify(visitorPart().solo.pos);
+  const moved = ['N', 'E', 'S', 'W'].map((dir) => scenario.handleEvent(state, 'laby.solo.move', { dir }, ctx)).find(Boolean);
+  assert.ok(moved, 'The visitor can move');
+  state = moved;
+  assert.equal(scenario.handleEvent(state, 'laby.solo.move', { dir: 'X' }, ctx), null);
+  const actions = state.metrics.action_count;
+  tickFor(3000);
+  assert.ok(JSON.stringify(visitorPart().solo.pos) !== before || visitorPart().solo.choosing_start, 'The visitor move is kept');
+  const visitorPath = (visitorPart().solo.path || []).length;
+  tickFor(12_000);
+  assert.ok(state.summary || (visitorPart().solo.path || []).length > visitorPath || visitorPart().solo.rg, 'The demo plays for an idle visitor');
+  assert.ok(state.metrics.action_count > actions);
+  tickFor(120_000);
+  assert.equal(state.summary?.completion_percent, 100, 'The maze still ends with the visitor in it');
+}
+
 // A visitor who reserves a layer and then goes quiet does not stall the build.
 {
   let time = 20_000_000;
