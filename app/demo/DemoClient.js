@@ -585,8 +585,12 @@ export default function DemoClient() {
                   : t('demo.facilitate.autoFinish', { seconds: autoCountdown })}
               </p>
             ) : null}
-            {view !== 'facilitator' && !DEMO_VISITOR_PLAYABLE_ENGINE_KEYS.includes(activeChallenge.engine_key) ? (
-              <p className={styles.hint}>{t('demo.facilitate.autoPlayNote', { name: visitorName })}</p>
+            {view !== 'facilitator' ? (
+              <p className={styles.hint}>
+                {DEMO_VISITOR_PLAYABLE_ENGINE_KEYS.includes(activeChallenge.engine_key)
+                  ? t(`demo.facilitate.visitorTips.${activeChallenge.engine_key}`)
+                  : t('demo.facilitate.autoPlayNote', { name: visitorName })}
+              </p>
             ) : null}
             <div className={styles.challengeStage}>
               <DemoChallengeStage
