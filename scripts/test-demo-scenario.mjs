@@ -172,6 +172,58 @@ const players = getDemoParticipants('fr').map(({ id, name }) => ({ id, name }));
 }
 assert.equal(applyTimerEvent({ timer: { enabled: false, status: 'disabled' } }, 'timer.start'), null);
 
+// One game, two viewers: the facilitator and the visitor each get the view of their role.
+{
+  const scheduler = createManualScheduler();
+  const visitorPlayers = [{ id: DEMO_VISITOR_ID, name: 'You', bot: false }, ...players];
+  const server = createDemoChallengeServer({
+    scenario: createDemoScenario(DEMO_PLAY_ENGINE_KEY, { seed: 4, locale: 'fr', players: visitorPlayers }),
+    scheduler,
+  });
+  const visitor = server.connect({ role: 'participant', participantId: DEMO_VISITOR_ID, participantSlot: 1 });
+  assert.notEqual(visitor.id, server.socket.id);
+  const facilitatorStates = [];
+  const visitorStates = [];
+  server.socket.on('challenge:state', (payload) => facilitatorStates.push(payload));
+  visitor.on('challenge:state', (payload) => visitorStates.push(payload));
+  server.socket.emit('challenge:join', {});
+  visitor.emit('challenge:join', {});
+  scheduler.flush();
+  assert.equal(facilitatorStates.at(-1).state.pixel.viewer_role, 'facilitator');
+  assert.equal(visitorStates.at(-1).state.pixel.viewer_role, 'builder');
+  assert.equal(visitorStates.at(-1).participantSlot, 1);
+  assert.equal(facilitatorStates.at(-1).participantSlot, null);
+
+  visitor.emit('challenge:event', { type: 'timer.start', payload: {} });
+  scheduler.flush();
+  assert.equal(server.getState().timer.status, 'idle', 'Participants cannot drive the timer');
+  server.socket.emit('challenge:event', { type: 'timer.start', payload: {} });
+  scheduler.flush();
+  assert.equal(visitorStates.at(-1).state.timer.status, 'running', 'The facilitator start reaches the participant');
+
+  const [x, y, z] = buildPixelTemplateCells(server.getState().pixel.selected_template)[0].split(':').map(Number);
+  const before = facilitatorStates.length;
+  visitor.emit('challenge:event', { type: 'pixel.cube.place', payload: { x, y, z, color: server.getState().pixel.palette[0] } });
+  scheduler.flush();
+  assert.ok(facilitatorStates.length > before);
+  assert.equal(facilitatorStates.at(-1).state.pixel.cubes[`${x}:${y}:${z}`]?.placed_by, DEMO_VISITOR_ID, 'The visitor cube shows on the facilitator screen');
+
+  const facilitatorChat = [];
+  server.socket.on('challenge:event', (event) => facilitatorChat.push(event));
+  visitor.emit('challenge:event', { type: 'chat.message', payload: { text: 'Hello', author: 'You' } });
+  scheduler.flush();
+  assert.equal(facilitatorChat.at(-1)?.payload.text, 'Hello', 'Chat is echoed to the whole room');
+
+  visitor.disconnect();
+  const visitorCount = visitorStates.length;
+  scheduler.tick();
+  assert.equal(visitorStates.length, visitorCount, 'A disconnected viewer stops receiving states');
+  assert.equal(visitor.emit('challenge:event', { type: 'timer.pause', payload: {} }), false);
+  server.dispatch('timer.pause');
+  assert.equal(server.getState().timer.status, 'paused', 'Demo-dispatched events act as the facilitator');
+  server.dispose();
+}
+
 // Each scenario plays through to its debrief.
 function runFacilitator(engineKey, seed, { start = 'timer.start', clock } = {}) {
   const scenario = createDemoScenario(engineKey, { seed, locale: 'fr', players, now: clock?.now });
