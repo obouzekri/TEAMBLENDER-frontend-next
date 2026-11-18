@@ -2,7 +2,7 @@
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import Link from 'next/link';
-import { CheckCircle2, Info, PlayCircle, RotateCcw, Users } from 'lucide-react';
+import { CheckCircle2, Columns2, Info, Monitor, PlayCircle, RotateCcw, Smartphone, Users } from 'lucide-react';
 import ChallengesCatalog from '@/components/SessionBuilder/ChallengesCatalog';
 import SelectedChallengesList from '@/components/SessionBuilder/SelectedChallengesList';
 import { Button } from '@/components/ui';
@@ -16,17 +16,25 @@ import {
   DEMO_AUTO_ADVANCE_SECONDS,
   DEMO_FLOW_MODES,
   DEMO_PAST_SESSIONS,
+  DEMO_ROOM_SIZE,
   DEMO_STEPS,
   DEMO_TEAM_SIZE,
+  DEMO_VIEW_MODES,
   DEMO_VISITOR_ID,
   buildJoinSchedule,
   computeDemoResults,
   createRandom,
   getDebriefPrompts,
   getDemoParticipants,
+  getDemoPlayers,
   getVisitorContribution,
 } from '@/lib/demo/demoScenario.mjs';
-import { DEMO_PLAY_ENGINE_KEY, DEMO_PROGRAM_ENGINE_KEYS, createDemoScenario } from '@/lib/demo/challenges/index.mjs';
+import {
+  DEMO_PLAY_ENGINE_KEY,
+  DEMO_PROGRAM_ENGINE_KEYS,
+  DEMO_VISITOR_PLAYABLE_ENGINE_KEYS,
+  createDemoScenario,
+} from '@/lib/demo/challenges/index.mjs';
 import ManagerHome from '../home/ManagerHome';
 import DemoChallengeStage from './DemoChallengeStage';
 import DemoHint from './DemoHint';
@@ -36,6 +44,29 @@ import { pickLocalized } from '@/lib/i18n';
 const INVITE_HOST = getPublicSiteOrigin().replace(/^https?:\/\//, '');
 const HINTS_HIDDEN_KEY = 'demo-hints-hidden';
 const NO_CATALOG_FILTERS = { categories: [], objectives: [], duration: '' };
+// Wide enough to show the facilitator and participant screens side by side.
+const SPLIT_VIEW_QUERY = '(min-width: 1100px)';
+const VIEW_ICONS = { facilitator: Monitor, participant: Smartphone, split: Columns2 };
+
+// Only the challenges the demo can play, in a fixed order.
+function buildDemoCatalog(locale) {
+  return DEMO_PROGRAM_ENGINE_KEYS
+    .map((key) => mockChallenges.find((challenge) => challenge.engine_key === key))
+    .filter(Boolean)
+    .map((challenge) => localizeBuilderChallenge(challenge, locale));
+}
+
+function useMediaQuery(query) {
+  const [matches, setMatches] = useState(false);
+  useEffect(() => {
+    const media = window.matchMedia(query);
+    const sync = () => setMatches(media.matches);
+    sync();
+    media.addEventListener('change', sync);
+    return () => media.removeEventListener('change', sync);
+  }, [query]);
+  return matches;
+}
 
 function track(action, context = {}) {
   trackProductEvent('demo', action, context);
@@ -73,7 +104,8 @@ export default function DemoClient() {
   const [seed, setSeed] = useState(() => Math.floor(Math.random() * 1e9));
   const [sessionName, setSessionName] = useState(() => t('demo.prepare.sessionNameDefault'));
   const [flowMode, setFlowMode] = useState('manual');
-  const [program, setProgram] = useState([]);
+  // The programme comes pre-filled; the visitor can still reorder or remove challenges.
+  const [program, setProgram] = useState(() => buildDemoCatalog(locale));
   const [joinedCount, setJoinedCount] = useState(0);
   const [activeIndex, setActiveIndex] = useState(0);
   const [activeDone, setActiveDone] = useState(false);
@@ -81,7 +113,7 @@ export default function DemoClient() {
   const [completions, setCompletions] = useState({});
   const [challengeActions, setChallengeActions] = useState({});
   const [visitorResult, setVisitorResult] = useState(null);
-  const [playDone, setPlayDone] = useState(false);
+  const [viewChoice, setViewChoice] = useState(null);
   const [hintsHidden, setHintsHidden] = useState(false);
   const headingRef = useRef(null);
   const hasMountedRef = useRef(false);
@@ -91,18 +123,23 @@ export default function DemoClient() {
   const activeChallenge = program[activeIndex] || null;
   const displayedSessionName = sessionName.trim() || t('demo.prepare.sessionNameDefault');
 
-  const catalog = useMemo(
-    () => mockChallenges.map((challenge) => localizeBuilderChallenge(challenge, locale)),
-    [locale]
-  );
-  // Only the challenges the demo can play, in a fixed order: the visitor adds all of them.
-  const demoCatalog = useMemo(
-    () => DEMO_PROGRAM_ENGINE_KEYS.map((key) => catalog.find((challenge) => challenge.engine_key === key)).filter(Boolean),
-    [catalog]
-  );
-  const programReady = program.length === demoCatalog.length;
+  const demoCatalog = useMemo(() => buildDemoCatalog(locale), [locale]);
+  const programReady = program.length > 0;
   const programMinutes = program.reduce((total, challenge) => total + getChallengeDuration(challenge), 0);
   const participants = useMemo(() => getDemoParticipants(locale), [locale]);
+  // The visitor joins as a fifth participant and plays every live challenge with the team.
+  const visitorName = t('demo.you');
+  const visitorRole = t('demo.invite.youRole');
+  const players = useMemo(() => getDemoPlayers(locale, visitorName), [locale, visitorName]);
+  const visitor = players[0];
+  const roomMembers = useMemo(
+    () => [...participants, { id: DEMO_VISITOR_ID, name: visitorName, role: visitorRole, isVisitor: true }],
+    [participants, visitorName, visitorRole]
+  );
+  const splitAvailable = useMediaQuery(SPLIT_VIEW_QUERY);
+  const viewModes = DEMO_VIEW_MODES.filter((mode) => mode !== 'split' || splitAvailable);
+  let view = viewChoice || (splitAvailable ? 'split' : 'facilitator');
+  if (!viewModes.includes(view)) view = 'facilitator';
   const demoSessions = useMemo(() => DEMO_PAST_SESSIONS.map((session) => ({
     id: session.id,
     name: pickLocalized(session.name, locale),
@@ -169,11 +206,11 @@ export default function DemoClient() {
     setProgram(reordered);
   }
 
-  // Invite: the participants added in advance connect one by one.
+  // Invite: the participants added in advance connect one by one, the visitor last.
   useEffect(() => {
     if (step !== 'invite') return undefined;
     setJoinedCount(0);
-    const timers = buildJoinSchedule(DEMO_TEAM_SIZE, createRandom(seed))
+    const timers = buildJoinSchedule(DEMO_ROOM_SIZE, createRandom(seed))
       .map(({ index, delayMs }) => window.setTimeout(() => setJoinedCount(index + 1), delayMs));
     return () => timers.forEach((timer) => window.clearTimeout(timer));
   }, [seed, step]);
@@ -183,30 +220,29 @@ export default function DemoClient() {
       ? createDemoScenario(activeChallenge.engine_key, {
         seed: seed + activeIndex,
         locale,
-        players: participants,
+        players,
       })
       : null),
-    [activeChallenge, activeIndex, locale, participants, seed]
+    [activeChallenge, activeIndex, locale, players, seed]
   );
 
-  const handleChallengeComplete = useCallback((summary) => {
+  const handleChallengeComplete = useCallback((summary, state) => {
     if (!activeChallenge) return;
     setCompletions((previous) => ({ ...previous, [activeChallenge.id]: Number(summary?.completion_percent) || 0 }));
     setChallengeActions((previous) => ({ ...previous, [activeChallenge.id]: Number(summary?.action_count) || 0 }));
+    if (activeChallenge.engine_key === DEMO_PLAY_ENGINE_KEY) {
+      setVisitorResult(getVisitorContribution(state?.pixel, DEMO_VISITOR_ID));
+    }
     setActiveDone(true);
   }, [activeChallenge]);
-
-  // The add hint points at the first challenge not yet in the programme.
-  const nextChallengeToAdd = demoCatalog.find((challenge) => !program.some((item) => item.id === challenge.id));
-  let addHintKey = program.length ? 'addNext' : 'add';
-  if (nextChallengeToAdd?.engine_key === DEMO_PLAY_ENGINE_KEY) addHintKey = 'addSelf';
 
   // One coach mark at a time, on the action that moves the demo forward.
   let activeHint = null;
   if (!hintsHidden) {
     if (step === 'dashboard') activeHint = 'dashboard';
-    else if (step === 'prepare') activeHint = programReady ? 'prepare' : addHintKey;
+    else if (step === 'prepare' && programReady) activeHint = 'prepare';
     else if (step === 'facilitate' && flowMode === 'manual' && activeDone) activeHint = 'facilitate';
+    else if (step === 'facilitate' && view === 'facilitator' && !viewChoice) activeHint = 'switchView';
   }
 
   useEffect(() => {
@@ -224,7 +260,7 @@ export default function DemoClient() {
   }
 
   function renderHint(key, action, options = {}) {
-    let text = t(`demo.hints.${key}`, { challenge: playName });
+    let text = t(`demo.hints.${key}`, { name: visitorName });
     if (key === 'facilitate' && activeIndex + 1 >= program.length) text = t('demo.hints.facilitateLast');
     return (
       <DemoHint show={activeHint === key} text={text} dismissLabel={t('demo.hints.dismiss')} onDismiss={hideHints} {...options}>
@@ -244,7 +280,7 @@ export default function DemoClient() {
     if (activeIndex + 1 < program.length) {
       setActiveIndex(activeIndex + 1);
     } else {
-      goToStep('play');
+      goToStep('results');
     }
   }
   advanceRef.current = advanceChallenge;
@@ -269,23 +305,10 @@ export default function DemoClient() {
     return () => window.clearInterval(timer);
   }, [activeDone, activeIndex, flowMode, step]);
 
-  // Participant preview: the visitor builds the Pixel Architect model with three fictional colleagues.
-  const visitorName = t('demo.play.you');
-  const playScenario = useMemo(
-    () => (step === 'play'
-      ? createDemoScenario(DEMO_PLAY_ENGINE_KEY, {
-        seed: seed + 100,
-        locale,
-        players: [{ id: DEMO_VISITOR_ID, name: visitorName, bot: false }, ...participants.slice(0, 3)],
-      })
-      : null),
-    [locale, participants, seed, step, visitorName]
-  );
-
-  const handlePlayComplete = useCallback((summary, state) => {
-    setVisitorResult(getVisitorContribution(state?.pixel, DEMO_VISITOR_ID));
-    setPlayDone(true);
-  }, []);
+  function chooseView(mode) {
+    track('view_switched', { surface: mode });
+    setViewChoice(mode);
+  }
 
   const results = useMemo(
     () => computeDemoResults({ program, completions, actions: challengeActions, visitor: visitorResult }),
@@ -295,14 +318,13 @@ export default function DemoClient() {
   function restart() {
     track('restarted', { surface: step });
     setSeed(Math.floor(Math.random() * 1e9));
-    setProgram([]);
+    setProgram(demoCatalog);
     setJoinedCount(0);
     setActiveIndex(0);
     setActiveDone(false);
     setCompletions({});
     setChallengeActions({});
     setVisitorResult(null);
-    setPlayDone(false);
     setStepIndex(0);
   }
 
@@ -321,7 +343,7 @@ export default function DemoClient() {
   }
 
   return (
-    <main className={`shell ${styles.page}`} data-wide={step === 'facilitate' || step === 'play' ? 'true' : undefined}>
+    <main className={`shell ${styles.page}`} data-wide={step === 'facilitate' ? 'true' : undefined}>
       <header className={styles.hero}>
         <p className={styles.eyebrow}>{t('demo.eyebrow')}</p>
         <h1 className={styles.title}>{t('demo.title')}</h1>
@@ -357,9 +379,7 @@ export default function DemoClient() {
             <h2 id="demo-step-title" ref={headingRef} tabIndex={-1} className={styles.panelTitle}>
               {t(`demo.${step}.title`)}
             </h2>
-            <p className={styles.panelIntro}>
-              {step === 'play' ? t('demo.play.intro', { challenge: playName }) : t(`demo.${step}.intro`)}
-            </p>
+            <p className={styles.panelIntro}>{t(`demo.${step}.intro`, { name: visitorName })}</p>
           </div>
           {stepIndex > 0 ? (
             <Button variant="ghost" size="sm" onClick={restart}>
@@ -433,11 +453,8 @@ export default function DemoClient() {
                 showFilters={false}
                 onSelect={addProgramChallenge}
                 onDeselect={removeProgramChallenge}
-                renderToggleAction={(challenge, action) => (
-                  challenge.id === nextChallengeToAdd?.id ? renderHint(addHintKey, action, { align: 'start' }) : action
-                )}
               />
-              <p className={styles.hint}>{t('demo.prepare.playNote', { challenge: playName })}</p>
+              <p className={styles.hint}>{t('demo.prepare.youNote', { name: visitorName })}</p>
               <div className={styles.actions}>
                 {renderHint('prepare', (
                   <Button disabled={!programReady} onClick={() => goToStep('invite')}>{t('demo.prepare.continue')}</Button>
@@ -459,23 +476,28 @@ export default function DemoClient() {
             <div className={styles.lobbyCard}>
               <h3 className={styles.cardTitle}>
                 <Users size={18} aria-hidden="true" />
-                {t('demo.invite.joined', { joined: joinedCount, invited: DEMO_TEAM_SIZE })}
+                {t('demo.invite.joined', { joined: joinedCount, invited: DEMO_ROOM_SIZE })}
               </h3>
               <div
                 className={styles.meter}
                 role="progressbar"
                 aria-valuemin={0}
-                aria-valuemax={DEMO_TEAM_SIZE}
+                aria-valuemax={DEMO_ROOM_SIZE}
                 aria-valuenow={joinedCount}
-                aria-label={t('demo.invite.joined', { joined: joinedCount, invited: DEMO_TEAM_SIZE })}
+                aria-label={t('demo.invite.joined', { joined: joinedCount, invited: DEMO_ROOM_SIZE })}
               >
-                <span style={{ width: `${(joinedCount / DEMO_TEAM_SIZE) * 100}%` }} />
+                <span style={{ width: `${(joinedCount / DEMO_ROOM_SIZE) * 100}%` }} />
               </div>
               <ul className={styles.timeline} aria-live="polite">
-                {participants.map((participant, index) => {
+                {roomMembers.map((participant, index) => {
                   const connected = index < joinedCount;
                   return (
-                    <li key={participant.id} className={styles.personRow} data-connected={connected}>
+                    <li
+                      key={participant.id}
+                      className={styles.personRow}
+                      data-connected={connected}
+                      data-visitor={participant.isVisitor ? 'true' : undefined}
+                    >
                       <Avatar name={participant.name} />
                       <span>
                         <span className={styles.timelineName}>{participant.name}</span>
@@ -489,10 +511,10 @@ export default function DemoClient() {
                 })}
               </ul>
               <p className={styles.hint}>
-                {joinedCount < DEMO_TEAM_SIZE ? t('demo.invite.waiting') : t('demo.invite.ready')}
+                {joinedCount < DEMO_ROOM_SIZE ? t('demo.invite.waiting') : t('demo.invite.ready')}
               </p>
               <div className={styles.actions}>
-                <Button disabled={joinedCount < DEMO_TEAM_SIZE} onClick={() => goToStep('facilitate')}>
+                <Button disabled={joinedCount < DEMO_ROOM_SIZE} onClick={() => goToStep('facilitate')}>
                   <PlayCircle size={18} aria-hidden="true" />
                   {t('demo.invite.launch')}
                 </Button>
@@ -534,6 +556,28 @@ export default function DemoClient() {
                 ))}
               </div>
             </div>
+            <div className={styles.viewSwitch} role="group" aria-label={t('demo.facilitate.viewLabel')}>
+              {viewModes.map((mode) => {
+                const Icon = VIEW_ICONS[mode];
+                const button = (
+                  <button
+                    key={mode}
+                    type="button"
+                    className={styles.viewOption}
+                    aria-pressed={view === mode}
+                    onClick={() => chooseView(mode)}
+                  >
+                    <Icon size={16} aria-hidden="true" />
+                    {t(`demo.facilitate.view.${mode}`, { name: visitorName })}
+                  </button>
+                );
+                return mode === 'participant' ? (
+                  <span key={mode} className={styles.viewHintAnchor}>
+                    {renderHint('switchView', button, { align: 'start' })}
+                  </span>
+                ) : button;
+              })}
+            </div>
             {autoCountdown !== null ? (
               <p className={styles.autoBanner} role="status">
                 {activeIndex + 1 < program.length
@@ -541,48 +585,24 @@ export default function DemoClient() {
                   : t('demo.facilitate.autoFinish', { seconds: autoCountdown })}
               </p>
             ) : null}
+            {view !== 'facilitator' && !DEMO_VISITOR_PLAYABLE_ENGINE_KEYS.includes(activeChallenge.engine_key) ? (
+              <p className={styles.hint}>{t('demo.facilitate.autoPlayNote', { name: visitorName })}</p>
+            ) : null}
             <div className={styles.challengeStage}>
               <DemoChallengeStage
                 key={`${seed}-${activeIndex}`}
                 scenario={activeScenario}
+                view={view}
                 autoStart={flowMode === 'auto'}
                 locale={locale}
-                displayName="Alex"
-                loadingLabel={t('demo.facilitate.loading')}
+                facilitatorName="Alex"
+                visitor={visitor}
+                labels={{
+                  loading: t('demo.facilitate.loading'),
+                  facilitatorScreen: t('demo.facilitate.facilitatorScreen'),
+                  participantScreen: t('demo.facilitate.participantScreen', { name: visitorName }),
+                }}
                 onComplete={handleChallengeComplete}
-              />
-            </div>
-          </div>
-        ) : null}
-
-        {step === 'play' && playScenario ? (
-          <div className={styles.liveLayout}>
-            <div className={styles.liveBar}>
-              <div className={styles.liveBarInfo}>
-                <p className={styles.sessionLabel}>
-                  <span className={styles.liveDot} aria-hidden="true" />
-                  {displayedSessionName}
-                </p>
-                <p className={styles.liveBarTitle}>{t('demo.play.barTitle', { challenge: playName, name: visitorName })}</p>
-              </div>
-              <div className={styles.liveBarActions}>
-                <Button variant={playDone ? 'primary' : 'ghost'} onClick={() => goToStep('results')}>
-                  {playDone ? t('demo.play.seeResults') : t('demo.play.skip')}
-                </Button>
-              </div>
-            </div>
-            <div className={styles.challengeStage}>
-              <DemoChallengeStage
-                key={`play-${seed}`}
-                scenario={playScenario}
-                autoStart
-                locale={locale}
-                role="participant"
-                participantId={DEMO_VISITOR_ID}
-                participantSlot={1}
-                displayName={visitorName}
-                loadingLabel={t('demo.facilitate.loading')}
-                onComplete={handlePlayComplete}
               />
             </div>
           </div>
