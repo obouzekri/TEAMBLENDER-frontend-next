@@ -702,6 +702,103 @@
   min-width: 0;
 }
 
+/* Facilitator and participant screens of the same game. */
+.viewSwitch {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--space-2);
+}
+
+.viewHintAnchor {
+  display: inline-flex;
+}
+
+.viewOption {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-2) var(--space-4);
+  border: 1px solid var(--field-line);
+  border-radius: 999px;
+  background: var(--field-bg);
+  color: var(--ink);
+  font: inherit;
+  font-size: 0.92rem;
+  cursor: pointer;
+  transition: border-color var(--motion-fast) var(--ease-standard), background var(--motion-fast) var(--ease-standard);
+}
+
+.viewOption:hover {
+  border-color: var(--accent);
+}
+
+.viewOption[aria-pressed='true'] {
+  border-color: var(--accent);
+  background: var(--demo-tint);
+  color: var(--demo-tint-ink);
+  font-weight: 600;
+}
+
+.viewOption:focus-visible {
+  outline: 3px solid var(--focus-ring-teal);
+  outline-offset: 2px;
+}
+
+.screens {
+  display: grid;
+  gap: var(--space-4);
+}
+
+.screens[data-view='split'] {
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+  align-items: start;
+}
+
+.screen {
+  display: grid;
+  gap: var(--space-2);
+  min-width: 0;
+}
+
+.screen[hidden] {
+  display: none;
+}
+
+.screens[data-view='split'] .screen {
+  padding: var(--space-3);
+  border: 1px solid var(--surface-border-strong);
+  border-radius: var(--radius-md);
+}
+
+.screens[data-view='split'] .screen[data-screen='participant'] {
+  border-color: var(--accent);
+  background: var(--demo-tint);
+}
+
+/* Challenge layouts follow the viewport width, not the pane width: scale both screens down so
+   each keeps its desktop layout side by side, like two screenshots. */
+.screens[data-view='split'] .screen > [data-demo-challenge] {
+  zoom: 0.78;
+}
+
+.screenTitle {
+  margin: 0;
+  color: var(--demo-tint-ink);
+  font-size: 0.85rem;
+  font-weight: 700;
+}
+
+/* Side by side, both screens get the full page width. */
+.page[data-wide='true']:has(.screens[data-view='split']) {
+  width: calc(100% - 1.5rem);
+  max-width: 1840px;
+}
+
+.personRow[data-visitor='true'] {
+  border-color: var(--accent);
+  background: var(--demo-tint);
+}
+
 .autoBanner {
   margin: 0;
   padding: var(--space-2) var(--space-3);
@@ -1164,7 +1261,8 @@
   }
 
   .meter > span,
-  .optionChip {
+  .optionChip,
+  .viewOption {
     transition: none;
   }
 }

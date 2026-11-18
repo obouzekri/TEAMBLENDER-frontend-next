@@ -6,18 +6,28 @@ import {
   DEMO_DEBRIEF_PROMPTS,
   DEMO_FLOW_MODES,
   DEMO_PAST_SESSIONS,
+  DEMO_ROOM_SIZE,
   DEMO_STEPS,
   DEMO_TEAM_SIZE,
+  DEMO_VIEW_MODES,
   DEMO_VISITOR_ID,
   buildJoinSchedule,
   computeDemoResults,
   createRandom,
   getDebriefPrompts,
   getDemoParticipants,
+  getDemoPlayers,
   getVisitorContribution,
 } from '../lib/demo/demoScenario.mjs';
 import { applyTimerEvent, createDemoChallengeServer } from '../lib/demo/demoChallengeServer.mjs';
-import { DEMO_ENGINE_KEYS, DEMO_PLAY_ENGINE_KEY, DEMO_PROGRAM_ENGINE_KEYS, VOM_ENGINE_KEY, createDemoScenario } from '../lib/demo/challenges/index.mjs';
+import {
+  DEMO_ENGINE_KEYS,
+  DEMO_PLAY_ENGINE_KEY,
+  DEMO_PROGRAM_ENGINE_KEYS,
+  DEMO_VISITOR_PLAYABLE_ENGINE_KEYS,
+  VOM_ENGINE_KEY,
+  createDemoScenario,
+} from '../lib/demo/challenges/index.mjs';
 import { buildCopuzzleSummary } from '../lib/demo/challenges/copuzzle.mjs';
 import { buildLabySummary } from '../lib/demo/challenges/labyrinthe.mjs';
 import { buildVomConfig } from '../lib/demo/challenges/vraiOuMensonge.mjs';
@@ -36,7 +46,8 @@ for (let index = 0; index < 20; index += 1) {
   assert.ok(value >= 0 && value < 1);
 }
 
-assert.equal(DEMO_STEPS[0], 'dashboard', 'The demo starts in the manager space');
+assert.deepEqual(DEMO_STEPS, ['dashboard', 'prepare', 'invite', 'facilitate', 'results'], 'The participant screen lives inside the live step');
+assert.deepEqual(DEMO_VIEW_MODES, ['facilitator', 'participant', 'split']);
 assert.deepEqual(DEMO_FLOW_MODES, ['manual', 'auto']);
 assert.ok(Object.keys(DEMO_DEBRIEF_PROMPTS).every((objective) => SESSION_OBJECTIVES.includes(objective)));
 assert.ok(DEMO_PAST_SESSIONS.every((session) => session.name.fr && session.name.en && session.name.ar));
@@ -45,7 +56,8 @@ assert.deepEqual(
   ['copuzzle_live_v1', 'labyrinthe_live_v1', 'pixel_architect_v1', 'vrai_ou_mensonge_v1'],
 );
 assert.deepEqual(DEMO_PROGRAM_ENGINE_KEYS, ['copuzzle_live_v1', 'labyrinthe_live_v1', 'pixel_architect_v1'], 'The facilitator runs the three challenges in order');
-assert.ok(DEMO_PROGRAM_ENGINE_KEYS.includes(DEMO_PLAY_ENGINE_KEY), 'The visitor plays a challenge from the programme');
+assert.ok(DEMO_PROGRAM_ENGINE_KEYS.includes(DEMO_PLAY_ENGINE_KEY), 'The visitor contribution comes from a programme challenge');
+assert.ok(DEMO_VISITOR_PLAYABLE_ENGINE_KEYS.every((key) => DEMO_PROGRAM_ENGINE_KEYS.includes(key)));
 
 // A fixed team of four, the minimum needed for every demo challenge.
 assert.equal(DEMO_TEAM_SIZE, 4);
@@ -55,10 +67,16 @@ for (const locale of SUPPORTED_LOCALES) {
   assert.ok(participants.every(({ email }) => email.endsWith('@example.com')));
   assert.ok(participants.every(({ role }) => role));
 }
-const schedule = buildJoinSchedule(DEMO_TEAM_SIZE, createRandom(4));
-assert.equal(schedule.length, DEMO_TEAM_SIZE);
+// The visitor joins the four colleagues as a fifth participant, in slot 1.
+assert.equal(DEMO_ROOM_SIZE, DEMO_TEAM_SIZE + 1);
+const roomPlayers = getDemoPlayers('fr', 'Vous');
+assert.equal(roomPlayers.length, DEMO_ROOM_SIZE);
+assert.deepEqual(roomPlayers[0], { id: DEMO_VISITOR_ID, name: 'Vous', bot: false });
+assert.ok(roomPlayers.slice(1).every((player) => player.bot === true));
+const schedule = buildJoinSchedule(DEMO_ROOM_SIZE, createRandom(4));
+assert.equal(schedule.length, DEMO_ROOM_SIZE);
 assert.ok(schedule.every((entry, index) => index === 0 || entry.delayMs > schedule[index - 1].delayMs));
-assert.ok(schedule.at(-1).delayMs <= 4000, 'Joining must stay short enough for a demo');
+assert.ok(schedule.at(-1).delayMs <= 5000, 'Joining must stay short enough for a demo');
 for (const objective of Object.keys(DEMO_DEBRIEF_PROMPTS)) {
   assert.equal(getDebriefPrompts(objective, 'fr').length, 3);
   assert.equal(getDebriefPrompts(objective, 'en').length, 3);
@@ -74,6 +92,7 @@ if (SUPPORTED_LOCALES.includes('ar')) {
 const program = [{ id: 'a', duration: 15 }, { id: 'b', duration: 12 }, { id: 'c', duration: 15 }];
 const results = computeDemoResults({ program, completions: { a: 80, b: 100 }, actions: { a: 5, b: 7 }, visitor: { cubes: 6, share: 25 } });
 assert.equal(results.participationRate, 100);
+assert.equal(results.invited, DEMO_ROOM_SIZE, 'The visitor counts as a participant');
 assert.equal(results.challengesCompleted, 2, 'Skipped challenges have no result');
 assert.equal(results.totalMinutes, 42);
 assert.equal(results.totalActions, 12);
@@ -270,6 +289,20 @@ function runFacilitator(engineKey, seed, { start = 'timer.start', clock } = {}) 
   assert.equal(state.vom.round_history.length, DEMO_TEAM_SIZE, 'One turn per participant');
   assert.equal(state.vom.ranking.length, DEMO_TEAM_SIZE);
   assert.equal(scenario.view(state, { role: 'manager' }).vom.participants_meta.length, DEMO_TEAM_SIZE);
+}
+
+// The visitor may stay on the facilitator screen: every programme challenge still ends without them.
+for (const engineKey of DEMO_PROGRAM_ENGINE_KEYS) {
+  let time = 15_000_000;
+  const scenario = createDemoScenario(engineKey, { seed: 6, locale: 'fr', players: roomPlayers, now: () => time });
+  let state = scenario.createState();
+  const started = applyTimerEvent(state, 'timer.start');
+  state = scenario.onTimer ? scenario.onTimer(started, 'timer.start', { role: 'manager' }) : started;
+  for (let tick = 0; tick < 2000 && !state.summary; tick += 1) {
+    time += 300;
+    state = scenario.tick(state) || state;
+  }
+  assert.equal(state.summary?.completion_percent, 100, `${engineKey} ends with an idle visitor`);
 }
 
 // Participant preview: the visitor poses once and votes on the others' statements.
