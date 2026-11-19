@@ -146,6 +146,13 @@ function buildLayerBoard(grid, layer, targetSet, cubesByKey) {
   ));
 }
 
+// dispose() alone leaves the GL context alive until garbage collection. Browsers cap live
+// contexts (~16 in Chrome) and drop the oldest one past that, so free it explicitly.
+function releaseRenderer(renderer) {
+  renderer.dispose();
+  renderer.forceContextLoss();
+}
+
 function mountMiniModelScene(container, { gridSize, grid, palette, targetCells, onUnavailable }) {
   const width = Math.max(120, container.clientWidth || 168);
   const height = Math.max(80, container.clientHeight || 96);
@@ -239,7 +246,7 @@ function mountMiniModelScene(container, { gridSize, grid, palette, targetCells, 
     });
     cubeGeometry.dispose();
     controls.dispose();
-    renderer.dispose();
+    releaseRenderer(renderer);
     if (container.contains(renderer.domElement)) {
       container.removeChild(renderer.domElement);
     }
@@ -260,7 +267,12 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
 
   const [activeLayer, setActiveLayer] = useState(0);
   const [selectedColor, setSelectedColor] = useState(FALLBACK_PALETTE[0]);
-  const [webglUnavailable, setWebglUnavailable] = useState(false);
+  // '' when the main 3D view works, 'unsupported' when no WebGL context could be created,
+  // 'lost' when the browser dropped the context (GPU reset, too many contexts, render error).
+  const [webglIssue, setWebglIssue] = useState('');
+  // The model previews fail independently so they never take the main view down with them.
+  const [previewUnavailable, setPreviewUnavailable] = useState(false);
+  const [sceneRetryKey, setSceneRetryKey] = useState(0);
   const [isViewportReady, setIsViewportReady] = useState(false);
   const [isModelSidebarOpen, setIsModelSidebarOpen] = useState(false);
   const [viewportError, setViewportError] = useState('');
@@ -428,7 +440,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
 
     setIsViewportReady(false);
     setViewportError('');
-    setWebglUnavailable(false);
+    setWebglIssue('');
 
     const container = mountRef.current;
     const width = Math.max(320, container.clientWidth || 900);
@@ -445,7 +457,9 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
         const r = new THREE.WebGLRenderer({ antialias: true, alpha: true });
         return r;
       } catch {
-        setWebglUnavailable(true);
+        // Past its context limit the browser drops the oldest context instead of refusing a new
+        // one, so a creation failure means WebGL is off (no GPU, hardware acceleration disabled).
+        setWebglIssue('unsupported');
         setViewportError(t('challengePixel.n3dRenderingIsUnavailableOnThis'));
         return null;
       }
@@ -460,12 +474,17 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
     container.appendChild(renderer.domElement);
 
     const onWebglContextLost = (event) => {
+      // preventDefault lets the browser restore the context; the restore handler rebuilds the scene.
       event.preventDefault();
-      setWebglUnavailable(true);
+      setWebglIssue('lost');
       setViewportError(t('challengePixel.webglContextWasLostContinueWith'));
+    };
+    const onWebglContextRestored = () => {
+      setSceneRetryKey((key) => key + 1);
     };
 
     renderer.domElement.addEventListener('webglcontextlost', onWebglContextLost);
+    renderer.domElement.addEventListener('webglcontextrestored', onWebglContextRestored);
 
     const controls = new OrbitControls(camera, renderer.domElement);
     controls.enableDamping = true;
@@ -769,8 +788,10 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
           setIsViewportReady(true);
         }
       } catch {
+        // Stop the loop: rendering again every frame would only repeat the failure.
+        window.cancelAnimationFrame(rafId);
         setViewportError(t('challengePixel.n3dViewFailedToRenderPlease'));
-        setWebglUnavailable(true);
+        setWebglIssue('lost');
       }
     };
     animate();
@@ -794,6 +815,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
       window.removeEventListener('resize', onResize);
       resizeObserver?.disconnect();
       renderer.domElement.removeEventListener('webglcontextlost', onWebglContextLost);
+      renderer.domElement.removeEventListener('webglcontextrestored', onWebglContextRestored);
       renderer.domElement.removeEventListener('pointermove', onPointerMove);
       renderer.domElement.removeEventListener('pointerdown', onPointerDown);
       renderer.domElement.removeEventListener('pointerup', onPointerUp);
@@ -813,7 +835,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
       boundsGeometry.dispose();
       boundsEdges.dispose();
       controls.dispose();
-      renderer.dispose();
+      releaseRenderer(renderer);
 
       if (container.contains(renderer.domElement)) {
         container.removeChild(renderer.domElement);
@@ -821,7 +843,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
 
       sceneApiRef.current = null;
     };
-  }, [emitEvent, grid.x, grid.y, grid.z, gridSize]);
+  }, [emitEvent, grid.x, grid.y, grid.z, gridSize, sceneRetryKey]);
 
   useEffect(() => {
     if (!sceneApiRef.current) return;
@@ -848,16 +870,31 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
     setActiveLayer(0);
   }, [hasChallengeStarted]);
 
-  useEffect(() => {
-    if (isFacilitator && !isModelSidebarOpen) return () => {};
-    if (!modelPreviewRef.current || !canSeeTargetModel || webglUnavailable) return () => {};
-    return mountMiniModelScene(modelPreviewRef.current, { gridSize, grid, palette, targetCells, onUnavailable: () => setWebglUnavailable(true) });
-  }, [canSeeTargetModel, grid, gridSize, hasChallengeStarted, isFacilitator, isModelSidebarOpen, palette, targetCells, webglUnavailable]);
+  // grid, palette and targetCells get new identities on every pixel state update (each cube
+  // placed). Keying the previews on their content stops them from opening a fresh WebGL
+  // context per update, which used to exhaust the browser limit and kill the main view.
+  const miniModelKey = `${gridSize}|${grid.y}|${palette.join(',')}|${targetCells.map((cell) => toCellKey(cell.x, cell.y, cell.z)).join(';')}`;
+  const miniModel = useMemo(
+    () => ({ gridSize, grid, palette, targetCells }),
+    [miniModelKey]
+  );
+  const isPreviewBlocked = webglIssue === 'unsupported' || previewUnavailable;
 
   useEffect(() => {
-    if (!isModelMapOpen || !modelPreviewMobileRef.current || !canSeeTargetModel || webglUnavailable) return () => {};
-    return mountMiniModelScene(modelPreviewMobileRef.current, { gridSize, grid, palette, targetCells, onUnavailable: () => setWebglUnavailable(true) });
-  }, [canSeeTargetModel, grid, gridSize, isModelMapOpen, palette, targetCells, webglUnavailable]);
+    if (isFacilitator && !isModelSidebarOpen) return () => {};
+    if (!modelPreviewRef.current || !canSeeTargetModel || isPreviewBlocked) return () => {};
+    return mountMiniModelScene(modelPreviewRef.current, { ...miniModel, onUnavailable: () => setPreviewUnavailable(true) });
+  }, [canSeeTargetModel, hasChallengeStarted, isFacilitator, isModelSidebarOpen, isPreviewBlocked, miniModel]);
+
+  useEffect(() => {
+    if (!isModelMapOpen || !modelPreviewMobileRef.current || !canSeeTargetModel || isPreviewBlocked) return () => {};
+    return mountMiniModelScene(modelPreviewMobileRef.current, { ...miniModel, onUnavailable: () => setPreviewUnavailable(true) });
+  }, [canSeeTargetModel, isModelMapOpen, isPreviewBlocked, miniModel]);
+
+  function retry3dView() {
+    setPreviewUnavailable(false);
+    setSceneRetryKey((key) => key + 1);
+  }
 
   useEffect(() => {
     if (!isModelMapOpen) return () => {};
@@ -1152,7 +1189,7 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
               </button>
             </div>
             <div className={styles.modelSidebarViewport}>
-              {webglUnavailable
+              {isPreviewBlocked
                 ? <p role="status">{t('challengePixel.n3dPreviewUnavailableUseTheTarget')}</p>
                 : <><div ref={modelPreviewMobileRef} className={styles.modelMiniCanvas} /><span className={styles.modelMiniHint}>{t('challengePixel.dragToRotate')}</span></>}
             </div>
@@ -1160,10 +1197,16 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
         </div>
       ) : null}
 
-      {webglUnavailable ? (
-        <div className={styles.webglFallback}>
-          <p>{t('challengePixel.yourBrowserOrDeviceDoesNot')}</p>
+      {webglIssue ? (
+        <div className={styles.webglFallback} role="status">
+          <p>{webglIssue === 'unsupported'
+            ? t('challengePixel.yourBrowserOrDeviceDoesNot')
+            : t('challengePixel.n3dViewWasInterrupted')}</p>
+          {webglIssue === 'unsupported' ? <p>{t('challengePixel.enableHardwareAccelerationHint')}</p> : null}
           <p>{t('challengePixel.youCanKeepPlayingWithThe')}</p>
+          <button type="button" className={styles.webglRetryButton} onClick={retry3dView}>
+            {t('challengePixel.retry3dView')}
+          </button>
         </div>
       ) : null}
 
@@ -1376,13 +1419,13 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
                 </summary>
                 {isModelSidebarOpen ? (
                   <div className={styles.modelSidebarViewport}>
-                    {canSeeTargetModel && !webglUnavailable ? (
+                    {canSeeTargetModel && !isPreviewBlocked ? (
                       <>
                         <div ref={modelPreviewRef} className={styles.modelMiniCanvas} />
                         <span className={styles.modelMiniHint}>{t('challengePixel.dragToRotate')}</span>
                       </>
                     ) : (
-                      <p className={styles.modelMiniHidden}>{webglUnavailable && canSeeTargetModel
+                      <p className={styles.modelMiniHidden}>{isPreviewBlocked && canSeeTargetModel
                         ? t('challengePixel.n3dPreviewUnavailableUseTheTarget2')
                         : t('challengePixel.modelHiddenForThisRole')}</p>
                     )}
@@ -1396,13 +1439,13 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
                   <p>{templateName} · {templateDifficulty} · {grid.x}×{grid.y}×{grid.z} · {targetCubeCount} {t('challengePixel.cubes')}</p>
                 </div>
                 <div className={styles.modelSidebarViewport}>
-                  {canSeeTargetModel && !webglUnavailable ? (
+                  {canSeeTargetModel && !isPreviewBlocked ? (
                     <>
                       <div ref={modelPreviewRef} className={styles.modelMiniCanvas} />
                       <span className={styles.modelMiniHint}>{t('challengePixel.dragToRotate')}</span>
                     </>
                   ) : (
-                    <p className={styles.modelMiniHidden}>{webglUnavailable && canSeeTargetModel
+                    <p className={styles.modelMiniHidden}>{isPreviewBlocked && canSeeTargetModel
                       ? t('challengePixel.n3dPreviewUnavailableUseTheTarget2')
                       : t('challengePixel.modelHiddenForThisRole')}</p>
                   )}
