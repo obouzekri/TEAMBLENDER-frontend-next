@@ -60,6 +60,36 @@
   line-height: 1.6;
 }
 
+/* Once the demo is under way the pitch has done its job: a slim header keeps the steps above the fold. */
+.hero[data-compact='true'] {
+  grid-template-columns: minmax(0, 1fr) auto;
+  align-items: center;
+  gap: var(--space-1) var(--space-4);
+  max-width: none;
+}
+
+.hero[data-compact='true'] .eyebrow {
+  grid-column: 1 / -1;
+}
+
+.hero[data-compact='true'] .title {
+  font-size: clamp(1.25rem, 2.2vw, 1.6rem);
+}
+
+.hero[data-compact='true'] .subtitle {
+  display: none;
+}
+
+.hero[data-compact='true'] .notice {
+  margin: 0;
+}
+
+@media (max-width: 720px) {
+  .hero[data-compact='true'] {
+    grid-template-columns: minmax(0, 1fr);
+  }
+}
+
 .notice {
   display: inline-flex;
   flex-wrap: wrap;
@@ -779,6 +809,11 @@
    each keeps its desktop layout side by side, like two screenshots. */
 .screens[data-view='split'] .screen > [data-demo-challenge] {
   zoom: 0.78;
+}
+
+/* The visitor plays on this screen: keep it closer to real size so text and cells stay readable. */
+.screens[data-view='split'] .screen[data-screen='participant'] > [data-demo-challenge] {
+  zoom: 0.88;
 }
 
 .screenTitle {
