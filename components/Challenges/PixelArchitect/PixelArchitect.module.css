@@ -898,6 +898,8 @@ details[open] > .disclosureSummary::after {
 .layerQuickCellBtn {
   --pixel-cell-color: #2d9cdb;
   width: 100%;
+  /* Narrow columns: without this the button's intrinsic height wins over aspect-ratio. */
+  min-height: 0;
   padding: 0;
   cursor: pointer;
   transition: transform 120ms ease, border-color 120ms ease, box-shadow 120ms ease, background 120ms ease;
@@ -934,6 +936,48 @@ details[open] > .disclosureSummary::after {
 
 .layerQuickCellWrong {
   box-shadow: inset 0 0 0 2px rgba(248, 113, 113, 0.92);
+}
+
+/* The build area follows its own width, not only the viewport's: embedded in a narrow column
+   (e.g. next to the facilitator screen in the demo), the active layer gets the full width with
+   large cells and the other layers become small previews below it. */
+.mainPane {
+  container: pixel-main / inline-size;
+}
+
+@container pixel-main (max-width: 560px) {
+  .workspaceHead {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .workspaceToolbar {
+    justify-content: flex-start;
+  }
+
+  .layerQuickList:not(.layerQuickListFacilitator) {
+    grid-template-columns: repeat(4, minmax(0, 1fr));
+  }
+
+  .layerQuickList:not(.layerQuickListFacilitator) .layerQuickCardActive {
+    grid-column: 1 / -1;
+    order: -1;
+  }
+
+  .layerQuickList:not(.layerQuickListFacilitator) .layerQuickCard:not(.layerQuickCardActive) .layerQuickClaimBtn {
+    display: none;
+  }
+
+  .layerQuickList:not(.layerQuickListFacilitator) .layerQuickCard:not(.layerQuickCardActive) .layerQuickActivateBtn {
+    flex: 1;
+  }
+
+  .layerQuickList:not(.layerQuickListFacilitator) .layerQuickCard:not(.layerQuickCardActive) .layerQuickGrid {
+    gap: 1px;
+  }
+
+  .layerQuickList:not(.layerQuickListFacilitator) .layerQuickCard:not(.layerQuickCardActive) .layerQuickCell {
+    border-radius: 2px;
+  }
 }
 
 .viewportWrapCompact {

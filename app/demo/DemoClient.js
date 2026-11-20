@@ -344,7 +344,7 @@ export default function DemoClient() {
 
   return (
     <main className={`shell ${styles.page}`} data-wide={step === 'facilitate' ? 'true' : undefined}>
-      <header className={styles.hero}>
+      <header className={styles.hero} data-compact={stepIndex > 0 ? 'true' : undefined}>
         <p className={styles.eyebrow}>{t('demo.eyebrow')}</p>
         <h1 className={styles.title}>{t('demo.title')}</h1>
         <p className={styles.subtitle}>{t('demo.subtitle')}</p>
@@ -573,7 +573,8 @@ export default function DemoClient() {
                 );
                 return mode === 'participant' ? (
                   <span key={mode} className={styles.viewHintAnchor}>
-                    {renderHint('switchView', button, { align: 'start' })}
+                    {/* Without the split view the participant tab is the last one: open the bubble leftwards so it stays on screen. */}
+                    {renderHint('switchView', button, { align: splitAvailable ? 'start' : 'end' })}
                   </span>
                 ) : button;
               })}
