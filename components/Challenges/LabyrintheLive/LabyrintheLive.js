@@ -828,7 +828,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                   <ChallengeDebriefHeading />
                   <p>{labyFinalSummary.summaryMessage}</p>
                   <div className={styles.debriefMetrics} data-debrief-metrics>
-                    <article className={styles.debriefMetric}><span>{t('challengeLabyrinth.teamScore')}</span><strong>{labyFinalSummary.collectiveScore} / {labyFinalSummary.collectiveScoreMax}</strong></article>
+                    <article className={styles.debriefMetric} data-debrief-primary><span>{t('challengeLabyrinth.teamScore')}</span><strong>{labyFinalSummary.collectiveScore} / {labyFinalSummary.collectiveScoreMax}</strong></article>
                     <article className={styles.debriefMetric}><span>{t('challengeLabyrinth.remainingLives')}</span><strong>{labyFinalSummary.totalTeamLivesRemaining}</strong></article>
                     <article className={styles.debriefMetric}><span>{t('challengeLabyrinth.cellsTraversed')}</span><strong>{labyFinalSummary.totalCasesTraversed}</strong></article>
                     <article className={styles.debriefMetric}><span>{t('challengeLabyrinth.finalTime')}</span><strong>{labyFinalSummary.finalTimeLabel}</strong></article>

@@ -797,8 +797,9 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
     const insight = result.problem_id ? `challengeLab.insights.${result.problem_id}` : null;
     return (
       <section className={`${styles.card} ${styles.debrief}`} data-debrief-content>
+        <ChallengeDebriefHeading />
         <div className={styles.debriefTop}>
-          <h2 className={styles.sectionTitle}>{t('challengeLab.debrief.resultTitle')}</h2>
+          <h3 className={styles.sectionTitle}>{t('challengeLab.debrief.resultTitle')}</h3>
           <div className={styles.cardActions}>
             {isHost ? <button type="button" className={styles.primaryBtn} onClick={() => exportReport(result)} title={t('challengeLab.debrief.exportHint')}>{t('challengeLab.debrief.export')}</button> : null}
             <button type="button" className={styles.ghostBtn} onClick={() => copyFiche(result)}>{t('challengeLab.fiche.copy')}</button>
@@ -839,7 +840,7 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
             <span>{t('challengeLab.debrief.stepsCount')}</span>
           </article>
           <article className={styles.statTile}>
-            <strong>{t('challengeLab.fiche.budgetByLevel', result.budget.by_level)}</strong>
+            <strong data-metric-text>{t('challengeLab.fiche.budgetByLevel', result.budget.by_level)}</strong>
             <span>{t('challengeLab.fiche.budget')}</span>
             {result.budget.amount_count > 0 ? <span>{t('challengeLab.fiche.amountTotal', { amount: formatNumber(result.budget.amount_total, locale), count: result.budget.amount_count })}</span> : null}
           </article>
@@ -1044,24 +1045,27 @@ export default function LabDInnovationChallenge({ runtimePayload, socket, contex
             </section>
           ) : (
             <>
-              <section className={styles.card} data-debrief-content={isDebrief || undefined}>
-                <div className={styles.phaseHeader}>
-                  <div>
-                    {isDebrief ? <ChallengeDebriefHeading /> : <h2 className={styles.phaseTitle}>{t(`challengeLab.phaseTitle.${phase}`)}</h2>}
-                    {!isDebrief ? (
+              {/* In the debrief the result card opens with the shared heading, so the phase card only remains for a connection alert. */}
+              {isDebrief ? (
+                !connected ? <p className={styles.card} role="alert">{t('challengeLab.connectionInterrupted')}</p> : null
+              ) : (
+                <section className={styles.card}>
+                  <div className={styles.phaseHeader}>
+                    <div>
+                      <h2 className={styles.phaseTitle}>{t(`challengeLab.phaseTitle.${phase}`)}</h2>
                       <p className={styles.phaseGuidance}>
                         {t(`challengeLab.phaseHint.${phase}`, {
                           max: phase === 'deployment' ? limits.max_steps : phase === 'solution_submit' ? limits.max_solutions : limits.max_problem_picks,
                           points: limits.vote_points
                         })}
                       </p>
-                    ) : null}
+                    </div>
                   </div>
-                </div>
-                {!isDebrief && lab ? renderProgress() : null}
-                {!connected ? <p role="alert">{t('challengeLab.connectionInterrupted')}</p> : null}
-                {!isDebrief && timerStatus === 'paused' ? <p role="status">{t('challengeLab.pausedNotice')}</p> : null}
-              </section>
+                  {lab ? renderProgress() : null}
+                  {!connected ? <p role="alert">{t('challengeLab.connectionInterrupted')}</p> : null}
+                  {timerStatus === 'paused' ? <p role="status">{t('challengeLab.pausedNotice')}</p> : null}
+                </section>
+              )}
 
               {!isDebrief ? renderRetained() : null}
               {isDebrief ? renderFiche() : renderPhase()}

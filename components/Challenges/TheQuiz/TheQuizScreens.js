@@ -260,7 +260,7 @@ export function QuizFinalScreen({ locale, quiz }) {
 
       <div className={styles.finalSummaryGrid} data-debrief-metrics>
         <article className={styles.metricCard}><span>{translate(locale, 'challengeQuiz.participants')}</span><strong>{status === 'ready' ? totalPlayers : '-'}</strong></article>
-        <article className={styles.metricCard}><span>{translate(locale, 'challengeQuiz.winner')}</span><strong>{winner?.display_name || '-'}</strong></article>
+        <article className={styles.metricCard} data-debrief-primary><span>{translate(locale, 'challengeQuiz.winner')}</span><strong data-metric-text>{winner?.display_name || '-'}</strong></article>
         <article className={styles.metricCard}><span>{translate(locale, 'challengeQuiz.winningScore')}</span><strong>{winner ? `${winner.score} pts` : '-'}</strong></article>
       </div>
 

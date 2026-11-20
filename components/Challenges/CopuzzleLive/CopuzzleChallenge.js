@@ -526,7 +526,7 @@ export default function CoPuzzleChallenge({ runtimePayload, socket, context, onC
                       </strong>
                       <span className={styles.summaryLabel}>{t('challengeCopuzzle.completion')}</span>
                     </div>
-                    <div className={styles.summaryCard}>
+                    <div className={styles.summaryCard} data-debrief-primary>
                       <strong className={styles.summaryValue}>
                         {Number(state.summary?.collective_score || 0)} / {Number(state.summary?.collective_score_max ?? 1000)}
                       </strong>
@@ -546,10 +546,12 @@ export default function CoPuzzleChallenge({ runtimePayload, socket, context, onC
                     </div>
                   </div>
                   {state.summary?.total_time_seconds > 0 ? (
-                    <div className={styles.summaryTime}>
-                      {t('challengeCopuzzle.totalTime')}: {Math.floor(Number(state.summary.total_time_seconds) / 60)}m{' '}
-                      {Number(state.summary.total_time_seconds) % 60}s
-                    </div>
+                    <p className={styles.summaryTime} data-debrief-meta>
+                      <span>
+                        {t('challengeCopuzzle.totalTime')} : {Math.floor(Number(state.summary.total_time_seconds) / 60)} min{' '}
+                        {String(Number(state.summary.total_time_seconds) % 60).padStart(2, '0')} s
+                      </span>
+                    </p>
                   ) : null}
                 </div>
               ) : null}

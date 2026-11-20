@@ -388,7 +388,7 @@ export default function PhraseChallenge({ runtimePayload, socket, context, onCha
                   </header>
 
                   <div className={styles.summaryStats} data-debrief-metrics>
-                    <article className={styles.summaryStatCard}>
+                    <article className={styles.summaryStatCard} data-debrief-primary>
                       <span>{t('challengePhrase.collectiveScore')}</span>
                       <strong>{summaryScore}/100</strong>
                     </article>
@@ -406,19 +406,19 @@ export default function PhraseChallenge({ runtimePayload, socket, context, onCha
                     </article>
                   </div>
 
-                  <div className={styles.summaryColumns}>
-                    <section className={styles.summaryPanel}>
+                  <div className={styles.summaryColumns} data-debrief-panels>
+                    <section className={styles.summaryPanel} data-debrief-panel="positive">
                       <h4>{t('challengePhrase.whatWorkedWell')}</h4>
-                      <ul>
+                      <ul data-debrief-list>
                         <li>{t('challengePhrase.finalCompletion')} : {summaryCompletion}%.</li>
                         <li>{summarySolvedWords} {t('challengePhrase.wordSCorrectlyPlaced')}</li>
                         <li>{summaryMessages} {t('challengePhrase.messageSExchanged')}</li>
                       </ul>
                     </section>
 
-                    <section className={styles.summaryPanel}>
+                    <section className={styles.summaryPanel} data-debrief-panel="improve">
                       <h4>{t('challengePhrase.areasForImprovement')}</h4>
-                      <ul>
+                      <ul data-debrief-list>
                         <li>{t('challengePhrase.reduceUnsuccessfulAttempts')} ({decoyRisk}).</li>
                         <li>{t('challengePhrase.discussAmbiguousWordsAndDecoysTogether')}</li>
                         <li>{t('challengePhrase.confirmKeyPlacementsBeforeFinalValidation')}</li>

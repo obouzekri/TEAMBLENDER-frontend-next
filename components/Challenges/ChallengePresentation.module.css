@@ -22,17 +22,31 @@
   min-height: 0;
 }
 
-.debrief [data-debrief-content] {
+/* One debrief card in every challenge: soft accent glow in the top corner, no side stripe. The
+   doubled attribute selector outranks the challenges' own light/dark theme rules on the same node. */
+.debrief[data-challenge-debrief] [data-debrief-content] {
+  --debrief-accent: var(--accent, #2f62ff);
+  --debrief-tint: color-mix(in srgb, var(--debrief-accent) 9%, transparent);
   order: -1;
   align-self: stretch;
   justify-self: stretch;
   box-sizing: border-box;
   width: auto;
   max-width: none;
-  padding: clamp(18px, 2vw, 30px);
-  border-inline-start: 4px solid var(--accent, #38bdf8);
-  background: var(--surface-panel-soft);
+  margin-inline: 0;
+  padding: clamp(20px, 2.4vw, 34px);
+  border: 1px solid var(--line);
+  border-radius: 20px;
+  background:
+    radial-gradient(90% 140% at 0% 0%, var(--debrief-tint), transparent 55%),
+    var(--surface-panel);
+  box-shadow: 0 18px 40px -28px rgba(15, 23, 42, 0.35);
   color: var(--text-strong, var(--ink));
+}
+
+:global(:root[data-theme='dark']) .debrief[data-challenge-debrief] [data-debrief-content] {
+  --debrief-tint: color-mix(in srgb, var(--debrief-accent) 18%, transparent);
+  box-shadow: 0 18px 40px -28px rgba(0, 0, 0, 0.7);
 }
 
 .debrief [data-debrief-content] :is(h2, h3, h4) {
@@ -45,12 +59,12 @@
 .debrief [data-debrief-content] > :is(h2, h3),
 .debrief [data-debrief-content] > header > :is(h2, h3),
 .debrief [data-debrief-content] > div:first-child h2 {
-  font-size: clamp(1.4rem, 2vw, 1.9rem);
+  font-size: clamp(1.6rem, 2.6vw, 2.2rem);
   margin-block: 0 16px;
 }
 
 .debrief [data-debrief-content] h4 {
-  font-size: 1.08rem;
+  font-size: 1.05rem;
   margin-block-end: 10px;
 }
 
@@ -60,7 +74,7 @@
 
 .debrief [data-debrief-content] > h3,
 .debrief [data-debrief-content] > header > h3 {
-  font-size: clamp(1.4rem, 2vw, 1.9rem);
+  font-size: clamp(1.6rem, 2.6vw, 2.2rem);
 }
 
 .debrief [data-debrief-content] p,
@@ -69,25 +83,29 @@
   color: var(--ink-soft);
 }
 
-.debrief [data-debrief-metrics] {
+/* Key figures: value first, label underneath, whatever the markup order. */
+.debrief[data-challenge-debrief] [data-debrief-metrics] {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
-  gap: 14px;
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+  gap: 12px;
+  margin-block: 4px 20px;
 }
 
-/* Same tile in every challenge: value first, label underneath, whatever the markup order. */
-.debrief [data-debrief-metrics] > * {
+.debrief[data-challenge-debrief] [data-debrief-metrics] > * {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: flex-start;
   justify-content: flex-start;
-  gap: 4px;
+  gap: 6px;
   min-width: 0;
   margin: 0;
-  padding: 12px 14px;
+  padding: 16px 18px;
+  overflow: hidden;
   border: 1px solid var(--line);
-  border-radius: 12px;
-  background: var(--surface-panel);
+  border-radius: 14px;
+  background: var(--surface-panel-soft);
+  box-shadow: none;
   text-align: start;
 }
 
@@ -99,16 +117,184 @@
   order: -1;
 }
 
-.debrief [data-debrief-metrics] > * > span {
+.debrief[data-challenge-debrief] [data-debrief-metrics] > * > span {
   color: var(--ink-soft);
-  font-size: 0.75rem;
-  font-weight: 650;
-  letter-spacing: 0.05em;
+  font-size: 0.74rem;
+  font-weight: 700;
+  line-height: 1.35;
+  letter-spacing: 0.06em;
   text-transform: uppercase;
 }
 
-.debrief [data-debrief-metrics] strong {
-  font-size: clamp(1.4rem, 2vw, 1.85rem);
-  line-height: 1.3;
+.debrief[data-challenge-debrief] [data-debrief-metrics] strong {
+  font-size: clamp(1.5rem, 2.2vw, 2rem);
+  font-weight: 800;
+  line-height: 1.15;
+  letter-spacing: -0.02em;
+  font-variant-numeric: tabular-nums;
+  overflow-wrap: anywhere;
   color: var(--text-strong, var(--ink));
+}
+
+/* Text values (a name, a budget breakdown) stay on one or two lines. */
+.debrief[data-challenge-debrief] [data-debrief-metrics] strong[data-metric-text] {
+  font-size: 1.375rem;
+  line-height: 1.3;
+}
+
+/* The figure the team should look at first. */
+.debrief[data-challenge-debrief] [data-debrief-metrics] > [data-debrief-primary] {
+  border-color: color-mix(in srgb, var(--debrief-accent) 40%, var(--line));
+  background:
+    linear-gradient(160deg, color-mix(in srgb, var(--debrief-accent) 12%, transparent), transparent 70%),
+    var(--surface-panel);
+}
+
+.debrief[data-challenge-debrief] [data-debrief-metrics] > [data-debrief-primary]::before {
+  content: '';
+  position: absolute;
+  inset: 0 0 auto;
+  height: 4px;
+  background: var(--accent-gradient, var(--debrief-accent));
+}
+
+/* "What worked" / "What to improve" columns. */
+.debrief [data-debrief-panels] {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(min(100%, 280px), 1fr));
+  gap: 14px;
+}
+
+.debrief[data-challenge-debrief] [data-debrief-panel] {
+  --panel-tone: var(--debrief-accent);
+  margin: 0;
+  padding: 18px 20px;
+  border: 1px solid color-mix(in srgb, var(--panel-tone) 30%, var(--line));
+  border-radius: 16px;
+  background:
+    linear-gradient(180deg, color-mix(in srgb, var(--panel-tone) 9%, transparent), transparent 80%),
+    var(--surface-panel);
+}
+
+.debrief[data-challenge-debrief] [data-debrief-panel='positive'] {
+  --panel-tone: #10b981;
+}
+
+.debrief[data-challenge-debrief] [data-debrief-panel='improve'] {
+  --panel-tone: #f59e0b;
+}
+
+.debrief[data-challenge-debrief] [data-debrief-panel] > :is(h3, h4) {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 12px;
+  font-size: 1.05rem;
+}
+
+.debrief [data-debrief-panel] > :is(h3, h4)::before {
+  content: '';
+  flex: none;
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--panel-tone);
+  box-shadow: 0 0 0 4px color-mix(in srgb, var(--panel-tone) 20%, transparent);
+}
+
+/* Plain-text lists: tone-coloured markers instead of browser bullets. */
+.debrief[data-challenge-debrief] [data-debrief-list] {
+  display: grid;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+
+.debrief[data-challenge-debrief] [data-debrief-list] > li {
+  position: relative;
+  margin: 0;
+  padding-inline-start: 22px;
+  color: var(--text-strong, var(--ink));
+}
+
+.debrief [data-debrief-list] > li::before {
+  content: '';
+  position: absolute;
+  inset-inline-start: 2px;
+  top: 0.62em;
+  width: 8px;
+  height: 8px;
+  border-radius: 2px;
+  background: var(--panel-tone, var(--debrief-accent));
+  transform: rotate(45deg);
+}
+
+/* Discussion prompts for the facilitator: numbered cards. */
+.debrief[data-challenge-debrief] [data-debrief-list='questions'] {
+  counter-reset: debrief-question;
+  gap: 10px;
+}
+
+.debrief[data-challenge-debrief] [data-debrief-list='questions'] > li {
+  counter-increment: debrief-question;
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  padding: 14px 16px;
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  background: var(--surface-panel-soft);
+  font-weight: 600;
+}
+
+.debrief [data-debrief-list='questions'] > li::before {
+  content: counter(debrief-question);
+  position: static;
+  display: grid;
+  place-items: center;
+  flex: none;
+  width: 30px;
+  height: 30px;
+  border-radius: 50%;
+  background: var(--debrief-accent);
+  color: var(--surface-panel, #fff);
+  font-size: 0.85rem;
+  font-weight: 800;
+  transform: none;
+}
+
+/* Small "meta" line under the title (dates, total time). */
+.debrief[data-challenge-debrief] [data-debrief-meta] {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin: 0 0 18px;
+  padding: 0;
+  border: 0;
+  color: var(--ink-soft);
+  font-size: 0.88rem;
+  text-align: start;
+}
+
+.debrief[data-challenge-debrief] [data-debrief-meta] > * {
+  padding: 5px 12px;
+  border: 1px solid var(--line);
+  border-radius: 999px;
+  background: var(--surface-panel-soft);
+}
+
+@media (max-width: 640px) {
+  .debrief[data-challenge-debrief] [data-debrief-metrics] {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 10px;
+  }
+
+  .debrief[data-challenge-debrief] [data-debrief-metrics] > * {
+    padding: 14px;
+  }
+
+  .debrief[data-challenge-debrief] [data-debrief-content] {
+    border-radius: 16px;
+  }
 }

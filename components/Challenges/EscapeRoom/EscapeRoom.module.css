@@ -1204,13 +1204,17 @@
   font-size: 0.9rem;
 }
 
-.debriefPanel ul {
-  margin-bottom: 0;
-  padding-inline-start: 20px;
+.debriefMetrics {
+  max-width: 320px;
 }
 
-.debriefPanel li + li {
-  margin-top: 6px;
+.debriefPanel h3 {
+  margin: 0 0 12px;
+}
+
+.debriefPanel .debriefFootnote {
+  margin: 12px 0 0;
+  font-size: 0.82rem;
 }
 
 .progressSummary strong {

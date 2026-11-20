@@ -1146,7 +1146,7 @@ export default function VraiOuMensongeChallenge({ runtimePayload, socket, contex
                 <strong>{totalCycles}</strong>
                 <span>{t('vom.playedCycles')}</span>
               </article>
-              <article className={styles.finalSummaryItem}>
+              <article className={styles.finalSummaryItem} data-debrief-primary>
                 <strong>{ranking[0]?.score ?? 0}{maxPoints > 0 ? <small> / {maxPoints}</small> : null}</strong>
                 <span>{t('vom.bestScore')}</span>
               </article>
