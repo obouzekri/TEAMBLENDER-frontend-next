@@ -311,7 +311,7 @@ export default function PhraseChallenge({ runtimePayload, socket, context, onCha
       </div>
 
       <div className={styles.shell} data-challenge-layout>
-        <section className={styles.boardPanel}>
+        <section className={styles.boardPanel} data-debrief-host>
           <ChallengeActionFeedback feedback={action.feedback} />
           {!hasChallengeStarted ? (
             <ChallengeRulesPanel

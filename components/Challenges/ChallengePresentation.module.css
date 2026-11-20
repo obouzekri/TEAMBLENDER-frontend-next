@@ -83,6 +83,14 @@
   color: var(--ink-soft);
 }
 
+/* A game card that wraps the debrief card loses its own frame, so the debrief is not boxed twice. */
+.debrief[data-challenge-debrief] [data-debrief-host] {
+  padding: 0;
+  border: 0;
+  background: none;
+  box-shadow: none;
+}
+
 /* Key figures: value first, label underneath, whatever the markup order. */
 .debrief[data-challenge-debrief] [data-debrief-metrics] {
   display: grid;

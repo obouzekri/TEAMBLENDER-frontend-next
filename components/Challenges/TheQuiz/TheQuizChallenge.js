@@ -457,7 +457,7 @@ export default function TheQuizChallenge({ runtimePayload, socket, context, onCh
 
   return (
     <ChallengePresentation as="main" className={styles.pageShell} isDebrief={renderedPhase === 'final_score'}>
-      <section className={styles.challengeBoard}>
+      <section className={styles.challengeBoard} data-debrief-host>
         <ChallengeHeader
           title={challengeName}
           subtitle={challengeSubtitle || t('challengeQuiz.realTimeMultiplayerGeneralKnowledgeQuiz')}
