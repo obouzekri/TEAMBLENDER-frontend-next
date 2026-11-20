@@ -707,7 +707,8 @@ button.cell:focus-visible {
 .miniGridList {
   display: grid;
   gap: 10px;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 260px), 1fr));
+  /* auto-fill: a lone participant keeps a card-sized grid instead of filling the whole row. */
+  grid-template-columns: repeat(auto-fill, minmax(min(100%, 260px), 1fr));
 }
 
 .miniGridCard {

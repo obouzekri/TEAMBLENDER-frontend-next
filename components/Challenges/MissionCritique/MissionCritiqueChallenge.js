@@ -649,20 +649,18 @@ export default function MissionCritiqueChallenge({
                     </p>
                   </div>
 
-                  <div className={styles.resultInsights}>
-                    <article className={styles.resultInsight}>
+                  <div className={styles.resultInsights} data-debrief-panels>
+                    <article className={styles.resultInsight} data-debrief-panel="positive">
                       <h3>{t('challengeMission.strengths')}</h3>
-                      <p>
-                        {(displayedResult.strengths || []).join(' · ') ||
-                          t('challengeMission.noStrengthsIdentified')}
-                      </p>
+                      {(displayedResult.strengths || []).length > 0 ? (
+                        <ul data-debrief-list>{displayedResult.strengths.map((item) => <li key={item}>{item}</li>)}</ul>
+                      ) : <p>{t('challengeMission.noStrengthsIdentified')}</p>}
                     </article>
-                    <article className={`${styles.resultInsight} ${styles.resultInsightReview}`}>
+                    <article className={`${styles.resultInsight} ${styles.resultInsightReview}`} data-debrief-panel="improve">
                       <h3>{t('challengeMission.areasToImprove')}</h3>
-                      <p>
-                        {(displayedResult.weaknesses || []).join(' · ') ||
-                          t('challengeMission.noAreasToImprove')}
-                      </p>
+                      {(displayedResult.weaknesses || []).length > 0 ? (
+                        <ul data-debrief-list>{displayedResult.weaknesses.map((item) => <li key={item}>{item}</li>)}</ul>
+                      ) : <p>{t('challengeMission.noAreasToImprove')}</p>}
                     </article>
                   </div>
 

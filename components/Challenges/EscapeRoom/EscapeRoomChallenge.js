@@ -821,14 +821,20 @@ export default function EscapeRoomChallenge({
               <ChallengeDebriefHeading>
                 <span className={styles.outcomeBadge}>{outcomeLabel}</span>
               </ChallengeDebriefHeading>
-              <p className={styles.finishedDates}>
-                {copy.start} {formatDate(state.started_at)} · {copy.end} {formatDate(state.finished_at)}
+              <p className={styles.finishedDates} data-debrief-meta>
+                {state.started_at ? <span>{copy.start} {formatDate(state.started_at)}</span> : null}
+                <span>{copy.end} {formatDate(state.finished_at)}</span>
               </p>
+              <div className={styles.debriefMetrics} data-debrief-metrics>
+                <p className={styles.progressSummary} data-debrief-primary>
+                  <strong>{progressedRiddles}/{totalRiddles}</strong>
+                  <span>{copy.progress}</span>
+                </p>
+              </div>
               <section className={styles.debriefPanel} aria-label={copy.debrief}>
                 <h3>{copy.debrief}</h3>
-                <p className={styles.progressSummary}>{copy.progress} : <strong>{progressedRiddles}/{totalRiddles}</strong></p>
-                <p>{copy.debriefNote}</p>
-                <ul>{copy.debriefQuestions.map((question) => <li key={question}>{question}</li>)}</ul>
+                <ul data-debrief-list="questions">{copy.debriefQuestions.map((question) => <li key={question}>{question}</li>)}</ul>
+                <p className={styles.debriefFootnote}>{copy.debriefNote}</p>
               </section>
             </>
           ) : (
