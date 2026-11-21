@@ -34,6 +34,7 @@ export default function SignupForm() {
   const [done, setDone] = useState(false);
   const [oauthLoadingProvider, setOauthLoadingProvider] = useState('');
   const [touched, setTouched] = useState({});
+  const [acceptTerms, setAcceptTerms] = useState(false);
 
   const passwordChecks = useMemo(() => ({
     length: password.length >= 8,
@@ -133,6 +134,10 @@ export default function SignupForm() {
       setMessage(t('auth.passwordMustBeAtLeast8'));
       return;
     }
+    if (!acceptTerms) {
+      setMessage(t('auth.acceptTermsRequired'));
+      return;
+    }
 
     setLoading(true);
     try {
@@ -142,6 +147,7 @@ export default function SignupForm() {
         first_name: f,
         last_name: l,
         locale,
+        accept_terms: true,
       });
 
       if (res.status === 201) {
@@ -281,6 +287,24 @@ export default function SignupForm() {
                 </ul>
               </div>
             )}
+
+            <div className="auth-form-row auth-form-row--options">
+              <label className="auth-remember-me auth-terms-consent" htmlFor="signup-accept-terms">
+                <input
+                  id="signup-accept-terms"
+                  type="checkbox"
+                  checked={acceptTerms}
+                  onChange={(e) => setAcceptTerms(e.target.checked)}
+                  required
+                />
+                <span>
+                  {t('auth.acceptTermsPrefix')}{' '}
+                  <Link href={withLocalePath('/cgu')} target="_blank" rel="noopener noreferrer">{t('auth.termsOfUse')}</Link>
+                  {' '}{t('auth.acceptTermsAnd')}{' '}
+                  <Link href={withLocalePath('/politique-confidentialite')} target="_blank" rel="noopener noreferrer">{t('auth.privacyPolicy')}</Link>
+                </span>
+              </label>
+            </div>
 
             <button type="submit" className="btn-primary wide login-submit-btn" disabled={loading} aria-busy={loading}>
               {loading ? (
