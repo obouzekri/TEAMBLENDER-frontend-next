@@ -173,6 +173,15 @@ function ParticipantHome({ requestedSessionId }) {
     return id == null ? '' : String(id).trim();
   }, []);
 
+  // One status for the selected session, so the hero, the panel and the cards agree.
+  const selectedSessionStatus = getSessionStatusVariant(
+    sessionState?.status
+    || assignedSessions.find((session) => getSessionIdentifier(session) === String(sessionId))?.status
+  );
+  const isSelectedSessionFinished = Boolean(sessionId) && selectedSessionStatus === 'terminee';
+  const isSelectedSessionUpcoming = Boolean(sessionId) && selectedSessionStatus === 'a-venir';
+
+
   useEffect(() => {
     if (!ready || !sessionId) return;
 
@@ -316,11 +325,13 @@ function ParticipantHome({ requestedSessionId }) {
     };
   }, [ready, locale]);
 
+  // A session gets its first challenge as soon as it is created, but the challenge only opens
+  // once the facilitator launches it: sending people there earlier showed "Erreur 423: Locked".
   const challengeLink = useMemo(() => {
     const engine = String(stateEngineKey || runtime?.engine_key || '').trim();
-    if (!engine || !sessionId) return '';
+    if (!engine || !sessionId || selectedSessionStatus !== 'en-cours') return '';
     return withLocalePath(`/challenges/${encodeURIComponent(engine)}?sessionId=${encodeURIComponent(sessionId)}`);
-  }, [stateEngineKey, runtime, sessionId, withLocalePath]);
+  }, [stateEngineKey, runtime, sessionId, selectedSessionStatus, withLocalePath]);
 
   useEffect(() => {
     if (challengeLink) router.replace(challengeLink);
@@ -453,10 +464,14 @@ function ParticipantHome({ requestedSessionId }) {
               <p>
                 {!sessionId
                   ? t('participantSpace.findYourSessionsAndJoinYour')
-                  : t('participantSpace.yourSessionIsRunningTheActive')}
+                  : isSelectedSessionFinished
+                    ? t('participantSpace.sessionFinishedThanks')
+                    : isSelectedSessionUpcoming
+                      ? t('participantSpace.sessionNotStartedYet')
+                      : t('participantSpace.yourSessionIsRunningTheActive')}
               </p>
             </div>
-            {sessionId ? (
+            {sessionId && !isSelectedSessionFinished ? (
               <div className="participant-hero__actions">
                 {challengeLink ? (
                   <Link className="btn-primary" href={challengeLink}>
@@ -564,7 +579,9 @@ function ParticipantHome({ requestedSessionId }) {
                           </button>
                         ) : (
                           <span className="participant-session-card__waiting-status">
-                            {t('participantSpace.waitingForLaunch')}
+                            {statusVariant === 'terminee'
+                              ? t('participantSpace.sessionFinishedCard')
+                              : t('participantSpace.waitingForLaunch')}
                           </span>
                         )}
                       </div>
@@ -625,7 +642,13 @@ function ParticipantHome({ requestedSessionId }) {
           <section className="feature-card participant-panel participant-panel--wide">
             <div className="participant-panel__head">
               <div>
-                <p className="eyebrow">{t('participantSpace.activeSession')}</p>
+                <p className="eyebrow">
+                  {isSelectedSessionFinished
+                    ? t('participantSpace.finishedSession')
+                    : isSelectedSessionUpcoming
+                      ? t('participantSpace.upcomingSession')
+                      : t('participantSpace.activeSession')}
+                </p>
                 <h2>{t('participantSpace.sessionInformation')}</h2>
               </div>
             </div>
@@ -636,6 +659,8 @@ function ParticipantHome({ requestedSessionId }) {
               <p className="participant-meta-line participant-meta-line--strong">
                 {t('participantSpace.activeChallenge')} <strong>{sessionState?.current_challenge?.name || stateEngineKey || runtime?.challenge_name || runtime?.engine_key}</strong>
               </p>
+            ) : isSelectedSessionFinished ? (
+              <p className="participant-help-text">{t('participantSpace.sessionFinishedThanks')}</p>
             ) : sessionId && !joining && !sessionError && !runtimeError ? (
               <p className="participant-help-text">
                 {flowMode === 'auto'
