@@ -145,6 +145,8 @@ export default function SessionBuilder() {
   const inviteCopyTimerRef = useRef(null);
   useEffect(() => () => window.clearTimeout(inviteCopyTimerRef.current), []);
   const hasHydratedSessionSelectionRef = useRef(false);
+  const sessionStatusRef = useRef('');
+  const lastAutosavedChallengeIdsRef = useRef('');
   const onboardingRedirectedRef = useRef(false);
   const shouldResetScrollAfterCreationRef = useRef(false);
 
@@ -760,6 +762,40 @@ export default function SessionBuilder() {
     }
   }, [selectedChallenges, sessionId]);
 
+  // The selection used to reach the session only through the save icon or the launch: leaving the
+  // page lost it as soon as the session already had challenges (the local draft never wins then),
+  // and always on another device. Save the programme to the session shortly after each change.
+  useEffect(() => {
+    if (!sessionId || !sessionChallengesLoaded || !hasHydratedSessionSelectionRef.current) return undefined;
+    if (sessionStatusRef.current && sessionStatusRef.current !== 'preparee') return undefined;
+
+    const challengeIds = selectedChallenges
+      .map((item) => resolveChallengeApiIdentifier(item))
+      .filter((id) => id !== null);
+    const serializedIds = JSON.stringify(challengeIds);
+    if (!challengeIds.length || serializedIds === lastAutosavedChallengeIdsRef.current) return undefined;
+
+    const timer = setTimeout(async () => {
+      const token = getAuthToken();
+      if (!token) return;
+      try {
+        await ensureChallengesLinkedToSession(challengeIds, token, false);
+        lastAutosavedChallengeIdsRef.current = serializedIds;
+        setSelectedChallengesSnapshot(JSON.stringify(selectedChallenges));
+      } catch {
+        // Keep the local draft; the explicit save and the launch report the error.
+      }
+    }, 1200);
+    return () => clearTimeout(timer);
+  }, [
+    ensureChallengesLinkedToSession,
+    getAuthToken,
+    resolveChallengeApiIdentifier,
+    selectedChallenges,
+    sessionChallengesLoaded,
+    sessionId,
+  ]);
+
   useEffect(() => {
     if (!guard.allowed) return;
     if (sessionId || hasRouteSessionId) return;
@@ -952,6 +988,10 @@ export default function SessionBuilder() {
           }
 
           setSelectedChallengesSnapshot(JSON.stringify(sessionChallenges));
+          sessionStatusRef.current = String(session?.status || '').trim().toLowerCase();
+          lastAutosavedChallengeIdsRef.current = JSON.stringify(
+            sessionChallenges.map((challenge) => toIntegerId(challenge?.id)).filter((id) => id !== null)
+          );
           hasHydratedSessionSelectionRef.current = true;
           setSessionChallengesLoaded(true);
         }
