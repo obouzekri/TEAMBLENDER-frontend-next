@@ -851,8 +851,8 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                               style={buildMazeCellStyle(maze, row, col)}
                               aria-hidden="true"
                             >
-                              {allStartKeys.has(key) ? <span className={styles.cellStartBadge} aria-label={t('challengeLabyrinth.start')}>S</span> : null}
-                              {key === endCellKey ? <span className={styles.cellExitBadge} aria-label={t('challengeLabyrinth.exit2')}>E</span> : null}
+                              {allStartKeys.has(key) ? <span className={styles.cellStartBadge} aria-label={t('challengeLabyrinth.start')}>{t('challengeLabyrinth.startBadge')}</span> : null}
+                              {key === endCellKey ? <span className={styles.cellExitBadge} aria-label={t('challengeLabyrinth.exit2')}>{t('challengeLabyrinth.exitBadge')}</span> : null}
                               {safePathKeys.has(key) ? <span className={styles.cellSolutionDot}>●</span> : null}
                               {Boolean(revealedTraps[key]) || (revealMazeTraps && mazeTrapKeys.has(key)) ? <span className={styles.cellTrapKnownIcon}><Bomb size={14} aria-hidden="true" /></span> : null}
                             </div>
@@ -919,8 +919,8 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                                   style={buildMazeCellStyle(maze, row, col)}
                                   aria-label={`Case ${row + 1}-${col + 1}`}
                                 >
-                                  {allStartKeys.has(key) ? <span className={styles.cellStartBadge} aria-label={t('challengeLabyrinth.start')}>S</span> : null}
-                                  {key === endCellKey ? <span className={styles.cellExitBadge} aria-label={t('challengeLabyrinth.exit2')}>E</span> : null}
+                                  {allStartKeys.has(key) ? <span className={styles.cellStartBadge} aria-label={t('challengeLabyrinth.start')}>{t('challengeLabyrinth.startBadge')}</span> : null}
+                                  {key === endCellKey ? <span className={styles.cellExitBadge} aria-label={t('challengeLabyrinth.exit2')}>{t('challengeLabyrinth.exitBadge')}</span> : null}
                                   {Boolean(revealedTraps[key]) || (revealMazeTraps && mazeTrapKeys.has(key)) ? <span className={styles.cellTrapKnownIcon}>{labyPhase === 'done' ? <Bomb size={14} aria-hidden="true" /> : '💣'}</span> : null}
                                   {key === flashCellKey && flashCellTone === 'trap' ? <span className={styles.cellTrapIcon}>💥</span> : null}
                                   {key === flashCellKey && flashCellTone === 'blocked' ? <span className={styles.cellBlockedIcon}>⛔</span> : null}
@@ -1026,8 +1026,8 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                           cellPlayers.length ? `${t('challengeLabyrinth.players')}: ${cellPlayers.map((entry) => entry.name).join(', ')}` : '',
                         ].filter(Boolean).join(', ')}
                       >
-                        {allStartKeys.has(key) ? <span className={styles.cellStartBadge} aria-label={t('challengeLabyrinth.start')}>S</span> : null}
-                        {key === endCellKey ? <span className={styles.cellExitBadge} aria-label={t('challengeLabyrinth.exit2')}>E</span> : null}
+                        {allStartKeys.has(key) ? <span className={styles.cellStartBadge} aria-label={t('challengeLabyrinth.start')}>{t('challengeLabyrinth.startBadge')}</span> : null}
+                        {key === endCellKey ? <span className={styles.cellExitBadge} aria-label={t('challengeLabyrinth.exit2')}>{t('challengeLabyrinth.exitBadge')}</span> : null}
                         {key === flashCellKey && flashCellTone === 'trap' ? <span className={styles.cellTrapIcon}>💥</span> : null}
                         {Boolean(revealedTraps[key]) ? <span className={styles.cellTrapKnownIcon}>{labyPhase === 'done' ? <Bomb size={14} aria-hidden="true" /> : '💣'}</span> : null}
                         {key === flashCellKey && flashCellTone === 'blocked' ? <span className={styles.cellBlockedIcon}>⛔</span> : null}
@@ -1166,8 +1166,8 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                         style={buildMazeCellStyle(maze, row, col)}
                         aria-hidden="true"
                       >
-                        {allStartKeys.has(key) ? <span className={styles.cellStartBadge} aria-label={t('challengeLabyrinth.start')}>S</span> : null}
-                        {key === endCellKey ? <span className={styles.cellExitBadge} aria-label={t('challengeLabyrinth.exit2')}>E</span> : null}
+                        {allStartKeys.has(key) ? <span className={styles.cellStartBadge} aria-label={t('challengeLabyrinth.start')}>{t('challengeLabyrinth.startBadge')}</span> : null}
+                        {key === endCellKey ? <span className={styles.cellExitBadge} aria-label={t('challengeLabyrinth.exit2')}>{t('challengeLabyrinth.exitBadge')}</span> : null}
                         {safePathKeys.has(key) ? <span className={styles.cellSolutionDot}>●</span> : null}
                         {revealMazeTraps && mazeTrapKeys.has(key) ? <span className={styles.cellTrapKnownIcon}>{labyPhase === 'done' ? <Bomb size={14} aria-hidden="true" /> : '💣'}</span> : null}
                       </div>
