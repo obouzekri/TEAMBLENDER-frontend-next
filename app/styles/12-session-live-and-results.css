@@ -373,6 +373,19 @@
   .appnav-mobile-actions {
     display: none !important;
   }
+
+  /* Managers get their main links inline on desktop instead of an empty bar. */
+  .nav-panel--manager .appnav-mobile-main-links--desktop-menu {
+    display: flex !important;
+    flex-direction: row;
+    align-items: center;
+    justify-content: center;
+    gap: 0.25rem;
+  }
+
+  .nav-panel--manager .appnav-mobile-main-links--desktop-menu .nav-link--logout {
+    display: none !important;
+  }
 }
 
 @media (max-width: 900px) {

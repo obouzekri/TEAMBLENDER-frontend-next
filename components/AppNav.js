@@ -149,6 +149,16 @@ export default function AppNav({ userLabel, onLogout, role, avatarUrl: avatarUrl
     window.history.replaceState(null, '', withLocalePath(`/home#${blockKey}`));
   }
 
+  // Managers see Accueil / Mon compte / Préférences in the header itself on desktop, so their
+  // avatar menu only keeps the logout.
+  const managerDesktopAvatarItems = [
+    {
+      key: 'logout',
+      label: t('appNav.logout'),
+      onClick: handleLogout,
+    },
+  ];
+
   const desktopAvatarItems = [
     {
       key: 'home',
@@ -308,7 +318,7 @@ export default function AppNav({ userLabel, onLogout, role, avatarUrl: avatarUrl
                 triggerLabel={t('appNav.userMenuOf', { name: resolvedUserLabel })}
                 menuLabel={t('appNav.userMenu')}
                 closeSignal={menuSignal}
-                items={desktopAvatarItems}
+                items={isManager ? managerDesktopAvatarItems : desktopAvatarItems}
               />
             </div>
           </div>
