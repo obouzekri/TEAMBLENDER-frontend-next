@@ -8,6 +8,7 @@ import Footer from '@/components/Footer';
 import SessionLiveHeader from '@/components/SessionLiveHeader';
 import Modal from '@/components/ui/Modal';
 import StatusBadge, { getSessionStatusVariant } from '@/components/ui/StatusBadge';
+import { localizeChallengeName } from '@/lib/challenges/catalogLocalization';
 import { getApiUrl } from '@/lib/config';
 import { useSessionState } from '@/lib/useSessionState';
 import { clearStoredAuth, getAuthHeaders, getStoredCurrentUser, joinParticipantAuthenticated } from '@/lib/auth';
@@ -630,7 +631,7 @@ function ParticipantHome({ requestedSessionId }) {
               sessionObjective={sessionDetails?.objective}
               challenges={sessionChallenges}
               activeChallengeId={sessionState?.active_challenge_id || sessionState?.current_challenge?.id || null}
-              activeChallengeName={runtime?.challenge_name || sessionState?.current_challenge?.name || sessionState?.current_challenge?.engine_key || ''}
+              activeChallengeName={localizeChallengeName(sessionState?.current_challenge, locale) || runtime?.challenge_name || sessionState?.current_challenge?.engine_key || ''}
               showAdvanceButton={false}
             />
           </section>
@@ -657,7 +658,7 @@ function ParticipantHome({ requestedSessionId }) {
             </p>
             {stateEngineKey || runtime?.engine_key ? (
               <p className="participant-meta-line participant-meta-line--strong">
-                {t('participantSpace.activeChallenge')} <strong>{sessionState?.current_challenge?.name || stateEngineKey || runtime?.challenge_name || runtime?.engine_key}</strong>
+                {t('participantSpace.activeChallenge')} <strong>{localizeChallengeName(sessionState?.current_challenge, locale) || stateEngineKey || runtime?.challenge_name || runtime?.engine_key}</strong>
               </p>
             ) : isSelectedSessionFinished ? (
               <p className="participant-help-text">{t('participantSpace.sessionFinishedThanks')}</p>

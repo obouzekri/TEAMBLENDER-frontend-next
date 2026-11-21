@@ -8,7 +8,7 @@ import AppNav from '@/components/AppNav';
 import Footer from '@/components/Footer';
 import { clearSessionAuth, getAuthHeaders, getStoredCurrentUser } from '@/lib/auth';
 import { fetchWithCsrfRetry } from '@/lib/csrf';
-import { getLabyrintheRulesPreset } from '@/lib/challenges/labyrintheRules';
+import { localizeChallengeName } from '@/lib/challenges/catalogLocalization';
 import { getApiUrl } from '@/lib/config';
 import { useSessionState } from '@/lib/useSessionState';
 import useI18n from '@/lib/i18n/useI18n';
@@ -215,9 +215,9 @@ export default function SessionLiveClient() {
     : sessionState?.current_challenge
       || (activeChallengeId ? challenges.find((c) => c.id === activeChallengeId) || null : challenges[0] || null);
   const activeEngineKey = activeChallenge?.engine_key || '';
-  const activeChallengeName = activeEngineKey === 'labyrinthe_live_v1'
-    ? getLabyrintheRulesPreset(locale).challengeName
-    : activeChallenge?.name || activeEngineKey || t('sessionLive.noActiveChallengeTitle');
+  const activeChallengeName = (activeChallenge ? localizeChallengeName(activeChallenge, locale) : '')
+    || activeEngineKey
+    || t('sessionLive.noActiveChallengeTitle');
   const liveConfigVersion = String(sessionState?.updatedAt || session?.updatedAt || '');
   const assignedParticipantCount = Array.isArray(session?.assigned_participants) ? session.assigned_participants.length : 0;
   const participantCount = Array.isArray(session?.participants) ? session.participants.length : 0;
