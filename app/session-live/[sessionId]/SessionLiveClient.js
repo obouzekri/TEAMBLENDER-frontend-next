@@ -14,6 +14,8 @@ import { useSessionState } from '@/lib/useSessionState';
 import useI18n from '@/lib/i18n/useI18n';
 import useBodyScrollLock from '@/lib/useBodyScrollLock';
 import SessionLiveHeader from '@/components/SessionLiveHeader';
+import Modal from '@/components/ui/Modal';
+import Button from '@/components/ui/Button';
 import { ChallengeHeaderPortalContext } from '@/lib/challengeHeaderPortal';
 
 const ChallengeWrapper = dynamic(
@@ -46,6 +48,8 @@ export default function SessionLiveClient() {
   const [actionPending, setActionPending] = useState(false);
   const [actionError, setActionError] = useState('');
   const [challengeSlotNode, setChallengeSlotNode] = useState(null);
+  const [isAdvanceConfirmOpen, setIsAdvanceConfirmOpen] = useState(false);
+  const [completedChallengeId, setCompletedChallengeId] = useState('');
 
   const autoAdvanceTimerRef = useRef(null);
   const completedChallengeKeyRef = useRef('');
@@ -180,6 +184,7 @@ export default function SessionLiveClient() {
       return;
     }
     completedChallengeKeyRef.current = completionKey;
+    setCompletedChallengeId(completedChallengeId);
 
     if (flowMode === 'auto' && canManageFlow) {
       scheduleAutoAdvance();
@@ -199,9 +204,16 @@ export default function SessionLiveClient() {
   }, [clearAutoAdvanceTimer]);
 
   // Derive active challenge info
+  const sessionStatus = String(sessionState?.status || session?.status || '').trim().toLowerCase();
+  const isSessionPrepared = sessionStatus === 'preparee';
+  const isSessionFinished = sessionStatus === 'terminee';
   const challenges = Array.isArray(session?.challenges) ? session.challenges : [];
-  const activeChallenge = sessionState?.current_challenge
-    || (activeChallengeId ? challenges.find((c) => c.id === activeChallengeId) || null : challenges[0] || null);
+  // A finished session has no active challenge: do not fall back on the first one, which would
+  // show its debrief again instead of the end of the session.
+  const activeChallenge = isSessionFinished
+    ? null
+    : sessionState?.current_challenge
+      || (activeChallengeId ? challenges.find((c) => c.id === activeChallengeId) || null : challenges[0] || null);
   const activeEngineKey = activeChallenge?.engine_key || '';
   const activeChallengeName = activeEngineKey === 'labyrinthe_live_v1'
     ? getLabyrintheRulesPreset(locale).challengeName
@@ -211,6 +223,20 @@ export default function SessionLiveClient() {
   const participantCount = Array.isArray(session?.participants) ? session.participants.length : 0;
   const memberCount = assignedParticipantCount || participantCount || (Array.isArray(session?.members) ? session.members.length : 0);
   const userLabel = pickDisplayName(user);
+  const totalChallenges = Number(sessionState?.total_challenges || challenges.length || 0);
+  const positionInSequence = Number(sessionState?.position_in_sequence || 0);
+  const isLastChallenge = totalChallenges > 0 && positionInSequence >= totalChallenges;
+  const isActiveChallengeCompleted = Boolean(completedChallengeId)
+    && completedChallengeId === String(activeChallengeId || sessionState?.current_challenge?.id || '');
+
+  // Moving on ends the current challenge for everyone, so ask first unless it is already over.
+  const requestAdvance = () => {
+    if (isActiveChallengeCompleted && !isLastChallenge) {
+      advanceToNextChallenge();
+      return;
+    }
+    setIsAdvanceConfirmOpen(true);
+  };
   const connectionState = connected ? 'connected' : (reconnecting ? 'reconnecting' : 'offline');
   const isSessionLiveRoute = Boolean(pathname && pathname.includes('/session-live/'));
   const asyncStatusMessage = actionPending
@@ -262,13 +288,29 @@ export default function SessionLiveClient() {
             challenges={challenges}
             activeChallengeId={activeChallengeId}
             activeChallengeName={activeChallengeName}
-            onAdvance={advanceToNextChallenge}
+            onAdvance={requestAdvance}
             advancing={actionPending}
-            showAdvanceButton={canManageFlow}
+            showAdvanceButton={canManageFlow && !isSessionPrepared && !isSessionFinished}
             challengeSlotRef={setChallengeSlotNode}
           />
 
-          {activeEngineKey ? (
+          {isSessionPrepared ? (
+            <section className="feature-card session-live-empty-state">
+              <h2>{t('sessionLive.notLaunchedTitle')}</h2>
+              <p>{t('sessionLive.notLaunchedBody')}</p>
+              <Link href={withLocalePath(`/session-builder?sessionId=${encodeURIComponent(sessionId)}`)} className="btn-primary">
+                {t('sessionLive.openBuilder')}
+              </Link>
+            </section>
+          ) : isSessionFinished ? (
+            <section className="feature-card session-live-empty-state">
+              <h2>{t('sessionLive.finishedTitle')}</h2>
+              <p>{t('sessionLive.finishedBody')}</p>
+              <Link href={withLocalePath(`/session-results/${encodeURIComponent(sessionId)}`)} className="btn-primary">
+                {t('sessionLive.viewResults')}
+              </Link>
+            </section>
+          ) : activeEngineKey ? (
             <section className="session-live-challenge-frame">
               <ChallengeWrapper
                 key={`${sessionId}:${activeChallengeId || 'none'}:${activeEngineKey}:${liveConfigVersion}`}
@@ -292,6 +334,33 @@ export default function SessionLiveClient() {
           )}
         </ChallengeHeaderPortalContext.Provider>
       </main>
+      <Modal
+        open={isAdvanceConfirmOpen}
+        title={isLastChallenge ? t('sessionLive.confirmFinishSessionTitle') : t('sessionLive.confirmNextChallengeTitle')}
+        onClose={() => setIsAdvanceConfirmOpen(false)}
+      >
+        <p>
+          {isLastChallenge
+            ? t('sessionLive.confirmFinishSessionBody')
+            : isActiveChallengeCompleted
+              ? t('sessionLive.confirmNextChallengeBody')
+              : t('sessionLive.confirmNextChallengeRunningBody')}
+        </p>
+        <div className="session-live-confirm-actions">
+          <Button variant="secondary" onClick={() => setIsAdvanceConfirmOpen(false)} disabled={actionPending}>
+            {t('sessionLive.cancel')}
+          </Button>
+          <Button
+            onClick={async () => {
+              setIsAdvanceConfirmOpen(false);
+              await advanceToNextChallenge();
+            }}
+            disabled={actionPending}
+          >
+            {t('sessionLive.confirm')}
+          </Button>
+        </div>
+      </Modal>
       {!isSessionLiveRoute ? <Footer /> : null}
     </>
   );
