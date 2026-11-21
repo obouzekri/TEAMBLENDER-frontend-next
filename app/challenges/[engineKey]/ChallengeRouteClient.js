@@ -4,6 +4,7 @@ import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
 import { useParams, useRouter, useSearchParams } from 'next/navigation';
 import dynamic from 'next/dynamic';
 import { useSessionState } from '@/lib/useSessionState';
+import { localizeChallengeName } from '@/lib/challenges/catalogLocalization';
 import { trackProductChallengeEvent } from '@/lib/analytics';
 import { getApiUrl } from '@/lib/config';
 import { getAuthHeaders } from '@/lib/auth';
@@ -21,7 +22,7 @@ export default function ChallengeRouteClient() {
   const params = useParams();
   const router = useRouter();
   const searchParams = useSearchParams();
-  const { t } = useI18n();
+  const { locale, t } = useI18n();
 
   const engineKey = useMemo(() => String(params?.engineKey || 'escape_room_v1'), [params]);
   const sessionId = useMemo(
@@ -58,8 +59,7 @@ export default function ChallengeRouteClient() {
   }, [sessionState?.challenges, sessionState?.current_challenge]);
 
   const activeChallengeName = String(
-    sessionState?.current_challenge?.name
-    || sessionState?.active_challenge?.name
+    localizeChallengeName(sessionState?.current_challenge || sessionState?.active_challenge, locale)
     || activeEngineKey
     || ''
   ).trim();

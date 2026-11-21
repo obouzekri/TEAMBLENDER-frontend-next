@@ -395,7 +395,15 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
         nickname: firstName,
       });
       if (!res.ok) {
-        const codeRejected = res.status === 404 || data?.code === 'SESSION_NOT_FOUND';
+        // Schema errors come back as raw English Joi text ('"sessionCode" length must be...'):
+        // translate them by the field they name instead of showing them.
+        const validationText = res.status === 400 && !data?.code ? String(data?.error || '') : '';
+        const invalidField = /"(sessionCode|session_code|code|inviteToken|invite_token)"/.test(validationText)
+          ? 'code'
+          : /"email"/.test(validationText)
+            ? 'email'
+            : /"(first_name|last_name|nickname)"/.test(validationText) ? 'name' : '';
+        const codeRejected = res.status === 404 || data?.code === 'SESSION_NOT_FOUND' || invalidField === 'code';
         const loginRequired = data?.code === 'JOIN_LOGIN_REQUIRED';
         const otherOrganization = data?.code === 'PARTICIPANT_EMAIL_OTHER_ORGANIZATION';
         setJoinCodeInvalid(codeRejected);
@@ -405,7 +413,13 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
             ? t('auth.thisParticipantAccountIsProtectedSign')
             : otherOrganization
               ? t('auth.emailUsedInAnotherOrganization')
-            : (data?.error || t('auth.unableToJoinSessionRightNow')));
+              : invalidField === 'email'
+                ? t('auth.enterAValidEmailAddress')
+                : invalidField === 'name'
+                  ? t('auth.sessionCodeFirstNameAndLast')
+                  : validationText
+                    ? t('auth.unableToJoinSessionRightNow')
+                    : (data?.error || t('auth.unableToJoinSessionRightNow')));
         return;
       }
 
