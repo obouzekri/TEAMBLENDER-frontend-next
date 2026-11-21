@@ -145,6 +145,13 @@ const nextConfig = {
   experimental: {
     optimizePackageImports: ['lucide-react'],
   },
+  // "/register" is the usual sign-up URL; the page lives at /signup.
+  async redirects() {
+    return [
+      { source: '/register', destination: '/signup', permanent: false },
+      { source: '/:locale(fr|en|ar)/register', destination: '/:locale/signup', permanent: false },
+    ];
+  },
   async headers() {
     return [
       {

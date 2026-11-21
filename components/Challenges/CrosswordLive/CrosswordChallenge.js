@@ -21,7 +21,7 @@ const COPY = {
     openAnswer: 'Répondre', close: 'Fermer', switchDirection: 'Sens du mot',
     row: 'Ligne', col: 'colonne', empty: 'vide', found: 'Trouvé', letters: 'lettres', answer: 'Votre réponse', submit: 'Proposer le mot',
     wordsFound: 'mots trouvés', leaderboard: 'Classement', liveUpdate: 'Mis à jour en direct', activity: 'Dernières découvertes', none: 'Aucune découverte pour le moment.',
-    points: 'points', unresolved: 'Mots non résolus', perfect: 'Bravo ! Toute la grille est résolue.',
+    point: 'point', points: 'points', unresolved: 'Mots non résolus', perfect: 'Bravo ! Toute la grille est résolue.',
     solution: 'Réponse', answerUnavailable: 'Réponse indisponible',
     start: 'Démarrer la partie', waiting: 'En attente du démarrage par l’animateur.',
     offline: 'Connexion interrompue. Votre brouillon est conservé.', sending: 'Vérification en cours…',
@@ -39,7 +39,7 @@ const COPY = {
     openAnswer: 'Answer', close: 'Close', switchDirection: 'Word direction',
     row: 'Row', col: 'column', empty: 'empty', found: 'Found', letters: 'letters', answer: 'Your answer', submit: 'Submit word',
     wordsFound: 'words found', leaderboard: 'Leaderboard', liveUpdate: 'Live updates', activity: 'Latest discoveries', none: 'No discoveries yet.',
-    points: 'points', unresolved: 'Unresolved words', perfect: 'Well done! The whole grid is solved.',
+    point: 'point', points: 'points', unresolved: 'Unresolved words', perfect: 'Well done! The whole grid is solved.',
     solution: 'Answer', answerUnavailable: 'Answer unavailable',
     start: 'Start game', waiting: 'Waiting for the facilitator to start.',
     offline: 'Connection interrupted. Your draft is saved.', sending: 'Checking your answer…',
@@ -57,7 +57,7 @@ const COPY = {
     openAnswer: 'الإجابة', close: 'إغلاق', switchDirection: 'اتجاه الكلمة',
     row: 'الصف', col: 'العمود', empty: 'فارغ', found: 'تم العثور عليها', letters: 'حروف', answer: 'إجابتكم', submit: 'إرسال الكلمة',
     wordsFound: 'كلمات مكتشفة', leaderboard: 'الترتيب', liveUpdate: 'تحديث مباشر', activity: 'آخر الاكتشافات', none: 'لا توجد اكتشافات بعد.',
-    points: 'نقاط', unresolved: 'الكلمات غير المحلولة', perfect: 'أحسنتم! اكتملت الشبكة.',
+    point: 'نقطة', points: 'نقاط', unresolved: 'الكلمات غير المحلولة', perfect: 'أحسنتم! اكتملت الشبكة.',
     solution: 'الإجابة', answerUnavailable: 'الإجابة غير متاحة',
     start: 'بدء اللعبة', waiting: 'بانتظار بدء اللعبة من المنسق.',
     offline: 'انقطع الاتصال. تم الاحتفاظ بمسودتكم.', sending: 'جارٍ التحقق من الإجابة…',
@@ -132,6 +132,8 @@ export function buildCrosswordAnswer(word, value, cells) {
 export default function CrosswordChallenge({ runtimePayload, socket, context, onChallengeCompleted }) {
   const { locale } = useI18n();
   const copy = pickLocalized(COPY, locale);
+  // Intl picks the singular for each language (French: 0 and 1, English: 1).
+  const pointsLabel = (score) => (new Intl.PluralRules(locale).select(Number(score) || 0) === 'one' ? copy.point : copy.points);
   const { state, error, connected, isFacilitator, emitEvent, participantId } = useRealtimeChallenge({ runtimePayload, socket, context, onChallengeCompleted });
   const config = state?.config || runtimePayload?.config || {};
   const crossword = state?.crossword;
@@ -169,7 +171,8 @@ export default function CrosswordChallenge({ runtimePayload, socket, context, on
   const controls = useConfirmedAction({ socket, emitEvent, state, resetKey: `${grid?.id}:${status}`, requiresRunningTimer: false });
   const dialogOpen = answerOpen && Boolean(active) && started && !finished;
   // Clue-list order: Previous/Next walk across clues, then down clues.
-  const clueOrder = useMemo(() => ['across', 'down'].flatMap((direction) => words.filter((word) => word.direction === direction)), [words]);
+  const byNumber = (a, b) => Number(a.number) - Number(b.number);
+  const clueOrder = useMemo(() => ['across', 'down'].flatMap((direction) => words.filter((word) => word.direction === direction).sort(byNumber)), [words]);
 
   function findUnsolved(fromWord, step) {
     const index = clueOrder.findIndex((word) => word.id === fromWord?.id);
@@ -525,7 +528,7 @@ export default function CrosswordChallenge({ runtimePayload, socket, context, on
               <span className={styles.rankPill}>{entry.score > 0 ? `#${1 + scores.filter((other) => other.score > entry.score).length}` : '–'}</span>
               <strong className={styles.leaderboardName}>{entry.displayName}</strong>
             </div>
-            <strong className={styles.leaderboardScore}>{entry.score} {copy.points}</strong>
+            <strong className={styles.leaderboardScore}>{entry.score} {pointsLabel(entry.score)}</strong>
           </article>
         )) : <p>{copy.none}</p>}
       </div>
@@ -657,7 +660,7 @@ export default function CrosswordChallenge({ runtimePayload, socket, context, on
                 </section>}
                 {['across', 'down'].map((direction) => <section className={styles.card} key={direction}>
                   <h2>{copy[direction]}</h2>
-                  <ol className={styles.clues}>{words.filter((word) => word.direction === direction).map((word) => <li key={word.id}>
+                  <ol className={styles.clues}>{words.filter((word) => word.direction === direction).sort(byNumber).map((word) => <li key={word.id}>
                     <button type="button" aria-pressed={active?.id === word.id} className={`${styles.clueButton} ${active?.id === word.id ? styles.selectedClue : ''} ${word.solvedBy != null ? styles.solvedClue : ''}`}
                       onClick={() => selectClue(word)}>
                       <strong className={styles.clueNumber}>{word.number}</strong><span>{word.clue} <small>({word.length})</small>{word.solvedBy != null && <span className={styles.foundLabel}>✓ {copy.found} — {word.answer}</span>}</span>
@@ -669,7 +672,7 @@ export default function CrosswordChallenge({ runtimePayload, socket, context, on
             <div className={styles.activityLayout}>
               {finished ? rankingCard : null}
               <section className={styles.card}><h2>{copy.activity}</h2>
-                {crossword.activity?.length ? <ul className={styles.activity}>{recentActivity.map((entry, index) => <li key={`${entry.wordId}-${entry.ts}-${index}`}><strong>{entry.answer}</strong><span>{copy.by} {entry.displayName}</span></li>)}</ul> : <p>{copy.none}</p>}
+                {crossword.activity?.length ? <ul className={styles.activity}>{recentActivity.map((entry, index) => <li key={`${entry.wordId}-${entry.ts}-${index}`}><strong>{String(entry.answer || '').toLocaleUpperCase(locale)}</strong><span>{copy.by} {entry.displayName}</span></li>)}</ul> : <p>{copy.none}</p>}
               </section>
             </div>
           </>}

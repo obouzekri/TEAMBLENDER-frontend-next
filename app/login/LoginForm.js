@@ -611,7 +611,7 @@ export default function LoginForm({ requestedSessionId = '', requestedInviteToke
               </div>
               <AuthField
                 id="join-email"
-                label={t('auth.workEmail')}
+                label={t('auth.joinWorkEmail')}
                 help={(
                   <span id="join-email-help" className="auth-field-help">
                     {t('auth.professionalEmailForTeamIdentity')}
