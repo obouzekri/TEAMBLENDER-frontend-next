@@ -6,6 +6,7 @@ import Image from 'next/image';
 import { KeyRound, Lightbulb, LockKeyhole, Pause, Play, SkipForward } from 'lucide-react';
 import { buildBackendAssetCandidates, getApiUrl } from '@/lib/config';
 import { getAuthHeaders } from '@/lib/auth';
+import { fetchWithCsrfRetry } from '@/lib/csrf';
 import useRealtimeChallenge from '@/lib/challenges/useRealtimeChallenge';
 import { refreshChallengeStateBeforeStart } from '@/lib/challenges/useRealtimeChallenge';
 import useChallengeChat from '@/lib/challenges/useChallengeChat';
@@ -187,7 +188,11 @@ export default function EscapeRoomChallenge({
 
   const apiCall = useCallback(
     async (path, init = {}) => {
-      const response = await fetch(getApiUrl(`${endpointBase}${path}`), {
+      // Mutations (submit, next, pause…) refresh the CSRF token and retry once
+      // when the API rejects a stale one, like the other live screens.
+      const method = String(init.method || 'GET').toUpperCase();
+      const doFetch = method === 'GET' || method === 'HEAD' ? fetch : fetchWithCsrfRetry;
+      const response = await doFetch(getApiUrl(`${endpointBase}${path}`), {
         cache: 'no-store',
         ...init,
         headers: {
