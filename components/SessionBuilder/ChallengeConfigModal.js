@@ -111,6 +111,8 @@ const PHRASE_DEFAULT_LIBRARY = Object.freeze([
   },
 ]);
 
+const PIXEL_ARCHITECT_DEFAULT_TEMPLATE_ID = 'pont_croise';
+
 const PIXEL_ARCHITECT_TEMPLATES = Object.freeze([
   {
     id: 'tour_signal',
@@ -137,6 +139,9 @@ const PIXEL_ARCHITECT_TEMPLATES = Object.freeze([
     palette: ['#56CCF2', '#BB6BD9', '#6FCF97']
   },
 ]);
+
+const PIXEL_ARCHITECT_DEFAULT_TEMPLATE = PIXEL_ARCHITECT_TEMPLATES.find((item) => item.id === PIXEL_ARCHITECT_DEFAULT_TEMPLATE_ID)
+  || PIXEL_ARCHITECT_TEMPLATES[0];
 
 function clampInt(value, fallback, min, max) {
   const parsed = Number.parseInt(value, 10);
@@ -352,8 +357,8 @@ function withLabyrintheDefaults(config = {}) {
 function withPixelArchitectDefaults(config = {}) {
   const mode = String(config?.mode || 'replication').toLowerCase() === 'creatif' ? 'creatif' : 'replication';
   const collaborationMode = String(config?.collaborationMode || 'standard').toLowerCase() === 'avance' ? 'avance' : 'standard';
-  const templateId = String(config?.replication?.templateId || PIXEL_ARCHITECT_TEMPLATES[0].id).trim();
-  const selectedTemplate = PIXEL_ARCHITECT_TEMPLATES.find((item) => item.id === templateId) || PIXEL_ARCHITECT_TEMPLATES[0];
+  const templateId = String(config?.replication?.templateId || PIXEL_ARCHITECT_DEFAULT_TEMPLATE.id).trim();
+  const selectedTemplate = PIXEL_ARCHITECT_TEMPLATES.find((item) => item.id === templateId) || PIXEL_ARCHITECT_DEFAULT_TEMPLATE;
   const minimumCubes = mode === 'replication' && selectedTemplate.id === 'pont_croise' ? 48 : 8;
 
   const maxColors = clampInt(config?.settings?.maxColors, 3, 1, 6);
@@ -1406,10 +1411,10 @@ export default function ChallengeConfigModal({ challenge, onSave, onClose }) {
                   <select
                     id="pixelTemplate"
                     className={styles.input}
-                    value={stringValue('replication.templateId', PIXEL_ARCHITECT_TEMPLATES[0].id)}
+                    value={stringValue('replication.templateId', PIXEL_ARCHITECT_DEFAULT_TEMPLATE.id)}
                     onChange={(e) => {
-                      const nextTemplateId = String(e.target.value || PIXEL_ARCHITECT_TEMPLATES[0].id);
-                      const template = PIXEL_ARCHITECT_TEMPLATES.find((item) => item.id === nextTemplateId) || PIXEL_ARCHITECT_TEMPLATES[0];
+                      const nextTemplateId = String(e.target.value || PIXEL_ARCHITECT_DEFAULT_TEMPLATE.id);
+                      const template = PIXEL_ARCHITECT_TEMPLATES.find((item) => item.id === nextTemplateId) || PIXEL_ARCHITECT_DEFAULT_TEMPLATE;
                       updateValue('replication.templateId', template.id);
                       updateValue('difficulty', template.difficulty);
                     }}
