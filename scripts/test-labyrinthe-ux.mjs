@@ -167,7 +167,7 @@ try {
       }
       await page.keyboard.press('ArrowDown');
       await waitForPosition(1, 3);
-      broadcast('laby.solo.resolved', { participant_id: '1', outcome: 'backtrack', position: [0, 3] });
+      broadcast('laby.solo.resolved', { participant_id: '1', outcome: 'wall', position: [0, 3] });
       await waitForPosition(0, 3);
       await page.keyboard.press('ArrowDown');
       await waitForPosition(1, 3);
@@ -179,6 +179,22 @@ try {
       assert.equal(await page.getByText('✨ Bien joué', { exact: true }).count(), 0);
       broadcast('laby.solo.resolved', { participant_id: '1', outcome: 'wall', position: [0, 1] });
       await page.getByText(locale === 'fr' ? '🚧 Impasse' : '🚧 Blocked', { exact: true }).waitFor();
+      const startHint = page.locator('[class*="startHint"][role="status"]');
+      assert.equal(await startHint.count(), 0);
+      const withOwnSolo = (solo) => ({
+        ...state,
+        labyrinthe: { ...state.labyrinthe, parts: { ...state.labyrinthe.parts, '1': { ...state.labyrinthe.parts['1'], solo } } },
+      });
+      replaceState(withOwnSolo({ ss: false, pos: null, path: [] }));
+      await startHint.getByText(locale === 'fr'
+        ? 'Pour commencer, cliquez sur la case de départ D qui clignote dans la grille.'
+        : 'To begin, click the flashing start cell S in the grid.', { exact: true }).waitFor();
+      replaceState(withOwnSolo({ ss: false, pos: null, path: [], dec: [{ type: 'trap' }], choosing_start: true }));
+      await startHint.getByText(locale === 'fr'
+        ? 'Vie perdue. Cliquez de nouveau sur la case de départ D pour repartir.'
+        : 'Life lost. Click the start cell S again to restart.', { exact: true }).waitFor();
+      replaceState(state);
+      await startHint.waitFor({ state: 'detached' });
       broadcast('laby.solo.resolved', { participant_id: '1', outcome: 'level_complete', level: 2, levels_total: 3 });
       const dialog = page.getByRole('dialog');
       await dialog.waitFor();
