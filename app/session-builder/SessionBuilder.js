@@ -686,9 +686,12 @@ export default function SessionBuilder() {
     const loadingId = showLoadingToast('Saving session...');
 
     try {
-      sessionStorage.setItem('selectedChallenges', JSON.stringify(selectedChallenges));
       if (sessionId) {
-        sessionStorage.setItem('sessionId', sessionId);
+        try {
+          sessionStorage.setItem('sessionId', sessionId);
+        } catch {
+          // The live page reads the id from the URL; storage is only a fallback.
+        }
       }
 
       await persistSelectionToBackend(true);
