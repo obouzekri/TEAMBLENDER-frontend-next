@@ -21,6 +21,7 @@ import guideStyles from './StartupGuide.module.css';
 import homeStyles from './ManagerHome.module.css';
 import { translate } from '@/lib/i18n';
 import { formatDateTime } from '@/lib/i18n/format';
+import { notifyPlanLimit } from '@/lib/plan-limit';
 
 function pickDisplayName(user) {
   if (!user || typeof user !== 'object') return 'Manager';
@@ -72,22 +73,6 @@ function normalizeParticipant(participant) {
 
 function isValidEmail(value) {
   return /^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(String(value || '').trim());
-}
-
-function formatPaywallMessage(payload, fallbackMessage) {
-  const baseMessage = String(payload?.error || fallbackMessage || '').trim();
-  if (payload?.code !== 'PLAN_LIMIT_REACHED') {
-    return baseMessage;
-  }
-
-  const conversionHint = String(payload?.details?.conversion?.title || '').trim();
-  const ctaPath = String(payload?.details?.conversion?.cta_path || '').trim() || '/pricing';
-
-  if (!conversionHint) {
-    return `${baseMessage} Consultez ${ctaPath} pour activer Pro.`;
-  }
-
-  return `${baseMessage} ${conversionHint} (${ctaPath}).`;
 }
 
 function formatSessionDate(value, locale = 'en') {
@@ -733,6 +718,10 @@ export default function ManagerHome({
       });
       const body = await response.json().catch(() => null);
       if (!response.ok || !body?.id) {
+        if (notifyPlanLimit(body)) {
+          setDuplicateSource(null);
+          return;
+        }
         throw new Error(body?.error || `Error ${response.status}`);
       }
       showSuccessToast(t('managerHome.sessionDuplicated'));
@@ -918,11 +907,15 @@ export default function ManagerHome({
       }
 
       if (!response.ok) {
+        if (notifyPlanLimit(payload)) {
+          // Une seule modale à la fois : le formulaire se ferme, la modale d'upgrade s'ouvre.
+          setMemberFormStatus('');
+          setShowParticipantForm(false);
+          return;
+        }
         throw new Error(
-          formatPaywallMessage(
-            payload,
-            t(editingMemberId ? 'managerHome.participantUpdateFailedStatus' : 'managerHome.participantCreationFailedStatus', { status: response.status })
-          )
+          String(payload?.error || '').trim()
+            || t(editingMemberId ? 'managerHome.participantUpdateFailedStatus' : 'managerHome.participantCreationFailedStatus', { status: response.status })
         );
       }
 
