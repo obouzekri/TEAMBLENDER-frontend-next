@@ -61,7 +61,7 @@
   "dependencies": {
     "@vercel/analytics": "^2.0.1",
     "lucide-react": "^1.17.0",
-    "next": "16.4.3",
+    "next": "16.4.6",
     "postcss": "8.5.32",
     "posthog-js": "^1.379.1",
     "qrcode": "^1.5.4",
