@@ -20,12 +20,12 @@ import useI18n from '@/lib/i18n/useI18n';
 import styles from './PixelArchitect.module.css';
 
 const DEFAULT_TEMPLATE = Object.freeze({
-  id: 'tour_signal',
-  name: 'Tour Signal',
-  difficulty: 'facile',
-  max_dims: { x: 6, y: 6, z: 4 },
-  target_cube_count: 24,
-  palette: ['#2F80ED', '#27AE60', '#F2994A'],
+  id: 'pont_croise',
+  name: 'Pont croisé',
+  difficulty: 'moyen',
+  max_dims: { x: 8, y: 6, z: 8 },
+  target_cube_count: 48,
+  palette: ['#2D9CDB', '#EB5757', '#F2C94C'],
 });
 
 const FALLBACK_PALETTE = Object.freeze(['#2D9CDB', '#27AE60', '#F2C94C']);
@@ -279,7 +279,6 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
   const [isModelMapOpen, setIsModelMapOpen] = useState(false);
   const modelDialogRef = useRef(null);
   useModalFocus(isModelMapOpen, modelDialogRef, () => setIsModelMapOpen(false));
-  const [isPaletteOpen, setIsPaletteOpen] = useState(false);
   const hasAutoSelectedStartLayerRef = useRef(false);
 
   function selectColor(color) {
@@ -318,7 +317,9 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
       const found = templates.find((item) => String(item?.id || '').trim() === configuredTemplateId);
       if (found) return found;
     }
-    return templates[0] || DEFAULT_TEMPLATE;
+    return templates.find((item) => String(item?.id || '').trim() === DEFAULT_TEMPLATE.id)
+      || templates[0]
+      || DEFAULT_TEMPLATE;
   }, [pixel?.selected_template, state?.config]);
 
   const grid = useMemo(() => normalizeGrid(pixel, selectedTemplate), [pixel, selectedTemplate]);
@@ -1114,52 +1115,17 @@ export default function PixelArchitectChallenge({ runtimePayload, socket, contex
         />
       </div>
 
-      {canSeeTargetModel || (hasChallengeStarted && !isFacilitator) ? (
+      {canSeeTargetModel ? (
         <div className={styles.mobileQuickActions}>
-          {canSeeTargetModel ? (
-            <button
-              type="button"
-              className={styles.modelMapFab}
-              onClick={() => setIsModelMapOpen(true)}
-              aria-expanded={isModelMapOpen}
-              aria-label={t('challengePixel.openModelMap')}
-            >
-              {!isDebrief ? '🧩 ' : ''}{t('challengePixel.model')}
-            </button>
-          ) : null}
-          {hasChallengeStarted && !isFacilitator ? (
-            <div className={styles.mobilePaletteControl}>
-              <button
-                type="button"
-                className={styles.modelMapFab}
-                onClick={() => setIsPaletteOpen((isOpen) => !isOpen)}
-                aria-expanded={isPaletteOpen}
-                aria-controls="pixel-architect-mobile-palette"
-              >
-                {t('challengePixel.activePalette')}
-              </button>
-              {isPaletteOpen ? (
-                <div id="pixel-architect-mobile-palette" className={styles.mobilePaletteMenu} role="radiogroup" aria-label={t('challengePixel.colorPalette')}>
-                  {palette.map((color) => (
-                    <button
-                      key={`mobile-swatch-${color}`}
-                      type="button"
-                      role="radio"
-                      aria-checked={selectedColor === color}
-                      aria-label={describeColor(color)}
-                      title={describeColor(color)}
-                      className={`${styles.swatchBtn}${selectedColor === color ? ` ${styles.swatchBtnActive}` : ''}`}
-                      style={{ background: color }}
-                      onClick={() => {
-                        selectColor(color);
-                        setIsPaletteOpen(false);
-                      }}
-                    />
-                  ))}
-                </div>
-              ) : null}
-            </div>
-          ) : null}
+          <button
+            type="button"
+            className={styles.modelMapFab}
+            onClick={() => setIsModelMapOpen(true)}
+            aria-expanded={isModelMapOpen}
+            aria-label={t('challengePixel.openModelMap')}
+          >
+            {!isDebrief ? '🧩 ' : ''}{t('challengePixel.model')}
+          </button>
         </div>
       ) : null}
 
