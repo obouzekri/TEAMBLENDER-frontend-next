@@ -46,6 +46,7 @@ import {
   shouldApplyLocalDraftOverSession,
 } from '@/lib/session-builder/drafts';
 import { useManagerGuard } from '@/lib/session-builder/useManagerGuard';
+import { notifyPlanLimit } from '@/lib/plan-limit';
 import { extractChallengeConfig, normalizeSessionObjectiveValue, pickDisplayName } from '@/lib/session-builder/utils';
 
 function toDateTimeLocalValue(date) {
@@ -249,29 +250,8 @@ export default function SessionBuilder() {
     return Number.isInteger(parsed) ? parsed : null;
   }, []);
 
-  const normalizePaywallTarget = useCallback((targetPath) => {
-    const fallbackPath = '/account?source=paywall';
-    const raw = String(targetPath || '').trim();
-    if (!raw) return fallbackPath;
-
-    // Keep internal app navigation safe and predictable.
-    if (raw.startsWith('/')) return raw;
-    if (raw.startsWith('http://') || raw.startsWith('https://')) return raw;
-
-    return fallbackPath;
-  }, []);
-
-  const redirectToUpgrade = useCallback(
-    (error) => {
-      if (typeof window === 'undefined') return false;
-      if (!error || error.code !== 'PLAN_LIMIT_REACHED') return false;
-
-      const ctaPath = normalizePaywallTarget(error?.details?.conversion?.cta_path);
-      window.location.assign(ctaPath);
-      return true;
-    },
-    [normalizePaywallTarget]
-  );
+  // Limite de l'offre atteinte : ouvre la modale globale d'upgrade (components/PlanLimitDialog).
+  const redirectToUpgrade = useCallback((error) => notifyPlanLimit(error), []);
 
   const apiRequest = useCallback(async (path, options = {}) => {
     const method = String(options.method || 'GET').toUpperCase();
@@ -318,10 +298,6 @@ export default function SessionBuilder() {
           'Session service is temporarily unavailable (502). Try again in a few seconds.';
       } else if (response.status >= 500) {
         errorMessage = 'The server encountered a temporary error. Try again in a few seconds.';
-      }
-
-      if (payload.code === 'PLAN_LIMIT_REACHED') {
-        errorMessage = `${errorMessage} Upgrade to Pro.`;
       }
 
       const requestError = new Error(errorMessage);
