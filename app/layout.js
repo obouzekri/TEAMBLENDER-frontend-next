@@ -4,6 +4,7 @@ import TrackingConsentGate from '@/components/TrackingConsentGate';
 import ExternalNotificationGuard from '@/components/ExternalNotificationGuard';
 import ThemeController from '@/components/ThemeController';
 import DisplayPreferencesController from '@/components/DisplayPreferencesController';
+import PlanLimitDialog from '@/components/PlanLimitDialog';
 import { I18nProvider } from '@/lib/i18n/I18nProvider';
 import { getPublicSiteOrigin } from '@/lib/siteMetadata';
 import { buildPageMetadata } from '@/lib/seo';
@@ -82,6 +83,7 @@ export default async function RootLayout({ children }) {
           <div id="main-content" className="skip-to-content-target" tabIndex={-1}>
             <TrackingConsentGate>{children}</TrackingConsentGate>
           </div>
+          <PlanLimitDialog />
         </I18nProvider>
       </body>
     </html>
