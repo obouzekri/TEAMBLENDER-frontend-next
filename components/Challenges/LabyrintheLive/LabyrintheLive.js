@@ -1,5 +1,5 @@
 'use client';
-import React, { useCallback, useEffect, useMemo, useRef, useState } from 'react';
+import React, { useCallback, useContext, useEffect, useMemo, useRef, useState } from 'react';
 import { Bomb } from 'lucide-react';
 import useRealtimeChallenge from '@/lib/challenges/useRealtimeChallenge';
 import useFacilitatorTimerControls from '@/lib/challenges/useFacilitatorTimerControls';
@@ -18,6 +18,7 @@ import useI18n from '@/lib/i18n/useI18n';
 import useBodyScrollLock from '@/lib/useBodyScrollLock';
 import styles from './Labyrinthe.module.css';
 import { pickLocalized } from '@/lib/i18n';
+import { ChallengeDemoContext } from '@/lib/challenges/connection-context';
 
 function safeInt(value, fallback, min, max) {
   const parsed = Number.parseInt(value, 10);
@@ -365,7 +366,9 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
   const playerPosKey = hasSelectedStart ? posKey(optimisticPos || myParticipantState?.solo?.pos) : '';
   const mySpawnKey = hasSelectedStart ? posKey(myParticipantState?.solo?.path?.[0]) : '';
   const mazeTrapKeys = useMemo(() => normalizeTrapKeys(maze?.traps), [maze?.traps]);
-  const revealMazeTraps = Boolean(maze);
+  // The demo keeps the suspense: a trap only shows once someone has stepped on it.
+  const isDemo = useContext(ChallengeDemoContext);
+  const revealMazeTraps = Boolean(maze) && !isDemo;
   const allStartKeys = useMemo(() => {
     const starts = Array.isArray(maze?.start_points) && maze.start_points.length > 0
       ? maze.start_points
@@ -999,10 +1002,12 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                     if (labyPhase === 'done' && safePathKeys.has(key)) classes.push(styles.cellSolution);
                     if (needsStartSelection && allStartKeys.has(key)) classes.push(styles.cellStartGlow);
                     if (flashCellKey === key) classes.push(flashCellTone === 'blocked' ? styles.cellBlockedFlash : styles.cellTrapFlash);
-                    const cellTrails = participantTrailEntries.filter((entry) => {
+                    // In the demo the visitor's board only shows their own marker, not every teammate's dots.
+                    const cellTrails = isDemo ? [] : participantTrailEntries.filter((entry) => {
                       return entry.hasSelectedStart && entry.id !== String(participantId || '') && entry.visited.has(key);
                     });
                     const cellPlayers = participantTrailEntries.filter((entry) => {
+                      if (isDemo && entry.id !== String(participantId || '')) return false;
                       return entry.hasSelectedStart && entry.positionKey === key;
                     });
                     const ownColorStyle = participantColorById[String(participantId || '')] || getPlayerColorStyle(0);
@@ -1158,7 +1163,8 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                     if (allStartKeys.has(key)) cls.push(styles.cellStart);
                     if (key === endCellKey) cls.push(styles.cellExit);
                     if (safePathKeys.has(key)) cls.push(styles.cellSolution);
-                    if (revealMazeTraps && mazeTrapKeys.has(key)) cls.push(styles.cellTrapKnown);
+                    const showTrap = Boolean(revealedTraps[key]) || (revealMazeTraps && mazeTrapKeys.has(key));
+                    if (showTrap) cls.push(styles.cellTrapKnown);
                     return (
                       <div
                         key={`sol-${key}`}
@@ -1169,7 +1175,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                         {allStartKeys.has(key) ? <span className={styles.cellStartBadge} aria-label={t('challengeLabyrinth.start')}>{t('challengeLabyrinth.startBadge')}</span> : null}
                         {key === endCellKey ? <span className={styles.cellExitBadge} aria-label={t('challengeLabyrinth.exit2')}>{t('challengeLabyrinth.exitBadge')}</span> : null}
                         {safePathKeys.has(key) ? <span className={styles.cellSolutionDot}>●</span> : null}
-                        {revealMazeTraps && mazeTrapKeys.has(key) ? <span className={styles.cellTrapKnownIcon}>{labyPhase === 'done' ? <Bomb size={14} aria-hidden="true" /> : '💣'}</span> : null}
+                        {showTrap ? <span className={styles.cellTrapKnownIcon}>{labyPhase === 'done' ? <Bomb size={14} aria-hidden="true" /> : '💣'}</span> : null}
                       </div>
                     );
                   })
