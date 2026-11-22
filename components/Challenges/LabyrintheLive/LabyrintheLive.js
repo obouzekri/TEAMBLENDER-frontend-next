@@ -272,6 +272,10 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
   const canMoveDir = canMoveSolo && !isRespawning;
   // Covers both the very first spawn and every post-penalty respawn: in both cases the player must click a glowing START cell.
   const needsStartSelection = canMoveSolo && !hasSelectedStart;
+  // A new level also asks for the start cell, but with an empty move history: only a penalty leaves a decision behind.
+  const isRespawnAfterLostLife = isRespawning
+    && Array.isArray(myParticipantState?.solo?.dec)
+    && myParticipantState.solo.dec.length > 0;
 
   const chatEnabled = state?.config?.chat?.enabled !== false && Boolean(socket);
 
@@ -330,10 +334,6 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
       (sum, [, participant]) => sum + Math.max(0, Number(participant?.lives_remaining || 0)),
       0
     );
-    const totalCasesTraversed = participantEntries.reduce((sum, [, participant]) => {
-      const pathLength = Array.isArray(participant?.solo?.path) ? participant.solo.path.length : 0;
-      return sum + Math.max(0, pathLength - 1);
-    }, 0);
     const finalTimeSeconds = Math.max(0, Number(timer?.duration_seconds || 0) - Number(timer?.remaining_seconds || 0));
     const finalTimeLabel = formatDurationLabel(finalTimeSeconds);
     const rawStatus = String(laby?.result?.status || '').trim().toLowerCase();
@@ -349,7 +349,6 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
     return {
       totalPlayers,
       totalTeamLivesRemaining,
-      totalCasesTraversed,
       collectiveScore: Number(state?.summary?.collective_score || 0),
       collectiveScoreMax: Number(state?.summary?.collective_score_max ?? 1000),
       finalTimeLabel,
@@ -543,9 +542,7 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
           : null;
       const impactedCellKey = posKey(impactedPos);
       if (impactedCellKey) {
-        const visualTone = String(payload?.outcome || '').trim() === 'backtrack'
-          ? 'blocked'
-          : String(payload?.outcome || '').trim();
+        const visualTone = String(payload?.outcome || '').trim();
         setFlashCellKey(impactedCellKey);
         setFlashCellTone(visualTone);
         window.setTimeout(() => {
@@ -605,12 +602,6 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
             ...pickLocalized(NO_LIVES_LEFT_MESSAGE, locale),
           });
         }
-        return;
-      }
-      if (outcome === 'backtrack') {
-        setMoveFeedback(t('challengeLabyrinth.noGoingBackThisCorridorCloses'));
-        setMoveFeedbackTone('warning');
-        showMicroCue(impactedCellKey || playerPosKey, 'warning', t('challengeLabyrinth.noGoingBack'));
         return;
       }
       if (outcome === 'wall') {
@@ -830,7 +821,6 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                   <div className={styles.debriefMetrics} data-debrief-metrics>
                     <article className={styles.debriefMetric} data-debrief-primary><span>{t('challengeLabyrinth.teamScore')}</span><strong>{labyFinalSummary.collectiveScore} / {labyFinalSummary.collectiveScoreMax}</strong></article>
                     <article className={styles.debriefMetric}><span>{t('challengeLabyrinth.remainingLives')}</span><strong>{labyFinalSummary.totalTeamLivesRemaining}</strong></article>
-                    <article className={styles.debriefMetric}><span>{t('challengeLabyrinth.cellsTraversed')}</span><strong>{labyFinalSummary.totalCasesTraversed}</strong></article>
                     <article className={styles.debriefMetric}><span>{t('challengeLabyrinth.finalTime')}</span><strong>{labyFinalSummary.finalTimeLabel}</strong></article>
                     <article className={styles.debriefMetric}><span>{t('challengeLabyrinth.status')}</span><strong>{labyFinalSummary.finalStatusLabel}</strong></article>
                   </div>
@@ -953,7 +943,6 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                       <p>{labyFinalSummary.summaryMessage}</p>
                       <div className={styles.debriefMetrics} data-debrief-metrics>
                         <article className={styles.debriefMetric}><span>{t('challengeLabyrinth.remainingLives')}</span><strong>{labyFinalSummary.totalTeamLivesRemaining}</strong></article>
-                        <article className={styles.debriefMetric}><span>{t('challengeLabyrinth.cellsTraversed')}</span><strong>{labyFinalSummary.totalCasesTraversed}</strong></article>
                         <article className={styles.debriefMetric}><span>{t('challengeLabyrinth.finalTime')}</span><strong>{labyFinalSummary.finalTimeLabel}</strong></article>
                         <article className={styles.debriefMetric}><span>{t('challengeLabyrinth.status')}</span><strong>{labyFinalSummary.finalStatusLabel}</strong></article>
                       </div>
@@ -966,6 +955,15 @@ export default function LabyrintheLive({ runtimePayload, socket, context, onChal
                   </p>
                   <p className={styles.muted}>{t('challengeLabyrinth.possibleMazeRoutes')}:</p>
                 </>
+              ) : null}
+
+              {needsStartSelection ? (
+                <p className={styles.startHint} role="status">
+                  <span className={styles.startHintBadge} aria-hidden="true">{t('challengeLabyrinth.startBadge')}</span>
+                  <span>{isRespawnAfterLostLife
+                    ? t('challengeLabyrinth.startHintRespawn')
+                    : t('challengeLabyrinth.startHintFirst')}</span>
+                </p>
               ) : null}
 
               <div

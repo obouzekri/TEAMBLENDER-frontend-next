@@ -237,9 +237,11 @@ Validation: `npm run test:ux:shared`, `npm run test:ux:challenges`, `npm run tes
 
 ### Labyrinthe des signaux
 
-Les bombes occupent moins de place dans la grille. Le passage de niveau affiche une felicitation et une action Continuer, sans annoncer prematurement une victoire collective. Le tableau de bord facilitateur met les vies restantes en evidence et harmonise la casse des noms. Les messages contextuels (impasse, piege, retour interdit, sortie) restent affiches, sans message Bien joue a chaque deplacement.
+Les bombes occupent moins de place dans la grille. Le passage de niveau affiche une felicitation et une action Continuer, sans annoncer prematurement une victoire collective. Le tableau de bord facilitateur met les vies restantes en evidence et harmonise la casse des noms. Les messages contextuels (piege, sortie) restent affiches, sans message Bien joue a chaque deplacement.
 
 Les cellules annoncent depart, sortie, position, visites et obstacles deja decouverts, sans reveler les pieges caches. Une legende repliable guide le choix du depart puis les deplacements. Aucune mecanique du backlog n'est ajoutee.
+
+Le labyrinthe a une seule case de depart. Tant que le joueur doit la choisir (au debut, puis apres chaque bombe), un bandeau au-dessus de la grille lui demande de cliquer sur la case de depart qui clignote. Le joueur peut revenir sur ses pas : une case deja visitee est un deplacement normal et la trace reste coloree. Une impasse ne coute donc plus de vie, seulement du temps; seules les bombes font perdre une vie. Le bilan de fin n'affiche plus de compteur de cases parcourues (il n'entrait pas dans le score).
 
 Validation: `npm run test:ux:labyrinthe` avec le frontend sur le port 3100 et Chrome disponible. Les reponses API et Socket.IO sont simulees localement.
 
