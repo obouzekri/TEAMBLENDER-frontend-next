@@ -27,6 +27,18 @@ function getPlanPriceLabel(plan, content, selectedBilling, locale) {
   }).format(cents / 100);
 }
 
+// Annual price expressed per month (e.g. 29 €/mois), shown as a hint while the monthly cycle is selected.
+function getAnnualMonthlyLabel(plan, content, locale) {
+  if (content.price_annual_label) return content.price_annual_label;
+  const annualCents = Number(plan.annual_price_cents || 0);
+  if (!annualCents) return null;
+  return new Intl.NumberFormat(locale, {
+    style: 'currency',
+    currency: plan.currency || 'EUR',
+    maximumFractionDigits: 0,
+  }).format(annualCents / 12 / 100);
+}
+
 // Trial starts self-service; paid plans are activated by the team after a request.
 function getPlanCtaHref(plan) {
   const code = String(plan?.plan_code || '').toLowerCase();
@@ -50,6 +62,9 @@ function buildPricingCards(plans, selectedBilling, locale) {
       ...plan,
       content,
       priceLabel: getPlanPriceLabel(plan, content, selectedBilling, locale),
+      annualMonthlyLabel: Number(plan.annual_discount_percentage || 0) > 0
+        ? getAnnualMonthlyLabel(plan, content, locale)
+        : null,
       isFeatured: Boolean(plan.highlighted),
     };
   });
@@ -223,6 +238,7 @@ export default function PricingPageClient({ initialPlans = [] }) {
               // Trial and Enterprise have one price line: their secondary label is always shown.
               const showSecondary = Boolean(content.price_secondary_label)
                 && (selectedBilling === 'annual' || !content.price_monthly_label);
+              const showAnnualHint = selectedBilling !== 'annual' && Boolean(plan.annualMonthlyLabel);
 
               return (
               <article key={String(plan.id)} className={`feature-card pricing-card flex h-full flex-col${plan.isFeatured ? ' pricing-card-featured' : ''}`}>
@@ -244,6 +260,11 @@ export default function PricingPageClient({ initialPlans = [] }) {
                   </h2>
                   {showSecondary ? (
                     <p className="pricing-original" style={getDarkModeTextStyle()}>{content.price_secondary_label}</p>
+                  ) : null}
+                  {showAnnualHint ? (
+                    <p className="pricing-original" style={getDarkModeTextStyle()}>
+                      {t('pricingPage.orAnnualPrice', { price: plan.annualMonthlyLabel })}
+                    </p>
                   ) : null}
                 </div>
                 {content.description ? <p className="pricing-description" style={getDarkModeTextStyle()}>{content.description}</p> : null}
