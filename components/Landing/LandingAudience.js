@@ -1,11 +1,12 @@
 "use client";
 
-import { Briefcase, Users } from 'lucide-react';
+import { Briefcase, Presentation, Users } from 'lucide-react';
 
 export default function LandingAudience({ fallback }) {
   const personas = [
     { key: 'hr', tag: fallback.hrTag, title: fallback.hrTitle, description: fallback.hrDescription, Icon: Briefcase },
     { key: 'manager', tag: fallback.managerTag, title: fallback.managerTitle, description: fallback.managerDescription, Icon: Users },
+    { key: 'coach', tag: fallback.coachTag, title: fallback.coachTitle, description: fallback.coachDescription, Icon: Presentation },
   ];
 
   return (

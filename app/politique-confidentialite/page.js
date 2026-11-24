@@ -14,11 +14,11 @@ export const metadata = {
 
 const RIGHTS = {
   fr: [
-    { title: 'Droit d accès', desc: 'Obtenir une copie de vos données personnelles' },
+    { title: 'Droit d’accès', desc: 'Obtenir une copie de vos données personnelles' },
     { title: 'Droit de rectification', desc: 'Corriger des données inexactes ou incomplètes' },
-    { title: 'Droit à l effacement', desc: 'Demander la suppression de vos données' },
+    { title: 'Droit à l’effacement', desc: 'Demander la suppression de vos données' },
     { title: 'Droit à la portabilité', desc: 'Recevoir vos données dans un format structuré' },
-    { title: 'Droit d opposition', desc: 'Vous opposer à certains traitements' },
+    { title: 'Droit d’opposition', desc: 'Vous opposer à certains traitements' },
     { title: 'Droit à la limitation', desc: 'Restreindre temporairement un traitement' },
   ],
   en: [
@@ -223,6 +223,9 @@ export default async function PolitiqueConfidentialitePage() {
             <h2 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.75rem' }}>{copy.sections.cookies}</h2>
             <p style={{ lineHeight: 1.7, color: 'var(--muted)' }}>
               {translate(locale, 'privacyPage.teamblenderOnlyUsesStrictlyNecessaryCookies')}
+            </p>
+            <p style={{ lineHeight: 1.7, color: 'var(--muted)' }}>
+              {translate(locale, 'privacyPage.cookielessAudienceMeasurement')}
             </p>
           </section>
 

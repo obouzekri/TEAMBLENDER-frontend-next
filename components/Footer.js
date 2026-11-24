@@ -5,6 +5,22 @@ import Logo from './Logo';
 import useI18n from '@/lib/i18n/useI18n';
 import { openConsentPreferences } from '@/lib/consent';
 
+const CONTACT_EMAIL = 'contact@teamblender.io';
+
+function FooterLink({ link }) {
+  if (link.onClick) {
+    return (
+      <button type="button" className="footer-link-button" onClick={link.onClick}>
+        {link.label}
+      </button>
+    );
+  }
+  if (link.external) {
+    return <a href={link.href} dir="ltr">{link.label}</a>;
+  }
+  return <Link href={link.href}>{link.label}</Link>;
+}
+
 export default function Footer() {
   const { locale, t, withLocalePath } = useI18n();
 
@@ -43,6 +59,7 @@ export default function Footer() {
       label: t('footer.contact'),
       links: [
         { href: withLocalePath('/contact'), label: t('footer.talkToExpert') },
+        { href: `mailto:${CONTACT_EMAIL}`, label: CONTACT_EMAIL, external: true },
       ],
     },
   ];
@@ -60,13 +77,7 @@ export default function Footer() {
           {footerGroups.map((group) => (
             <nav key={group.key} className="footer-col" aria-label={group.label}>
               <p>{group.label}</p>
-              {group.links.map((link) => (link.onClick ? (
-                <button key={link.key} type="button" className="footer-link-button" onClick={link.onClick}>
-                  {link.label}
-                </button>
-              ) : (
-                <Link key={link.href} href={link.href}>{link.label}</Link>
-              )))}
+              {group.links.map((link) => <FooterLink key={link.key || link.href} link={link} />)}
             </nav>
           ))}
         </div>
@@ -75,13 +86,7 @@ export default function Footer() {
           {footerGroups.map((group) => (
             <nav key={group.key} className="footer-col" aria-label={group.label}>
               <p>{group.label}</p>
-              {group.links.map((link) => (link.onClick ? (
-                <button key={link.key} type="button" className="footer-link-button" onClick={link.onClick}>
-                  {link.label}
-                </button>
-              ) : (
-                <Link key={link.href} href={link.href}>{link.label}</Link>
-              )))}
+              {group.links.map((link) => <FooterLink key={link.key || link.href} link={link} />)}
             </nav>
           ))}
         </div>
@@ -89,7 +94,7 @@ export default function Footer() {
         <div className="footer-social">
           <p className="footer-social__label">{t('footer.followUs')}</p>
           <a
-            href="https://www.linkedin.com/company/teamblender/?viewAsMember=true"
+            href="https://www.linkedin.com/company/teamblender/"
             target="_blank"
             rel="noopener noreferrer"
             className="footer-social__link"

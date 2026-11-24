@@ -150,6 +150,9 @@ const nextConfig = {
     return [
       { source: '/register', destination: '/signup', permanent: false },
       { source: '/:locale(fr|en|ar)/register', destination: '/:locale/signup', permanent: false },
+      // Une seule URL pour la politique de confidentialité (le pied de page utilise /confidentialite).
+      { source: '/politique-confidentialite', destination: '/confidentialite', permanent: true },
+      { source: '/:locale(fr|en|ar)/politique-confidentialite', destination: '/:locale/confidentialite', permanent: true },
     ];
   },
   async headers() {
@@ -179,6 +182,15 @@ const nextConfig = {
       {
         source: '/socket.io/:path*',
         destination: `${rewriteBackendOrigin}/socket.io/:path*`,
+      },
+      // Plausible (mesure d'audience sans cookie), servi depuis notre domaine.
+      {
+        source: '/pa/script.js',
+        destination: 'https://plausible.io/js/script.exclusions.js',
+      },
+      {
+        source: '/pa/api/event',
+        destination: 'https://plausible.io/api/event',
       },
       {
         source: '/ingest/static/:path*',

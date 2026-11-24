@@ -307,7 +307,7 @@ export default function HomePage() {
     title: landingStatic.fallback.outcomesTitle,
     description: landingStatic.fallback.outcomesDescription,
     privacyNote: landingStatic.fallback.outcomesPrivacyNote,
-    privacyHref: withLocalePath('/politique-confidentialite'),
+    privacyHref: withLocalePath('/confidentialite'),
     privacyLinkLabel: landingStatic.fallback.outcomesPrivacyLinkLabel,
     items: landingStatic.postSessionOutcomes || [],
   };

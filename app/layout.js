@@ -11,6 +11,7 @@ import { buildPageMetadata } from '@/lib/seo';
 import { getLocaleMeta } from '@/lib/i18n/routing';
 import { getSeoRequest } from '@/lib/seoRequest';
 import PublicStructuredData from '@/components/PublicStructuredData';
+import PlausibleAnalytics from '@/components/PlausibleAnalytics';
 import { translate } from '@/lib/i18n';
 
 const siteOrigin = getPublicSiteOrigin();
@@ -68,6 +69,7 @@ export default async function RootLayout({ children }) {
       </head>
       <body suppressHydrationWarning>
         <PublicStructuredData pathname={pathname} locale={locale} />
+        <PlausibleAnalytics />
         <script
           dangerouslySetInnerHTML={{
             __html: `document.body.dataset.theme = document.documentElement.dataset.theme || 'light';`,

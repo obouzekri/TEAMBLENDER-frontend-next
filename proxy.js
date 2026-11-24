@@ -16,6 +16,7 @@ export function proxy(request) {
     || pathname.startsWith('/api')
     || pathname.startsWith('/socket.io')
     || pathname.startsWith('/uploads')
+    || pathname.startsWith('/pa/')
     || PUBLIC_FILE.test(pathname)
   ) {
     return NextResponse.next();

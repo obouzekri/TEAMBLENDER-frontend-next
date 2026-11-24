@@ -56,7 +56,7 @@ export default async function MentionsLegalesPage() {
           <p>{copy.contact} <a href="mailto:contact@teamblender.io" dir="ltr">contact@teamblender.io</a></p>
           <p>{copy.hosting} — <a href="https://railway.com" dir="ltr">https://railway.com</a></p>
           <p>{copy.intellectualProperty}</p>
-          <p>{copy.personalData} <Link href={`/${locale}/politique-confidentialite`}>{copy.privacy}</Link>.</p>
+          <p>{copy.personalData} <Link href={`/${locale}/confidentialite`}>{copy.privacy}</Link>.</p>
         </div>
       </main>
       <Footer />
