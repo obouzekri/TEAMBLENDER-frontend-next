@@ -41,6 +41,7 @@ import {
   SESSION_STATUS_OPTION_LABELS,
   USER_ROLES,
 } from '@/lib/admin/constants';
+import PricingLocalizedContentEditor from './PricingLocalizedContentEditor';
 import { ensureAdminCatalogChallenges } from '@/lib/admin/challengeCatalog';
 import {
   applyPlayerRangeToEngineConfig,
@@ -52,8 +53,8 @@ import {
   fetchAdminJson,
   formatCurrency,
   formatDurationSeconds,
-  formatPricingPlanAmount,
-  getAdminPricingBadgeLabel,
+  buildLocalizedContentFromDraft,
+  getAdminPricingPlanSummary,
   getChallengeStatusLabel,
   getChallengeTypeLabel,
   getCopuzzleDefaultImages,
@@ -1721,6 +1722,7 @@ export default function AdminClient() {
       description: String(draft.description || '').trim() || null,
       features,
       price: draft.price === '' ? null : Number(String(draft.price).replace(',', '.')),
+      annual_price: String(draft.annual_price ?? '').trim() === '' ? null : Number(String(draft.annual_price).replace(',', '.')),
       currency: String(draft.currency || 'EUR').trim().toUpperCase(),
       billing_cycle: String(draft.billing_cycle || 'monthly').trim().toLowerCase(),
       cta_label: String(draft.cta_label || '').trim() || null,
@@ -1730,7 +1732,12 @@ export default function AdminClient() {
       support_level: String(draft.support_level || '').trim() || null,
       trial_days: draft.trial_days === '' ? null : Number(draft.trial_days),
       display_order: draft.display_order === '' ? 0 : Number(draft.display_order),
+      localized_content: buildLocalizedContentFromDraft(draft),
     };
+  }
+
+  function isValidAnnualPrice(payload) {
+    return payload.annual_price === null || (Number.isFinite(payload.annual_price) && payload.annual_price >= 0);
   }
 
   async function submitNewPricingPlan(event) {
@@ -1747,6 +1754,11 @@ export default function AdminClient() {
 
     if (!Number.isFinite(payload.price) || payload.price < 0) {
       setNewPricingMessage(t('adminConsole.priceIsRequiredAndMustBe'));
+      return;
+    }
+
+    if (!isValidAnnualPrice(payload)) {
+      setNewPricingMessage(t('adminConsole.priceMustBeValidAndPositive'));
       return;
     }
 
@@ -1801,6 +1813,11 @@ export default function AdminClient() {
     }
 
     if (!Number.isFinite(payload.price) || payload.price < 0) {
+      setError(t('adminConsole.priceMustBeValidAndPositive'));
+      return;
+    }
+
+    if (!isValidAnnualPrice(payload)) {
       setError(t('adminConsole.priceMustBeValidAndPositive'));
       return;
     }
@@ -3921,6 +3938,7 @@ export default function AdminClient() {
                         <label>{t('adminConsole.price')}<input type="number" min="0" step="0.01" value={newPricingPlan.price} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, price: e.target.value }))} required /></label>
                         <label>{t('adminConsole.currency')}<input value={newPricingPlan.currency} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, currency: e.target.value.toUpperCase() }))} maxLength={3} /></label>
                       </div>
+                      <label>{t('adminConsole.annualPrice')}<input type="number" min="0" step="0.01" value={newPricingPlan.annual_price} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, annual_price: e.target.value }))} /></label>
                       <label>{t('adminConsole.billingCycle')}
                         <select value={newPricingPlan.billing_cycle} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, billing_cycle: e.target.value }))}>
                           <option value="monthly">{getLocalizedLabel(PRICING_BILLING_CYCLE_LABELS.monthly, locale)}</option>
@@ -3946,6 +3964,7 @@ export default function AdminClient() {
                           {t('adminConsole.highlighted')}
                         </label>
                       </div>
+                      <PricingLocalizedContentEditor draft={newPricingPlan} setDraft={setNewPricingPlan} t={t} locale={locale} idPrefix="new-pricing-plan" />
                       <button type="submit" className="btn-primary" disabled={busySaveKey === 'create:pricing-plan'}>
                         {busySaveKey === 'create:pricing-plan' ? t('adminConsole.creating') : t('adminConsole.createPlan')}
                       </button>
@@ -3991,6 +4010,7 @@ export default function AdminClient() {
                           <label>{t('adminConsole.price')}<input type="number" min="0" step="0.01" value={editingPricingPlan.price} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, price: e.target.value }))} required /></label>
                           <label>{t('adminConsole.currency')}<input value={editingPricingPlan.currency} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, currency: e.target.value.toUpperCase() }))} maxLength={3} /></label>
                         </div>
+                        <label>{t('adminConsole.annualPrice')}<input type="number" min="0" step="0.01" value={editingPricingPlan.annual_price} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, annual_price: e.target.value }))} /></label>
                         <label>{t('adminConsole.billingCycle')}
                           <select value={editingPricingPlan.billing_cycle} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, billing_cycle: e.target.value }))}>
                             <option value="monthly">{getPricingBillingCycleLabel('monthly', locale)}</option>
@@ -4016,6 +4036,7 @@ export default function AdminClient() {
                             {t('adminConsole.highlighted')}
                           </label>
                         </div>
+                        <PricingLocalizedContentEditor key={String(editingPricingPlan.id)} draft={editingPricingPlan} setDraft={setEditingPricingPlan} t={t} locale={locale} idPrefix={`edit-pricing-plan-${editingPricingPlan.id}`} />
                         <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
                           <button type="submit" className="btn-primary" disabled={busySaveKey === `save:pricing-plan:${editingPricingPlan.id}`}>
                             {busySaveKey === `save:pricing-plan:${editingPricingPlan.id}` ? t('adminConsole.saving') : t('adminConsole.save')}
@@ -4044,15 +4065,18 @@ export default function AdminClient() {
 
                   <ul className="session-list" style={{ margin: 0 }}>
                     {filteredPricingPlans.length === 0 ? <li className="list-empty">{t('adminConsole.noMatchingPlan')}</li> : null}
-                    {filteredPricingPlans.map((plan) => (
+                    {filteredPricingPlans.map((plan) => {
+                      const summary = getAdminPricingPlanSummary(plan, locale);
+                      return (
                       <li key={String(plan.id)} className="session-item" style={{ alignItems: 'center' }}>
                         <div style={{ minWidth: 0, flex: '1 1 auto' }}>
                           <p className="session-title">
-                            {plan.name}
-                            {getAdminPricingBadgeLabel(plan, locale) ? <span className="pricing-badge admin-pricing-inline-badge">{getAdminPricingBadgeLabel(plan, locale)}</span> : null}
+                            {summary.name}
+                            {summary.badge ? <span className="pricing-badge admin-pricing-inline-badge">{summary.badge}</span> : null}
                           </p>
                           <p className="session-meta">
-                            {formatPricingPlanAmount(plan, locale)}
+                            {summary.publicPrice}
+                            {summary.billedPrice ? ` (${t('adminConsole.billedPrice', { amount: summary.billedPrice })})` : null}
                             {' · '}
                             {getPricingBillingCycleLabel(plan.billing_cycle, locale)}
                             {' · '}
@@ -4081,7 +4105,8 @@ export default function AdminClient() {
                           </button>
                         </div>
                       </li>
-                    ))}
+                      );
+                    })}
                   </ul>
                 </div>
               </div>
