@@ -7,25 +7,7 @@ import Footer from '@/components/Footer';
 import { getApiUrl } from '@/lib/config';
 import useI18n from '@/lib/i18n/useI18n';
 import { getPricingPlansFallback } from '@/lib/pricingFallbackPlans';
-
-function getPlanContent(plan, locale) {
-  return plan?.localized_content?.[locale] || plan?.localized_content?.fr || {};
-}
-
-function getPlanPriceLabel(plan, content, selectedBilling, locale) {
-  const isAnnual = selectedBilling === 'annual';
-  const configuredLabel = isAnnual ? content.price_annual_label : content.price_monthly_label;
-  if (configuredLabel || content.price_label) return configuredLabel || content.price_label;
-
-  const cents = isAnnual && plan.annual_price_cents != null
-    ? Number(plan.annual_price_cents)
-    : Number(plan.price_cents || 0);
-  return new Intl.NumberFormat(locale, {
-    style: 'currency',
-    currency: plan.currency || 'EUR',
-    maximumFractionDigits: 2,
-  }).format(cents / 100);
-}
+import { getPricingPlanContent, getPricingPlanPriceLabel } from '@/lib/pricing-plan-content';
 
 // Trial starts self-service; paid plans are activated by the team after a request.
 function getPlanCtaHref(plan) {
@@ -45,11 +27,11 @@ const FAQ_ITEMS = [
 
 function buildPricingCards(plans, selectedBilling, locale) {
   return plans.map((plan) => {
-    const content = getPlanContent(plan, locale);
+    const content = getPricingPlanContent(plan, locale);
     return {
       ...plan,
       content,
-      priceLabel: getPlanPriceLabel(plan, content, selectedBilling, locale),
+      priceLabel: getPricingPlanPriceLabel(plan, content, selectedBilling, locale),
       isFeatured: Boolean(plan.highlighted),
     };
   });
