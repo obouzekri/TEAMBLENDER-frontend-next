@@ -301,7 +301,7 @@ export default function SignupForm() {
                   {t('auth.acceptTermsPrefix')}{' '}
                   <Link href={withLocalePath('/cgu')} target="_blank" rel="noopener noreferrer">{t('auth.termsOfUse')}</Link>
                   {' '}{t('auth.acceptTermsAnd')}{' '}
-                  <Link href={withLocalePath('/politique-confidentialite')} target="_blank" rel="noopener noreferrer">{t('auth.privacyPolicy')}</Link>
+                  <Link href={withLocalePath('/confidentialite')} target="_blank" rel="noopener noreferrer">{t('auth.privacyPolicy')}</Link>
                 </span>
               </label>
             </div>

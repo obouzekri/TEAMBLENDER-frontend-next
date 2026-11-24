@@ -1519,3 +1519,26 @@ html[data-theme='dark'] .admin-console-layout .list-count{
   color: #b91c1c;
 }
 
+
+/* Filtre « Période » : chevron en SVG (un « + » en texte se lisait « Period+ »). */
+.home-sessions-period-toggle {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.home-sessions-period-chevron {
+  flex-shrink: 0;
+  transition: transform 0.15s ease;
+}
+
+.home-sessions-period-chevron[data-open='true'] {
+  transform: rotate(180deg);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-sessions-period-chevron {
+    transition: none;
+  }
+}

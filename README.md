@@ -58,6 +58,7 @@ Frontend cible du produit TeamBlender (migration depuis le legacy).
 - La vue rapide est secondaire et compacte. Les titres Sessions et Participants retrouvent l'accent colore du produit, sans grands fonds colores.
 - Les filtres n'ont pas de cadre externe: recherche et statut restent visibles; la commande Periode affiche les deux dates a la demande et conserve leur valeur lorsqu'elle est repliee. Reinitialiser apparait seulement si un filtre est actif.
 - La pagination est masquee pour zero ou une page; au-dela, elle reste compacte et alignee a droite. Les listes utilisent le defilement de la page plutot que des zones imbriquees.
+- Le compteur « X sessions affichees sur Y » accorde le pluriel et n'affiche jamais un total inferieur au nombre de sessions visibles. En demo (`/demo`), le total est connu des le rendu serveur (plus de « 2 sur 0 » dans le HTML). La commande Periode utilise un chevron SVG decoratif, sans « + » textuel.
 - Les champs de recherche, statut et dates conservent une marge interieure horizontale de 16 px et un espacement de 16 px entre eux, sans deborder de leur cadre sur mobile.
 - Validation: `node scripts/test-home-session-filters.mjs` (frontend sur 3100, Chrome disponible, API simulees): FR/EN, largeurs de 320 a 1755 px, ouverture au clavier de la periode, saisie, conservation et reinitialisation des filtres, pagination conditionnelle et navigation.
 
@@ -82,6 +83,11 @@ Frontend cible du produit TeamBlender (migration depuis le legacy).
 - Demande d'activation (2026-11-12) : `?plan=team` ou `?plan=enterprise` (boutons de la page Tarifs et de « Mon compte ») preselectionne l'offre souhaitee et le besoin correspondant, et affiche un encart « nous activons votre offre sous 24 h apres reception du virement ». Trois champs facultatifs s'ajoutent : offre souhaitee, nombre de personnes a faire jouer, pays des equipes (Maroc, France, Autre). Ils sont transmis a l'API (`planCode`, `headcount`, `country`) et repris dans l'email recu par l'equipe.
 - Les libelles obligatoires, l'autocompletion, le lien email et la politique de confidentialite restent accessibles au clavier. L'envoi conserve la protection CSRF, le champ anti-spam, les etats d'attente, les erreurs avec conservation du brouillon et la confirmation.
 - Validation : `node scripts/test-contact-ux.mjs` (frontend sur 3100, Chrome disponible, API simulees sans envoi d'email) : FR/EN, clair/sombre/automatique, 320 a 1440 px, hauteur compacte, clavier, validation, champs facultatifs, requete et CSRF, attente, erreurs 429/500/reseau, nouvelle tentative et succes.
+
+### Pied de page et section « Pour qui »
+
+- Le pied de page affiche `contact@teamblender.io` (lien `mailto:`) dans la colonne Contact, sous « Parler a un expert ». Le lien LinkedIn pointe vers la page publique de l'entreprise.
+- La section « Pour qui » de l'accueil presente trois profils : RH, managers, et coachs, formateurs et Scrum Masters qui animent des formations, ateliers ou retrospectives en entreprise. Trois colonnes sur desktop, une colonne a partir de 1024 px. Les textes des cartes restent sombres sur fond blanc en theme sombre.
 
 ### Page Tarifs
 
@@ -299,7 +305,7 @@ Routes principales migrees:
 - `/participant`
 - `/admin`
 - `/mentions-legales`
-- `/politique-confidentialite`
+- `/confidentialite` (l'ancienne URL `/politique-confidentialite`, avec ou sans prefixe de langue, redirige en 308)
 
 ## 2) Setup local
 
@@ -322,6 +328,7 @@ Variables importantes:
 - `NEXT_PUBLIC_POSTHOG_HOST` (optionnel, defaut `https://eu.i.posthog.com`, doit correspondre a la region du projet PostHog ; l'interface PostHog associee est derivee automatiquement)
 - `NEXT_PUBLIC_GA_MEASUREMENT_ID` (optionnel, active Google Analytics 4 pageview)
 - `NEXT_PUBLIC_GTM_ID` (optionnel, injecte Google Tag Manager sur toutes les pages)
+- `NEXT_PUBLIC_PLAUSIBLE_DOMAIN` (optionnel, ex. `teamblender.io` : active Plausible, mesure d'audience sans cookie ni consentement, sur les pages publiques uniquement ; script et evenements passent par `/pa/*` sur notre domaine ; desactive en preview)
 - `NEXT_PUBLIC_ENABLE_CHALLENGES_MOCK_DATA` (optionnel, `true` pour activer le fallback mock du catalogue challenges en dev)
 - `NEXT_PUBLIC_LANDING_CMS_STRICT` (optionnel, `true` pour activer l'audit runtime de couverture CMS sur la home)
 - `SMOKE_FRONTEND_URL`

@@ -1064,9 +1064,9 @@
 
 .landing-audience-grid {
   display: grid;
-  grid-template-columns: repeat(2, minmax(0, 1fr));
+  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: var(--space-6);
-  max-width: 1040px;
+  max-width: 1180px;
   margin: clamp(2rem, 4vw, 3rem) auto 0;
 }
 
@@ -1095,6 +1095,18 @@
 
 .landing-audience-card--manager {
   --audience-accent: var(--accent-violet);
+}
+
+.landing-audience-card--coach {
+  --audience-accent: #0f9f8f;
+}
+
+/* Trois profils : sur tablette, une colonne se lit mieux que trois cartes étroites. */
+@media (max-width: 1024px) {
+  .landing-audience-grid {
+    grid-template-columns: minmax(0, 1fr);
+    max-width: 680px;
+  }
 }
 
 .landing-audience-card:hover {
@@ -1909,12 +1921,14 @@
 }
 
 .landing-v2.landing-v2--premium .landing-flow-card h3,
-.landing-v2.landing-v2--premium .landing-outcome-card h3 {
+.landing-v2.landing-v2--premium .landing-outcome-card h3,
+.landing-v2.landing-v2--premium .landing-audience-card h3 {
   color: var(--lp-ink);
 }
 
 .landing-v2.landing-v2--premium .landing-flow-card p,
-.landing-v2.landing-v2--premium .landing-outcome-card p {
+.landing-v2.landing-v2--premium .landing-outcome-card p,
+.landing-v2.landing-v2--premium .landing-audience-card p {
   color: var(--lp-ink-soft);
   line-height: 1.65;
 }

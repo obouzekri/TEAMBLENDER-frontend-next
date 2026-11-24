@@ -363,14 +363,15 @@ export default function ManagerHome({
   const [sessionFromDate, setSessionFromDate] = useState('');
   const [sessionToDate, setSessionToDate] = useState('');
   const [sessionsPage, setSessionsPage] = useState(1);
-  const [sessionsPagination, setSessionsPagination] = useState({
-    total: 0,
+  const [sessionsPagination, setSessionsPagination] = useState(() => ({
+    // En démo, le total est connu dès le rendu serveur : sinon le HTML affiche « 2 sur 0 ».
+    total: demoMode ? demoSessions.length : 0,
     page: 1,
     limit: 12,
     totalPages: 1,
     hasNextPage: false,
     hasPrevPage: false,
-  });
+  }));
   const [formAttempted, setFormAttempted] = useState(false);
   const [memberFormStatus, setMemberFormStatus] = useState('');
   const [showParticipantForm, setShowParticipantForm] = useState(false);
@@ -1191,7 +1192,22 @@ export default function ManagerHome({
                       </small>
                     ) : null}
                   </span>
-                  <span aria-hidden="true">{showSessionPeriod ? '−' : '+'}</span>
+                  <svg
+                    className="home-sessions-period-chevron"
+                    data-open={showSessionPeriod ? 'true' : 'false'}
+                    width="14"
+                    height="14"
+                    viewBox="0 0 24 24"
+                    fill="none"
+                    stroke="currentColor"
+                    strokeWidth="2"
+                    strokeLinecap="round"
+                    strokeLinejoin="round"
+                    aria-hidden="true"
+                    focusable="false"
+                  >
+                    <path d="m6 9 6 6 6-6" />
+                  </svg>
                 </button>
               </div>
             </div>
@@ -1223,7 +1239,11 @@ export default function ManagerHome({
             </div>
             <div className="home-sessions-controls-head">
               <p className="session-meta home-sessions-meta">
-                {t('managerHome.showingLengthSessionSOutOf', { length: sessions.length, total: Number(sessionsPagination.total || 0) })}
+                {t('managerHome.showingLengthSessionSOutOf', {
+                  length: sessions.length,
+                  count: Math.max(Number(sessionsPagination.total || 0), sessions.length),
+                  total: Math.max(Number(sessionsPagination.total || 0), sessions.length),
+                })}
               </p>
               {hasActiveSessionFilters ? (
                 <button type="button" className="home-sessions-clear" onClick={clearSessionFilters}>
