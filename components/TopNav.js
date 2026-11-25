@@ -120,6 +120,7 @@ export default function TopNav({ compact = false }) {
           <div className="nav-main-block">
             <nav className="nav-links" aria-label={t('nav.mainAria')}>
               <NavItem href={withLocalePath('/')} active={isActive('/')} onClick={() => setIsMenuOpen(false)}>{t('nav.product')}</NavItem>
+              <NavItem href={withLocalePath('/defis')} active={isActive('/defis')} onClick={() => setIsMenuOpen(false)}>{t('nav.challenges')}</NavItem>
               <NavItem href={withLocalePath('/pricing')} active={isActive('/pricing')} onClick={() => setIsMenuOpen(false)}>{t('nav.pricing')}</NavItem>
               <NavItem href={withLocalePath('/contact')} active={isActive('/contact')} onClick={() => setIsMenuOpen(false)}>{t('nav.contact')}</NavItem>
             </nav>

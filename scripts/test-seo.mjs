@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { buildPageMetadata, getLanguageAlternates, getPublicSeoLocales, getPublicSeoRedirectPath, getRobotsDisallowPaths, getRobotsRules, PRIVATE_SEO_PATHS, PUBLIC_PAGE_COPY, PUBLIC_SEO_PATHS } from '../lib/seo.js';
 import { getPricingStructuredData, getPublicStructuredData } from '../lib/structuredData.js';
 import { getPricingPlansFallback } from '../lib/pricingFallbackPlans.js';
+import { CHALLENGE_CATALOG, getCatalogChallenge, getCatalogChallenges } from '../lib/challengeCatalog.js';
 import { HOME_FAQ_BY_LOCALE, TEAM_BUILDING_CONTENT } from '../lib/teamBuildingContent.js';
 import { getTeamBuildingGuide } from '../lib/teamBuildingGuides.js';
 import { SUPPORTED_LOCALES, getLocalizedPathRedirect, stripLocaleFromPath, withLocalePath } from '../lib/i18n/routing.js';
@@ -149,6 +150,34 @@ try {
   ]);
   assert.ok(offers.offers.every((offer) => offer.priceCurrency === 'EUR' && offer.url === 'https://www.teamblender.io/en/pricing'));
   assert.equal(getPricingStructuredData(null, 'en'), null);
+
+  // Catalogue public des défis : hub + une page par défi, URL traduites, contenu tiré des règles.
+  assert.equal(withLocalePath('fr', '/defis'), '/fr/defis');
+  assert.equal(withLocalePath('en', '/defis'), '/en/team-challenges');
+  assert.equal(withLocalePath('en', '/defis/labyrinthe-des-signaux'), '/en/team-challenges/signal-maze');
+  assert.equal(stripLocaleFromPath('/en/team-challenges/signal-maze'), '/defis/labyrinthe-des-signaux');
+  assert.equal(getLocalizedPathRedirect('en', '/defis/quiz-equipe'), '/team-challenges/team-quiz');
+  assert.equal(getCatalogChallenge('unknown', 'fr'), null);
+  assert.equal(getCatalogChallenge('signal-maze', 'en'), null, 'Le slug anglais n’est pas un chemin interne');
+  for (const locale of SUPPORTED_LOCALES) {
+    const challenges = getCatalogChallenges(locale);
+    assert.equal(challenges.length, CHALLENGE_CATALOG.length);
+    assert.equal(new Set(challenges.map(({ name }) => name)).size, challenges.length);
+    for (const challenge of challenges) {
+      assert.ok(challenge.name && challenge.objective && challenge.intro, `${locale} ${challenge.slug}`);
+      assert.ok(challenge.skills.length >= 2 && challenge.idealFor.length >= 2);
+      const graph = getPublicStructuredData(withLocalePath(locale, challenge.path), locale)['@graph'];
+      const game = graph.find((node) => node['@type'] === 'Game');
+      assert.equal(game.name, challenge.name);
+      assert.equal(graph.find((node) => node['@type'] === 'WebPage').mainEntity['@id'], game['@id']);
+      const crumbs = graph.find((node) => node['@type'] === 'BreadcrumbList').itemListElement;
+      assert.deepEqual(crumbs.map(({ item }) => item), [
+        getLanguageAlternates('/')[locale], getLanguageAlternates('/defis')[locale], getLanguageAlternates(challenge.path)[locale],
+      ]);
+    }
+    const hubList = getPublicStructuredData(withLocalePath(locale, '/defis'), locale)['@graph'].find((node) => node['@type'] === 'ItemList');
+    assert.equal(hubList.itemListElement.length, CHALLENGE_CATALOG.length);
+  }
   const organization = getPublicStructuredData('/fr', 'fr')['@graph'][0];
   assert.equal(organization.contactPoint.email, 'contact@teamblender.io');
 
@@ -264,6 +293,20 @@ if (process.argv.includes('--http')) {
     const oldGuide = await context.request.get(`${baseUrl}/en/team-building/a-distance`, { maxRedirects: 0 });
     assert.equal(oldGuide.status(), 308);
     assert.equal(new URL(oldGuide.headers().location, baseUrl).pathname, '/en/team-building/remote');
+    for (const locale of SUPPORTED_LOCALES) {
+      await page.goto(`${baseUrl}${withLocalePath(locale, '/defis')}`);
+      assert.equal(await page.locator('h1').count(), 1);
+      assert.equal(await page.locator('#all-challenges + ul a').count(), CHALLENGE_CATALOG.length);
+      const [first] = getCatalogChallenges(locale);
+      await page.goto(`${baseUrl}${withLocalePath(locale, first.path)}`);
+      assert.equal(await page.locator('h1').innerText(), first.name);
+      assert.equal(await page.locator('#challenge-rules + ul li').count(), first.participantRules.length);
+      assert.equal(await page.locator('#other-challenges + ul a').count(), CHALLENGE_CATALOG.length - 1);
+    }
+    const oldChallenge = await context.request.get(`${baseUrl}/en/defis/quiz-equipe`, { maxRedirects: 0 });
+    assert.equal(oldChallenge.status(), 308);
+    assert.equal(new URL(oldChallenge.headers().location, baseUrl).pathname, '/en/team-challenges/team-quiz');
+    assert.equal((await context.request.get(`${baseUrl}/fr/defis/unknown`)).status(), 404);
     await page.goto(`${baseUrl}/fr/demo`);
     assert.equal(await page.locator('h1').count(), 1);
     await page.goto(`${baseUrl}/en/pricing`);
