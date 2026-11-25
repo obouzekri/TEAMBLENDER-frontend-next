@@ -345,6 +345,7 @@ export default function ManagerHome({
   const startupGuideSteps = useMemo(() => getStartupGuideSteps(locale), [locale]);
   const [isStartupGuideOpen, setIsStartupGuideOpen] = useState(false);
   const guard = useManagerGuard(demoMode);
+  const GreetingHeading = demoMode ? 'h2' : 'h1';
   const { toasts, removeToast, error: showErrorToast, loading: showLoadingToast, success: showSuccessToast } = useToast();
   const [sessions, setSessions] = useState(() => (demoMode ? demoSessions : []));
   const [members, setMembers] = useState(() => (demoMode ? demoMembers : []));
@@ -1046,7 +1047,8 @@ export default function ManagerHome({
           <div className="home-hero-grid">
             <div className="home-hero-copy">
               <p className="eyebrow">{t('managerHome.managerSpace')}</p>
-              <h1 className="home-hero-greeting">{t('managerHome.helloUserlabel', { userLabel })}</h1>
+              {/* Dans la démo publique, la page a déjà son H1 : le tableau de bord n'en ajoute pas un second. */}
+              <GreetingHeading className="home-hero-greeting">{t('managerHome.helloUserlabel', { userLabel })}</GreetingHeading>
               <p>{t('managerHome.planLaunchAndAnalyzeYourGamified')}</p>
               <div className="hero-actions home-hero-actions">
                 {guard.user?.role === 'admin' && (

@@ -1,9 +1,10 @@
 import assert from 'node:assert/strict';
 import { buildPageMetadata, getLanguageAlternates, getPublicSeoLocales, getPublicSeoRedirectPath, getRobotsDisallowPaths, getRobotsRules, PRIVATE_SEO_PATHS, PUBLIC_PAGE_COPY, PUBLIC_SEO_PATHS } from '../lib/seo.js';
-import { getPublicStructuredData } from '../lib/structuredData.js';
+import { getPricingStructuredData, getPublicStructuredData } from '../lib/structuredData.js';
+import { getPricingPlansFallback } from '../lib/pricingFallbackPlans.js';
 import { HOME_FAQ_BY_LOCALE, TEAM_BUILDING_CONTENT } from '../lib/teamBuildingContent.js';
 import { getTeamBuildingGuide } from '../lib/teamBuildingGuides.js';
-import { SUPPORTED_LOCALES, withLocalePath } from '../lib/i18n/routing.js';
+import { SUPPORTED_LOCALES, getLocalizedPathRedirect, stripLocaleFromPath, withLocalePath } from '../lib/i18n/routing.js';
 
 const previousEnvironment = process.env.VERCEL_ENV;
 try {
@@ -120,6 +121,37 @@ try {
   assert.ok(TEAM_BUILDING_CONTENT.fr.faq.some(({ question }) => question.includes('challenges entre équipes')));
   assert.equal(getTeamBuildingGuide('unknown', 'fr'), null);
 
+  // URL traduites : l'anglais affiche « remote » / « hybrid », le français garde le chemin interne.
+  assert.equal(withLocalePath('en', '/team-building/a-distance'), '/en/team-building/remote');
+  assert.equal(withLocalePath('en', '/team-building/hybride'), '/en/team-building/hybrid');
+  assert.equal(withLocalePath('fr', '/en/team-building/hybrid'), '/fr/team-building/hybride');
+  assert.equal(stripLocaleFromPath('/en/team-building/remote'), '/team-building/a-distance');
+  assert.equal(stripLocaleFromPath('/fr/team-building/remote'), '/team-building/remote');
+  assert.equal(getLocalizedPathRedirect('en', '/team-building/a-distance'), '/team-building/remote');
+  assert.equal(getLocalizedPathRedirect('en', '/team-building/remote'), null);
+  assert.equal(getLocalizedPathRedirect('fr', '/team-building/a-distance'), null);
+  assert.equal(getLanguageAlternates('/team-building/hybride').en, 'https://www.teamblender.io/en/team-building/hybrid');
+  assert.equal(buildPageMetadata('/en/team-building/remote', 'en').alternates.canonical, 'https://www.teamblender.io/en/team-building/remote');
+
+  // Image de partage dans la langue de la page.
+  for (const locale of SUPPORTED_LOCALES) {
+    const { openGraph, twitter } = buildPageMetadata(withLocalePath(locale, '/'), locale);
+    assert.equal(openGraph.images[0].url, `https://www.teamblender.io/social-preview/${locale}.png`);
+    assert.equal(twitter.images[0], openGraph.images[0].url);
+  }
+  assert.notEqual(buildPageMetadata('/fr', 'fr').openGraph.images[0].alt, buildPageMetadata('/en', 'en').openGraph.images[0].alt);
+
+  // Offres de la page Tarifs : mêmes montants que la grille affichée.
+  const offers = getPricingStructuredData(getPricingPlansFallback(), 'en');
+  assert.equal(offers['@id'], 'https://www.teamblender.io/#software');
+  assert.deepEqual(offers.offers.map(({ name, price, priceSpecification }) => [name, price, priceSpecification?.unitCode]), [
+    ['Trial', 0, undefined], ['Essential', 39, 'MON'], ['Essential', 348, 'ANN'], ['Organisation', 1800, 'ANN'],
+  ]);
+  assert.ok(offers.offers.every((offer) => offer.priceCurrency === 'EUR' && offer.url === 'https://www.teamblender.io/en/pricing'));
+  assert.equal(getPricingStructuredData(null, 'en'), null);
+  const organization = getPublicStructuredData('/fr', 'fr')['@graph'][0];
+  assert.equal(organization.contactPoint.email, 'contact@teamblender.io');
+
   process.env.VERCEL_ENV = 'preview';
   const previewRobotsRules = getRobotsRules();
   assert.deepEqual(previewRobotsRules.map(({ userAgent }) => userAgent), [
@@ -143,6 +175,7 @@ try {
       assert.equal(getPublicStructuredData(path, locale), null);
     }
   }
+  assert.equal(getPricingStructuredData(getPricingPlansFallback(), 'fr'), null);
 } finally {
   if (previousEnvironment === undefined) delete process.env.VERCEL_ENV;
   else process.env.VERCEL_ENV = previousEnvironment;
@@ -221,6 +254,21 @@ if (process.argv.includes('--http')) {
         assert.ok(text.includes(PUBLIC_PAGE_COPY[locale][path].title), `Missing discovery title: ${locale}${path}`);
       }
     }
+    assert.match(text, /## Key facts/);
+    assert.match(text, /€39\/month/);
+    for (const locale of SUPPORTED_LOCALES) {
+      const image = await context.request.get(`${baseUrl}/social-preview/${locale}.png`);
+      assert.equal(image.status(), 200);
+      assert.equal(image.headers()['content-type'], 'image/png');
+    }
+    const oldGuide = await context.request.get(`${baseUrl}/en/team-building/a-distance`, { maxRedirects: 0 });
+    assert.equal(oldGuide.status(), 308);
+    assert.equal(new URL(oldGuide.headers().location, baseUrl).pathname, '/en/team-building/remote');
+    await page.goto(`${baseUrl}/fr/demo`);
+    assert.equal(await page.locator('h1').count(), 1);
+    await page.goto(`${baseUrl}/en/pricing`);
+    const pricingNodes = (await page.locator('script[type="application/ld+json"]').allTextContents()).map((json) => JSON.parse(json));
+    assert.ok(pricingNodes.some((node) => Array.isArray(node.offers) && node.offers.length > 0));
     const missing = await page.goto(`${baseUrl}/fr/team-building/unknown`);
     assert.equal(missing.status(), 404);
     assert.ok((await page.locator('meta[name="robots"]').evaluateAll((elements) => elements.map((element) => element.content))).some((value) => value.includes('noindex')));
