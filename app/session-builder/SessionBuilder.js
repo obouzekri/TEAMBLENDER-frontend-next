@@ -1,19 +1,21 @@
 'use client';
 
 import { useEffect, useMemo, useState, useCallback, useRef } from 'react';
-import Link from 'next/link';
-import { Check, ChevronDown, ChevronRight, Copy, Link2, ListChecks, Mail, Sparkles, UserPlus, Users } from 'lucide-react';
+import { ChevronRight, ListChecks, Sparkles } from 'lucide-react';
 import AppNav from '@/components/AppNav';
 import Footer from '@/components/Footer';
 import ToastContainer from '@/components/ToastContainer';
 import ChallengesCatalog from '@/components/SessionBuilder/ChallengesCatalog';
 import SelectedChallengesList from '@/components/SessionBuilder/SelectedChallengesList';
 import ChallengeConfigModal from '@/components/SessionBuilder/ChallengeConfigModal';
-import ParticipantAssigner from '@/components/SessionBuilder/ParticipantAssigner';
 import SessionBuilderHeader from '@/components/SessionBuilder/SessionBuilderHeader';
+import SessionCreationForm from '@/components/SessionBuilder/SessionCreationForm';
+import SessionInfoEditModal from '@/components/SessionBuilder/SessionInfoEditModal';
+import SessionInvitePanel from '@/components/SessionBuilder/SessionInvitePanel';
+import ProgramProposalModal from '@/components/SessionBuilder/ProgramProposalModal';
 import SessionPreparation from '@/components/SessionPreparation';
 import Modal from '@/components/ui/Modal';
-import { Button, Input, LoadingState } from '@/components/ui';
+import { Button, LoadingState } from '@/components/ui';
 import { clearSessionAuth, getAuthHeaders } from '@/lib/auth';
 import { fetchWithCsrfRetry } from '@/lib/csrf';
 import useToast from '@/lib/useToast';
@@ -1361,63 +1363,14 @@ export default function SessionBuilder() {
   }
 
   const invitePanel = sessionId ? (
-    <section className="min-w-0" aria-label={t('sessionBuilder.inviteTitle')}>
-      <h2 className="mb-3 text-sm font-bold text-[var(--ink)]">{t('sessionBuilder.inviteEyebrow')}</h2>
-      <div className="flex flex-col items-center rounded-2xl bg-[var(--surface-panel-soft)] px-4 py-4 text-center">
-        <span className="text-xs font-semibold text-[var(--ink-soft)]">{t('sessionBuilder.inviteCodeLabel')}</span>
-        <strong dir="ltr" className="my-2 max-w-full select-text break-all font-mono text-3xl font-bold text-[var(--ink)] sm:text-4xl">
-          {String(sessionInvite?.code || '').trim() || '...'}
-        </strong>
-        <button
-          type="button"
-          className="inline-flex min-h-9 max-w-full items-center justify-center gap-2 rounded-lg px-3 py-2 text-sm font-semibold text-[var(--ink-soft)] transition-colors hover:bg-[var(--card)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-strong)] disabled:cursor-not-allowed disabled:opacity-45"
-          onClick={() => handleCopyInviteValue(sessionInvite?.code, 'code')}
-          disabled={!String(sessionInvite?.code || '').trim()}
-        >
-          {inviteCopyState === 'code' ? <Check size={16} aria-hidden="true" /> : <Copy size={16} aria-hidden="true" />}
-          {inviteCopyState === 'code'
-            ? t('sessionBuilder.inviteCopied')
-            : t('sessionBuilder.copyInviteCode')}
-        </button>
-      </div>
-      <div className="mt-3 flex justify-center">
-        <button
-          type="button"
-          className="inline-flex min-h-11 max-w-full items-center justify-center gap-2 rounded-xl bg-[var(--accent-strong)] px-5 py-3 text-center text-sm font-bold text-white shadow-sm transition-opacity hover:opacity-90 focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-strong)] disabled:cursor-not-allowed disabled:opacity-45"
-          onClick={() => handleCopyInviteValue(inviteMessage, 'invite')}
-          disabled={!inviteMessage}
-        >
-          {inviteCopyState === 'invite' ? <Check size={17} aria-hidden="true" /> : <Mail size={17} aria-hidden="true" />}
-          {inviteCopyState === 'invite'
-            ? t('sessionBuilder.inviteCopied')
-            : t('sessionBuilder.copyInvite')}
-        </button>
-      </div>
-      <div className="mt-4 flex min-w-0 items-center gap-2 text-sm text-[var(--ink-soft)]">
-        <Link2 size={16} className="shrink-0" aria-hidden="true" />
-        <div className="min-w-0 flex-1">
-          <span className="block text-xs font-semibold">{t('sessionBuilder.inviteLinkLabel')}</span>
-          {inviteLink ? (
-            <a className="block truncate hover:underline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-strong)]" href={inviteLink} target="_blank" rel="noopener noreferrer" dir="ltr">
-              {inviteLink}
-            </a>
-          ) : <span>...</span>}
-        </div>
-        <button
-          type="button"
-          className="inline-flex min-h-9 shrink-0 items-center justify-center gap-2 rounded-lg px-2 py-2 text-sm font-semibold transition-colors hover:bg-[var(--surface-panel-soft)] focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-[var(--accent-strong)] disabled:cursor-not-allowed disabled:opacity-45"
-          onClick={() => handleCopyInviteValue(inviteLink, 'link')}
-          disabled={!inviteLink}
-        >
-          {inviteCopyState === 'link' ? <Check size={16} aria-hidden="true" /> : <Copy size={16} aria-hidden="true" />}
-          <span>
-            {inviteCopyState === 'link'
-              ? t('sessionBuilder.inviteCopied')
-              : t('sessionBuilder.copyInviteLink')}
-          </span>
-        </button>
-      </div>
-    </section>
+    <SessionInvitePanel
+      handleCopyInviteValue={handleCopyInviteValue}
+      inviteCopyState={inviteCopyState}
+      inviteLink={inviteLink}
+      inviteMessage={inviteMessage}
+      sessionInvite={sessionInvite}
+      t={t}
+    />
   ) : null;
 
   if (guard.loading) {
@@ -1436,224 +1389,35 @@ export default function SessionBuilder() {
       <>
         <ToastContainer toasts={toasts} onRemove={removeToast} />
         <AppNav userLabel={userLabel} onLogout={logout} role={guard.user?.role} />
-        <main className={creationStyles.page}>
-          <div className={creationStyles.container}>
-            <h1 className={creationStyles.title}>{t('sessionBuilder.creationTitle')}</h1>
-            <p id="creation-intro" className={creationStyles.intro}>
-              {t('sessionBuilder.creationIntro')}
-            </p>
-            <form
-              id="create-session-form"
-              onSubmit={handleCreateSession}
-              className={creationStyles.form}
-            >
-              <section className={creationStyles.section} aria-labelledby="creation-info-heading">
-                <h2 id="creation-info-heading">{t('sessionBuilder.creationInformation')}</h2>
-
-                <Input
-                  id="session-name"
-                  label={`${t('sessionBuilder.sessionName')} ${t('sessionBuilder.requiredAsterisk')}`}
-                  value={sessionName}
-                  onChange={(e) => {
-                    setSessionName(e.target.value);
-                    setCreationTouched((prev) => ({ ...prev, sessionName: true }));
-                  }}
-                  onBlur={() => setCreationTouched((prev) => ({ ...prev, sessionName: true }))}
-                  placeholder={t('sessionBuilder.sessionNamePlaceholder')}
-                  autoFocus
-                  required
-                  error={nameError}
-                  aria-invalid={Boolean(nameError)}
-                />
-                <div className={creationStyles.grid}>
-                  <Input
-                    id="session-datetime"
-                    label={t('sessionBuilder.sessionDateTime')}
-                    type="datetime-local"
-                    value={sessionDateTime}
-                    onChange={(e) => {
-                      setSessionDateTime(e.target.value);
-                      setCreationTouched((prev) => ({ ...prev, sessionDateTime: true }));
-                    }}
-                    onBlur={() =>
-                      setCreationTouched((prev) => ({ ...prev, sessionDateTime: true }))
-                    }
-                    step="60"
-                    min={minSessionDateTime || undefined}
-                    onFocus={() => setMinSessionDateTime(toDateTimeLocalValue(new Date()))}
-                    inputClassName={`${creationStyles.dateInput} ${
-                      sessionDateTime ? '' : creationStyles.dateInputEmpty
-                    }`}
-                    error={dateError}
-                    aria-invalid={Boolean(dateError)}
-                  />
-                  <Input
-                    id="expected-participants"
-                    type="number"
-                    min="1"
-                    max="2147483647"
-                    step="1"
-                    label={t('sessionBuilder.creationExpectedCount')}
-                    value={expectedCount}
-                    onChange={(event) => setExpectedCount(event.target.value)}
-                    placeholder={t('sessionBuilder.expectedCountPlaceholder')}
-                    hint={t('sessionBuilder.expectedCountHint')}
-                    error={
-                      isValidExpectedCount(expectedCount)
-                        ? ''
-                        : t('sessionBuilder.expectedCountInvalid')
-                    }
-                  />
-                </div>
-              </section>
-
-              {renderObjectiveField(objective, setObjective, 'session-objective', true)}
-
-              <section className={creationStyles.section} aria-labelledby="creation-flow-heading">
-                <h2 id="creation-flow-heading">
-                  {t('sessionBuilder.creationFlow')}{' '}
-                  <span className={creationStyles.headingHint}>
-                    ({t('sessionBuilder.progressionMode')})
-                  </span>
-                </h2>
-                <fieldset
-                  className={creationStyles.flow}
-                  aria-labelledby="creation-flow-heading"
-                >
-                  <label className={creationStyles.flowOption}>
-                    <input
-                      type="radio"
-                      name="flowMode"
-                      value="manual"
-                      checked={flowMode === 'manual'}
-                      onChange={() => setFlowMode('manual')}
-                    />
-                    <span>
-                      <strong>{t('sessionBuilder.manual')}</strong>
-                      <small>{t('sessionBuilder.creationManualHint')}</small>
-                    </span>
-                  </label>
-                  <label className={creationStyles.flowOption}>
-                    <input
-                      type="radio"
-                      name="flowMode"
-                      value="auto"
-                      checked={flowMode === 'auto'}
-                      onChange={() => setFlowMode('auto')}
-                    />
-                    <span>
-                      <strong>{t('sessionBuilder.automatic')}</strong>
-                      <small>{t('sessionBuilder.creationAutomaticHint')}</small>
-                    </span>
-                  </label>
-                </fieldset>
-              </section>
-
-              <section
-                className={creationStyles.section}
-                aria-labelledby="creation-participants-heading"
-              >
-                <h2 id="creation-participants-heading">
-                  {t('sessionBuilder.creationParticipants')}{' '}
-                  <span className={creationStyles.headingHint}>
-                    ({t('sessionBuilder.optionalLabel')})
-                  </span>
-                </h2>
-
-                <div className={creationStyles.notice}>
-                  <Users size={20} aria-hidden="true" />
-                  <p>{t('sessionBuilder.creationParticipantsHint')}</p>
-                </div>
-                <details
-                  className={`${styles.participantsDisclosure} ${creationStyles.disclosure}`}
-                >
-                  <summary>
-                    <span className={creationStyles.disclosureLabel}>
-                      <UserPlus size={18} aria-hidden="true" />
-                      {t('sessionBuilder.prepareAhead')}
-                    </span>
-                    {draftParticipantIds.length > 0 ? (
-                      <span className={creationStyles.disclosureCount}>
-                        {t('sessionBuilder.selectedCount', { count: draftParticipantIds.length })}
-                      </span>
-                    ) : null}
-                    <ChevronDown
-                      className={creationStyles.disclosureChevron}
-                      size={18}
-                      aria-hidden="true"
-                    />
-                  </summary>
-                  <p>{t('sessionBuilder.prepareAheadHint')}</p>
-                  <p>
-                    {availableParticipantsCount === 0
-                      ? t('sessionBuilder.noAvailableProfiles')
-                      : t('sessionBuilder.participantsAvailable', {
-                          count: availableParticipantsCount,
-                        })}
-                  </p>
-                  <ParticipantAssigner
-                    isLoading={isCreatingSession}
-                    selectedIds={draftParticipantIds}
-                    onSelectionChange={(ids) => {
-                      setDraftParticipantIds(ids);
-                      setCreationTouched((prev) => ({ ...prev, participants: true }));
-                    }}
-                    onParticipantsLoaded={handleParticipantsLoaded}
-                    onSelectionFeedback={handleParticipantSelectionFeedback}
-                    embedded
-                    hideActions
-                    showSelectionLimitNotice={false}
-                    title=""
-                    subtitle=""
-                  />
-
-                  {availableParticipantsCount === 0 ? (
-                    <div>
-                      <Button
-                        type="button"
-                        variant="secondary"
-                        onClick={() =>
-                          window.location.assign(withLocalePath('/home#home-participants-block'))
-                        }
-                      >
-                        {t('sessionBuilder.createParticipantCta')}
-                      </Button>
-                    </div>
-                  ) : null}
-                </details>
-              </section>
-
-              <footer className={creationStyles.actions}>
-                <Link
-                  href={withLocalePath('/home')}
-                  className={creationStyles.cancel}
-                  aria-disabled={isCreatingSession || undefined}
-                  onClick={(event) => {
-                    if (isCreatingSession) event.preventDefault();
-                  }}
-                >
-                  {t('sessionBuilder.cancel')}
-                </Link>
-                <Button
-                  type="submit"
-                  form="create-session-form"
-                  className={creationStyles.submit}
-                  aria-describedby="creation-intro"
-                  disabled={!canCreateSessionNow}
-                  title={
-                    !canCreateSessionNow
-                      ? t('sessionBuilder.sessionNameRequired')
-                      : t('sessionBuilder.createSession')
-                  }
-                >
-                  {isCreatingSession
-                    ? t('sessionBuilder.creating')
-                    : t('sessionBuilder.createSession')}
-                </Button>
-              </footer>
-            </form>
-          </div>
-        </main>
+        <SessionCreationForm
+          availableParticipantsCount={availableParticipantsCount}
+          canCreateSessionNow={canCreateSessionNow}
+          dateError={dateError}
+          draftParticipantIds={draftParticipantIds}
+          expectedCount={expectedCount}
+          flowMode={flowMode}
+          handleCreateSession={handleCreateSession}
+          handleParticipantSelectionFeedback={handleParticipantSelectionFeedback}
+          handleParticipantsLoaded={handleParticipantsLoaded}
+          isCreatingSession={isCreatingSession}
+          minSessionDateTime={minSessionDateTime}
+          nameError={nameError}
+          objective={objective}
+          renderObjectiveField={renderObjectiveField}
+          sessionDateTime={sessionDateTime}
+          sessionName={sessionName}
+          setCreationTouched={setCreationTouched}
+          setDraftParticipantIds={setDraftParticipantIds}
+          setExpectedCount={setExpectedCount}
+          setFlowMode={setFlowMode}
+          setMinSessionDateTime={setMinSessionDateTime}
+          setObjective={setObjective}
+          setSessionDateTime={setSessionDateTime}
+          setSessionName={setSessionName}
+          t={t}
+          toDateTimeLocalValue={toDateTimeLocalValue}
+          withLocalePath={withLocalePath}
+        />
         <Footer />
       </>
     );
@@ -1785,239 +1549,51 @@ export default function SessionBuilder() {
         </div>
       </main>
 
-      <Modal
-        open={isEditingSessionInfo}
-        title={t('sessionBuilder.editSessionAria')}
-        onClose={() => setIsEditingSessionInfo(false)}
-        dialogClassName={styles.sessionInfoEditDialog}
-        bodyClassName={styles.sessionInfoEditBody}
-      >
-        <section
-          className={styles.sessionInfoEditContent}
-          aria-label={t('sessionBuilder.editSessionAria')}
-        >
-          <div className={styles.sessionInfoEditGrid}>
-            <Input
-              id="edit-session-name"
-              label={t('sessionBuilder.sessionName')}
-              value={editName}
-              onChange={(e) => setEditName(e.target.value)}
-              placeholder={t('sessionBuilder.sessionNamePlaceholderShort')}
-            />
-            <Input
-              id="edit-session-date"
-              label={t('sessionBuilder.sessionDateTime')}
-              type="datetime-local"
-              value={editDateTime}
-              onChange={(e) => setEditDateTime(e.target.value)}
-              step="60"
-            />
-            <label className={styles.contextField} htmlFor="edit-flow-mode">
-              <span>{t('sessionBuilder.progressionMode')}</span>
-              <select
-                id="edit-flow-mode"
-                className={styles.sessionInfoInput}
-                value={editFlowMode}
-                onChange={(e) => setEditFlowMode(e.target.value)}
-              >
-                <option value="manual">{t('sessionBuilder.manualModeOption')}</option>
-                <option value="auto">{t('sessionBuilder.autoModeOption')}</option>
-              </select>
-            </label>
-          </div>
-          <div className={styles.creationGrid}>
-            <Input
-              id="edit-expected-participants"
-              type="number"
-              min="1"
-              max="2147483647"
-              step="1"
-              label={t('sessionBuilder.expectedCount')}
-              value={editExpectedCount}
-              onChange={(event) => setEditExpectedCount(event.target.value)}
-              hint={t('sessionBuilder.expectedCountHint')}
-              error={
-                isValidExpectedCount(editExpectedCount)
-                  ? ''
-                  : t('sessionBuilder.expectedCountInvalid')
-              }
-            />
-            {renderObjectiveField(editObjective, setEditObjective, 'edit-session-objective')}
-          </div>
+      <SessionInfoEditModal
+        editDateTime={editDateTime}
+        editExpectedCount={editExpectedCount}
+        editFlowMode={editFlowMode}
+        editName={editName}
+        editObjective={editObjective}
+        editParticipantIds={editParticipantIds}
+        handleSaveSessionInfo={handleSaveSessionInfo}
+        isEditingSessionInfo={isEditingSessionInfo}
+        isSavingSessionInfo={isSavingSessionInfo}
+        renderObjectiveField={renderObjectiveField}
+        setEditDateTime={setEditDateTime}
+        setEditExpectedCount={setEditExpectedCount}
+        setEditFlowMode={setEditFlowMode}
+        setEditName={setEditName}
+        setEditObjective={setEditObjective}
+        setEditParticipantIds={setEditParticipantIds}
+        setIsEditingSessionInfo={setIsEditingSessionInfo}
+        t={t}
+      />
 
-          <div className={styles.sessionInfoParticipantsBlock}>
-            <div className={styles.creationSectionHeader}>
-              <div>
-                <h2>{t('sessionBuilder.assignParticipants')}</h2>
-              </div>
-              <span className={styles.creationParticipantsCount}>
-                {t('sessionBuilder.selectedCount', { count: editParticipantIds.length })}
-              </span>
-            </div>
-
-            <ParticipantAssigner
-              isLoading={isSavingSessionInfo}
-              selectedIds={editParticipantIds}
-              onSelectionChange={setEditParticipantIds}
-              embedded
-              hideActions
-              title=""
-              subtitle=""
-            />
-          </div>
-
-          <div className={styles.sessionInfoEditActions}>
-            <Button onClick={handleSaveSessionInfo} disabled={isSavingSessionInfo}>
-              {isSavingSessionInfo ? t('sessionBuilder.saving') : t('sessionBuilder.save')}
-            </Button>
-            <Button variant="secondary" onClick={() => setIsEditingSessionInfo(false)}>
-              {t('sessionBuilder.cancel')}
-            </Button>
-          </div>
-        </section>
-      </Modal>
-
-      <Modal
-        open={programOpen}
-        title={t('sessionBuilder.guidedProgram')}
-        onClose={() => setProgramOpen(false)}
-        overlayClassName={styles.programDialogOverlay}
-        dialogClassName={styles.programDialog}
-        headerClassName={styles.programDialogHeader}
-        bodyClassName={styles.programDialogBody}
-      >
-        <div className={styles.programForm}>
-          <p className={styles.programIntro}>{t('sessionBuilder.programDialogHint')}</p>
-          <section className={styles.programCriteria} aria-labelledby="program-criteria-title">
-            <h3 id="program-criteria-title">{t('sessionBuilder.programCriteria')}</h3>
-            <div className={styles.programContext}>
-              <span>{objectiveLabel || t('sessionBuilder.noPreference')}</span>
-              <span className={!expectedCount ? styles.programContextNotice : undefined}>
-                {expectedCount
-                  ? t('sessionBuilder.plannedCount', { count: expectedCount })
-                  : t('sessionBuilder.programUnknownCount')}
-              </span>
-            </div>
-            <div className={styles.programCriteriaControls}>
-              <Input
-                id="program-duration"
-                type="number"
-                min="1"
-                max="240"
-                step="1"
-                label={t('sessionBuilder.targetDuration')}
-                value={targetMinutes}
-                hint={t('sessionBuilder.targetDurationHint')}
-                suffix={t('sessionBuilder.minutes')}
-                disabled={isGeneratingProgram}
-                onChange={(event) => {
-                  setTargetMinutes(event.target.value);
-                  setProgramProposalNeedsRefresh(Boolean(programProposal));
-                  setProgramError('');
-                  setProgramNotice('');
-                }}
-              />
-              <Button
-                variant="secondary"
-                onClick={generateProgram}
-                disabled={isGeneratingProgram}
-                className={styles.programRegenerateButton}
-              >
-                {isGeneratingProgram ? (
-                  <>
-                    <span className={styles.programLoadingIndicator} aria-hidden="true" />
-                    {t('sessionBuilder.programGenerating')}
-                  </>
-                ) : (
-                  t(
-                    programProposal
-                      ? 'sessionBuilder.regenerateProgram'
-                      : 'sessionBuilder.generateProgram'
-                  )
-                )}
-              </Button>
-            </div>
-          </section>
-          {programProposalNeedsRefresh ? (
-            <p className={styles.programFeedbackNotice} role="status">
-              {t('sessionBuilder.programNeedsRefresh')}
-            </p>
-          ) : null}
-          {programError ? (
-            <p className={styles.programFeedbackError} role="alert">
-              {programError}
-            </p>
-          ) : null}
-          {programNotice ? (
-            <p className={styles.programFeedbackNotice} role="status">
-              {programNotice}
-            </p>
-          ) : null}
-          {programProposal ? (
-            <>
-              <section className={styles.programResults} aria-labelledby="program-results-title">
-                <h3 id="program-results-title">{t('sessionBuilder.programResultsTitle')}</h3>
-                <p className={styles.programEligibleCount}>
-                  {t('sessionBuilder.programEligibleCount', { count: programProposal.eligibleCount })}
-                </p>
-              </section>
-              {programProposal.challenges.length ? (
-                <>
-                  <div className={styles.programSummaryRow}>
-                    <p>
-                      {t('sessionBuilder.programDuration', {
-                        count: programProposal.duration,
-                      })}
-                    </p>
-                  </div>
-                  <ol className={styles.programPreview}>
-                    {programProposal.challenges.map((challenge, index) => (
-                      <li key={challenge.id} className={styles.programPreviewItem}>
-                        <span className={styles.programStepNumber} aria-hidden="true">{index + 1}</span>
-                        <div className={styles.programPreviewContent}>
-                          <strong>{challenge.name}</strong>
-                          <small>
-                            {formatProgramDuration(challenge)}
-                            {' · '}
-                            {formatProgramParticipantRange(challenge)}
-                          </small>
-                        </div>
-                        <Button
-                          variant="secondary"
-                          size="sm"
-                          disabled={isGeneratingProgram || programProposalNeedsRefresh}
-                          aria-label={t('sessionBuilder.replaceChallengeAria', {
-                            name: challenge.name,
-                          })}
-                          onClick={() => replaceProposedChallenge(challenge.id)}
-                        >
-                          {t('sessionBuilder.replaceChallenge')}
-                        </Button>
-                      </li>
-                    ))}
-                  </ol>
-                  {selectedChallenges.length ? (
-                    <p>{t('sessionBuilder.replaceProgramWarning')}</p>
-                  ) : null}
-                  <Button
-                    block
-                    disabled={isGeneratingProgram || programProposalNeedsRefresh}
-                    onClick={() => {
-                      clearAll();
-                      programProposal.challenges.forEach((challenge) =>
-                        selectChallenge(challenge.id)
-                      );
-                      setProgramOpen(false);
-                    }}
-                  >
-                    {t('sessionBuilder.useProgram')}
-                  </Button>
-                </>
-              ) : null}
-            </>
-          ) : null}
-        </div>
-      </Modal>
+      <ProgramProposalModal
+        clearAll={clearAll}
+        expectedCount={expectedCount}
+        formatProgramDuration={formatProgramDuration}
+        formatProgramParticipantRange={formatProgramParticipantRange}
+        generateProgram={generateProgram}
+        isGeneratingProgram={isGeneratingProgram}
+        objectiveLabel={objectiveLabel}
+        programError={programError}
+        programNotice={programNotice}
+        programOpen={programOpen}
+        programProposal={programProposal}
+        programProposalNeedsRefresh={programProposalNeedsRefresh}
+        replaceProposedChallenge={replaceProposedChallenge}
+        selectChallenge={selectChallenge}
+        selectedChallenges={selectedChallenges}
+        setProgramError={setProgramError}
+        setProgramNotice={setProgramNotice}
+        setProgramOpen={setProgramOpen}
+        setProgramProposalNeedsRefresh={setProgramProposalNeedsRefresh}
+        setTargetMinutes={setTargetMinutes}
+        t={t}
+        targetMinutes={targetMinutes}
+      />
 
       <Modal
         open={isLaunchConfirmOpen}
