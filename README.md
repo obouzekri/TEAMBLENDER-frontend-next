@@ -422,9 +422,11 @@ npm run check:typography
   - `/fr/team-building/a-distance`, `/en/team-building/remote`
   - `/fr/team-building/hybride`, `/en/team-building/hybrid`
   - `/fr/team-building/onboarding`, `/en/team-building/onboarding`
+  - catalogue des défis : `/fr/defis`, `/en/team-challenges`, puis une page par défi (`/fr/defis/<slug>`, `/en/team-challenges/<slug>`)
 - Les espaces prives (manager, participant, admin, session live, resume, etc.) sont non indexables via metadonnees et robots.
 - Les URL publiques sans prefixe de langue redirigent en 308 vers leur URL francaise canonique (`/fr/...`); les variantes `/en/...` restent servies comme pages indexables distinctes.
 - Certaines URL sont traduites (`LOCALIZED_PATHS` dans `lib/i18n/routing.js`) : le code utilise le chemin interne (`/team-building/a-distance`) et `withLocalePath` produit l'URL de la langue (`/en/team-building/remote`). L'ancienne URL anglaise redirige en 308 vers la nouvelle (`proxy.js`).
+- Catalogue public des défis (`app/defis`, `components/ChallengeCatalog.js`) : la liste et les slugs par langue sont dans `lib/i18n/challengeCatalogPaths.js` ; le nom, l'objectif, le nombre de joueurs et le déroulé viennent de `challengeRules` (mêmes textes que la présentation animateur), le texte éditorial (présentation, compétences, cas d'usage, métadonnées SEO) du dictionnaire `challengeCatalog`. Aucune durée par défi n'est affichée tant qu'elle n'est pas fournie par le moteur. Le hub publie un `ItemList`, chaque défi un `Game` (joueurs min/max) et un fil d'Ariane Accueil > Défis > défi. Liens depuis le menu, le pied de page et la section défis de l'accueil.
 - En environnement preview Vercel, l'indexation est desactivee (`robots.txt` global + sitemap vide).
 - Un endpoint `llms.txt` est expose (`/llms.txt`) pour aider les outils IA a decouvrir les pages publiques et leur contexte. Il donne aussi des faits cles en anglais : fonctionnement, duree des defis, langues, contact, offres (grille de `lib/pricingFallbackPlans.js`) et exemples de defis de l'accueil.
 - Chaque page publique a une image de partage dans sa langue (`/social-preview/<langue>.png`, rendue par `lib/socialPreview.js`) ; `/opengraph-image` reste l'image par defaut des pages privees.

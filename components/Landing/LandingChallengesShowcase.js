@@ -1,5 +1,7 @@
 "use client";
+import Link from 'next/link';
 import { translate } from '@/lib/i18n';
+import { withLocalePath } from '@/lib/i18n/routing';
 
 export default function LandingChallengesShowcase({ locale, challengeExamples }) {
   return (
@@ -39,6 +41,11 @@ export default function LandingChallengesShowcase({ locale, challengeExamples })
         </div>
         <p className="landing-challenges-subtitle mt-6">
           {translate(locale, 'landingUi.andManyMoreChallengesToDiscover')}
+        </p>
+        <p className="mt-4 text-center">
+          <Link className="btn btn-secondary" href={withLocalePath(locale, '/defis')}>
+            {translate(locale, 'challengeCatalog.labels.catalogLink')}
+          </Link>
         </p>
       </div>
     </section>

@@ -38,6 +38,7 @@ export default function Footer() {
       key: 'resources',
       label: t('footer.resources'),
       links: [
+        { href: withLocalePath('/defis'), label: t('footer.challengeCatalog') },
         { href: withLocalePath('/team-building'), label: t('shell.teamCohesionGuide') },
         { href: withLocalePath('/demo'), label: t('footer.askDemo') },
         { href: withLocalePath('/login'), label: t('footer.clientArea') },
