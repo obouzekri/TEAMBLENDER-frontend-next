@@ -321,7 +321,6 @@
 }
 /* Explicit dark theme mirror of the block above */
 
-
   html[data-theme='dark'] /* Auth card — premium deep glass */
   .auth-card,
 html[data-theme='dark'] .auth-showcase-card{
@@ -730,9 +729,6 @@ html[data-theme='light'] .psb {
 
   /* Public landing nav: keep one mobile auth/language block in drawer */
   @media (max-width: 860px) {
-    .top-nav:not(.top-nav--live-inline) .topnav-public-mobile-cta {
-      display: none !important;
-    }
 
     .top-nav:not(.top-nav--live-inline) .topnav-public-desktop-actions {
       display: none !important;
@@ -841,7 +837,6 @@ html[data-theme='light'] .psb {
     }
 
     .top-nav:not(.top-nav--live-inline) .appnav-mobile-actions .lang-switch,
-    .top-nav:not(.top-nav--live-inline) .appnav-mobile-actions .appnav-mobile-account-btn,
     .top-nav:not(.top-nav--live-inline) .appnav-mobile-actions .appnav-mobile-logout-btn {
       width: 100% !important;
       min-height: 44px !important;
@@ -877,7 +872,6 @@ html[data-theme='light'] .psb {
     }
 
     .feature-card,
-    .contact-hero,
     .pricing-hero,
     .pricing-controls,
     .pricing-card,
@@ -887,7 +881,6 @@ html[data-theme='light'] .psb {
       border-radius: 18px;
     }
 
-    .session-live-popup-backdrop,
     .landing-preview-modal,
     .manager-onboarding-modalOverlay {
       padding: 0.8rem;
@@ -953,7 +946,6 @@ html[data-theme='light'] .psb {
     }
 
     .feature-card,
-    .contact-hero,
     .pricing-hero,
     .pricing-controls,
     .pricing-card,
@@ -976,7 +968,6 @@ html[data-theme='light'] .psb {
       max-width: none;
     }
 
-    .session-live-popup-backdrop,
     .landing-preview-modal,
     .manager-onboarding-modalOverlay {
       padding: 0.65rem;

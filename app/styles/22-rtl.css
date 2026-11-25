@@ -18,9 +18,6 @@ html:lang(ar) {
 }
 
 /* Interrupteurs : la pastille glisse vers la gauche quand l'option est activée. */
-[dir='rtl'] .nav-settings-toggle__switch input:checked + .nav-settings-toggle__track::after {
-  transform: translateX(-16px);
-}
 
 [dir='rtl'] .preferences-toggle__switch input:checked + .preferences-toggle__track::after {
   transform: translateX(-18px);

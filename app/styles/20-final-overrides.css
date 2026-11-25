@@ -310,8 +310,6 @@ html[data-theme='dark'] .auth-remember-me{
    ================================================================ */
 @media (min-width: 861px) {
   .top-nav:not(.top-nav--live-inline) .nav-toggle,
-  .top-nav:not(.top-nav--live-inline) .nav-mobile-cta,
-  .top-nav:not(.top-nav--live-inline) .topnav-public-mobile-cta,
   .top-nav:not(.top-nav--live-inline) .topnav-public-mobile-actions,
   .top-nav:not(.top-nav--live-inline) .nav-mobile-menu-actions,
   .top-nav:not(.top-nav--live-inline) .appnav-mobile-actions {
@@ -413,8 +411,6 @@ html[data-theme='dark'] .auth-remember-me{
 :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-panel-card p,
 :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-console-layout .session-meta,
 :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-panel-card .session-meta,
-:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-console-layout .list-count,
-:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-panel-card .list-count,
 :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-console-layout .list-empty,
 :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .admin-panel-card .list-empty {
   color: #b8c6df !important;

@@ -659,11 +659,6 @@ html[data-theme='dark'] .pricing-card .pricing-actions .btn-secondary{
   box-shadow: none;
 }
 
-.account-lock-indicator {
-  margin-inline-start: 0.28rem;
-  font-size: 0.82rem;
-}
-
 /* Form grid */
 .account-form-grid {
   display: grid;
@@ -681,18 +676,6 @@ html[data-theme='dark'] .pricing-card .pricing-actions .btn-secondary{
 }
 @media (max-width: 600px) {
   .account-form-grid { grid-template-columns: 1fr; }
-}
-
-/* Card actions */
-.account-saas-card__actions {
-  display: flex;
-  justify-content: flex-end;
-  gap: 0.75rem;
-  margin-top: 0.5rem;
-  flex-wrap: wrap;
-}
-.account-saas-card__actions--split {
-  justify-content: space-between;
 }
 
 /* Account buttons — gradient pill */
@@ -714,36 +697,6 @@ html[data-theme='dark'] .pricing-card .pricing-actions .btn-secondary{
   box-shadow: none !important;
   cursor: not-allowed;
 }
-
-.account-plan-pill {
-  display: inline-flex;
-  align-items: center;
-  margin-inline-start: 0.45rem;
-  padding: 0.15rem 0.62rem;
-  border-radius: 999px;
-  background: #ebe8ff;
-  border: 1px solid #d6d0ff;
-  color: #4c34cc;
-  font-weight: 700;
-  font-size: 0.78rem;
-}
-
-.account-change-plan-link {
-  margin-top: 0.65rem;
-  padding: 0;
-  border: none;
-  background: transparent;
-  color: #365fd7;
-  font-weight: 700;
-  font-size: 0.84rem;
-  cursor: pointer;
-}
-
-.account-change-plan-link:hover,
-.account-change-plan-link:focus-visible {
-  color: #2a47a8;
-  text-decoration: underline;
-}
 .account-page .btn-primary:hover:not(:disabled) {
   transform: translateY(-2px);
   box-shadow: 0 8px 22px rgba(123, 97, 255, 0.36);
@@ -761,48 +714,10 @@ html[data-theme='dark'] .pricing-card .pricing-actions .btn-secondary{
 }
 
 /* Account pricing section */
-.account-pricing-section {
-  margin-bottom: 2.5rem;
-}
-.account-pricing-surface {
-  background: rgba(255, 255, 255, 0.97);
-  border: 1px solid rgba(229, 231, 235, 0.8);
-  border-radius: 20px;
-  padding: 1.75rem;
-  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.06), 0 1px 4px rgba(15, 23, 42, 0.04);
-}
-.account-pricing-head h2 {
-  font-size: 1.3rem;
-  font-weight: 700;
-  color: #111827;
-  letter-spacing: -0.02em;
-}
-.account-pricing-head p {
-  color: #6B7280;
-  font-size: 0.9rem;
-}
 .account-plan-cards-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 1.1rem;
-}
-
-/* Plan history */
-.account-plan-history {
-  margin-top: 1.75rem;
-  padding-top: 1.25rem;
-  border-top: 1px solid #F3F4F6;
-}
-.account-plan-history .session-item {
-  border: 1px solid #F3F4F6;
-  border-radius: 12px;
-  background: #FAFAFA;
-  padding: 0.7rem 0.9rem;
-  transition: border-color 180ms ease, box-shadow 180ms ease;
-}
-.account-plan-history .session-item:hover {
-  border-color: rgba(123, 97, 255, 0.2);
-  box-shadow: 0 2px 8px rgba(123, 97, 255, 0.06);
 }
 
 /* Eyebrow in account sections */
@@ -820,13 +735,6 @@ html[data-theme='dark'] .pricing-card .pricing-actions .btn-secondary{
 }
 
 /* Section surface overrides */
-.account-section-surface {
-  background: rgba(255, 255, 255, 0.97);
-  border: 1px solid rgba(229, 231, 235, 0.8);
-  border-radius: 20px;
-  box-shadow: 0 4px 18px rgba(15, 23, 42, 0.06);
-  padding: 1.5rem 1.75rem;
-}
 
 @media (prefers-color-scheme: dark) {
   :where(html:not([data-theme='light'])) .account-page{
@@ -836,21 +744,21 @@ html[data-theme='dark'] .pricing-card .pricing-actions .btn-secondary{
       #0b0f19;
   }
 
-  :where(html:not([data-theme='light'])) .account-saas-card,:where(html:not([data-theme='light'])) .account-pricing-surface,:where(html:not([data-theme='light'])) .account-section-surface,:where(html:not([data-theme='light'])) .account-plan-history .session-item,:where(html:not([data-theme='light'])) .account-page-header{
+  :where(html:not([data-theme='light'])) .account-saas-card,:where(html:not([data-theme='light'])) .account-page-header{
     background: rgba(17, 26, 46, 0.94);
     border-color: rgba(148, 163, 184, 0.18);
     box-shadow: 0 14px 34px rgba(2, 6, 23, 0.34);
   }
 
-  :where(html:not([data-theme='light'])) .account-saas-card__title,:where(html:not([data-theme='light'])) .account-pricing-head h2,:where(html:not([data-theme='light'])) .account-page-header h1{
+  :where(html:not([data-theme='light'])) .account-saas-card__title,:where(html:not([data-theme='light'])) .account-page-header h1{
     color: #e2e8f0;
   }
 
-  :where(html:not([data-theme='light'])) .account-saas-card__subtitle,:where(html:not([data-theme='light'])) .account-pricing-head p,:where(html:not([data-theme='light'])) .account-plan-history,:where(html:not([data-theme='light'])) .account-form-hint,:where(html:not([data-theme='light'])) .account-page .eyebrow{
+  :where(html:not([data-theme='light'])) .account-saas-card__subtitle,:where(html:not([data-theme='light'])) .account-form-hint,:where(html:not([data-theme='light'])) .account-page .eyebrow{
     color: #94a3b8;
   }
 
-  :where(html:not([data-theme='light'])) .account-saas-card__header,:where(html:not([data-theme='light'])) .account-plan-history{
+  :where(html:not([data-theme='light'])) .account-saas-card__header{
     border-color: rgba(148, 163, 184, 0.14);
   }
 
@@ -874,16 +782,6 @@ html[data-theme='dark'] .pricing-card .pricing-actions .btn-secondary{
     box-shadow: 0 0 0 3px rgba(125, 211, 252, 0.14);
   }
 
-  :where(html:not([data-theme='light'])) .account-plan-pill{
-    background: rgba(167, 139, 250, 0.12);
-    border-color: rgba(167, 139, 250, 0.22);
-    color: #c4b5fd;
-  }
-
-  :where(html:not([data-theme='light'])) .account-change-plan-link,:where(html:not([data-theme='light'])) .account-change-plan-link:hover,:where(html:not([data-theme='light'])) .account-change-plan-link:focus-visible{
-    color: #93c5fd;
-  }
-
   :where(html:not([data-theme='light'])) .account-page .btn-secondary{
     border-color: rgba(148, 163, 184, 0.28);
     background: rgba(15, 23, 42, 0.5);
@@ -903,9 +801,6 @@ html[data-theme='dark'] .pricing-card .pricing-actions .btn-secondary{
   }
 
   html[data-theme='dark'] .account-saas-card,
-html[data-theme='dark'] .account-pricing-surface,
-html[data-theme='dark'] .account-section-surface,
-html[data-theme='dark'] .account-plan-history .session-item,
 html[data-theme='dark'] .account-page-header{
     background: rgba(17, 26, 46, 0.94);
     border-color: rgba(148, 163, 184, 0.18);
@@ -913,21 +808,17 @@ html[data-theme='dark'] .account-page-header{
   }
 
   html[data-theme='dark'] .account-saas-card__title,
-html[data-theme='dark'] .account-pricing-head h2,
 html[data-theme='dark'] .account-page-header h1{
     color: #e2e8f0;
   }
 
   html[data-theme='dark'] .account-saas-card__subtitle,
-html[data-theme='dark'] .account-pricing-head p,
-html[data-theme='dark'] .account-plan-history,
 html[data-theme='dark'] .account-form-hint,
 html[data-theme='dark'] .account-page .eyebrow{
     color: #94a3b8;
   }
 
-  html[data-theme='dark'] .account-saas-card__header,
-html[data-theme='dark'] .account-plan-history{
+  html[data-theme='dark'] .account-saas-card__header{
     border-color: rgba(148, 163, 184, 0.14);
   }
 
@@ -953,18 +844,6 @@ html[data-theme='dark'] .account-form-input--disabled{
     box-shadow: 0 0 0 3px rgba(125, 211, 252, 0.14);
   }
 
-  html[data-theme='dark'] .account-plan-pill{
-    background: rgba(167, 139, 250, 0.12);
-    border-color: rgba(167, 139, 250, 0.22);
-    color: #c4b5fd;
-  }
-
-  html[data-theme='dark'] .account-change-plan-link,
-html[data-theme='dark'] .account-change-plan-link:hover,
-html[data-theme='dark'] .account-change-plan-link:focus-visible{
-    color: #93c5fd;
-  }
-
   html[data-theme='dark'] .account-page .btn-secondary{
     border-color: rgba(148, 163, 184, 0.28);
     background: rgba(15, 23, 42, 0.5);
@@ -983,9 +862,6 @@ html[data-theme='dark'] .account-page .eyebrow{
 }
 
 :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .account-page .account-saas-card,
-:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .account-page .account-pricing-surface,
-:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .account-page .account-section-surface,
-:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .account-page .account-plan-history .session-item,
 :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .account-page .account-page-header {
   background: rgba(17, 26, 46, 0.94);
   border-color: rgba(148, 163, 184, 0.18);
@@ -993,20 +869,17 @@ html[data-theme='dark'] .account-page .eyebrow{
 }
 
 :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .account-page .account-saas-card__title,
-:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .account-page .account-pricing-head h2,
 :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .account-page .account-page-header h1 {
   color: #e2e8f0;
 }
 
 :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .account-page .account-saas-card__subtitle,
-:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .account-page .account-pricing-head p,
 :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .account-page .account-form-hint,
 :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .account-page .account-page .eyebrow {
   color: #94a3b8;
 }
 
-:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .account-page .account-saas-card__header,
-:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .account-page .account-plan-history {
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .account-page .account-saas-card__header {
   border-color: rgba(148, 163, 184, 0.14);
 }
 
@@ -1032,18 +905,6 @@ html[data-theme='dark'] .account-page .eyebrow{
   box-shadow: 0 0 0 3px rgba(125, 211, 252, 0.14);
 }
 
-:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .account-page .account-plan-pill {
-  background: rgba(167, 139, 250, 0.12);
-  border-color: rgba(167, 139, 250, 0.22);
-  color: #c4b5fd;
-}
-
-:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .account-page .account-change-plan-link,
-:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .account-page .account-change-plan-link:hover,
-:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .account-page .account-change-plan-link:focus-visible {
-  color: #93c5fd;
-}
-
 :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .account-page .btn-secondary {
   border-color: rgba(148, 163, 184, 0.28);
   background: rgba(15, 23, 42, 0.5);
@@ -1065,9 +926,6 @@ html[data-theme='dark'] .account-page .eyebrow{
   .account-saas-card__header,
   .account-saas-card__body {
     padding: 1.1rem 1.2rem;
-  }
-  .account-pricing-surface {
-    padding: 1.1rem;
   }
 }
 

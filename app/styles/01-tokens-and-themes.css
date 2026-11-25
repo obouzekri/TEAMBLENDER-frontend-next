@@ -289,13 +289,11 @@
   box-shadow: var(--dropdown-shadow);
 }
 
-:root[data-theme="dark"] .top-nav .nav-link,
-:root[data-theme="dark"] .top-nav .nav-item {
+:root[data-theme="dark"] .top-nav .nav-link {
   color: var(--text-strong);
 }
 
-:root[data-theme="dark"] .top-nav .nav-link:hover,
-:root[data-theme="dark"] .top-nav .nav-item:hover {
+:root[data-theme="dark"] .top-nav .nav-link:hover {
   color: var(--accent-strong);
   background: var(--surface-panel-soft);
 }
@@ -362,7 +360,6 @@
   color: var(--text-strong);
   border: 1px solid var(--surface-soft-border);
 }
-
 
 @media (prefers-color-scheme: dark) {
   :root:not([data-theme]) {
