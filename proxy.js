@@ -1,5 +1,5 @@
 import { NextResponse } from 'next/server';
-import { DEFAULT_LOCALE, SUPPORTED_LOCALES } from './lib/i18n/routing';
+import { DEFAULT_LOCALE, SUPPORTED_LOCALES, getLocalizedPathRedirect, stripLocaleFromPath } from './lib/i18n/routing';
 import { isBotUserAgent, resolveRequestLocale } from './lib/i18n/detectLocale';
 import { getPublicSeoRedirectPath, isPublicSeoPath } from './lib/seo';
 
@@ -48,8 +48,15 @@ export function proxy(request) {
 
   if (hasLocale) {
     const url = request.nextUrl.clone();
-    const stripped = `/${segments.slice(1).join('/')}`;
-    url.pathname = stripped === '/' ? '/' : stripped || '/';
+    // Ancienne URL d'une page dont le chemin est traduit dans cette langue : redirection permanente.
+    const rawPath = `/${segments.slice(1).join('/')}`;
+    const localizedPath = getLocalizedPathRedirect(maybeLocale, rawPath);
+    if (localizedPath) {
+      url.pathname = `/${maybeLocale}${localizedPath}`;
+      return NextResponse.redirect(url, 308);
+    }
+    // Réécriture vers le dossier de `app/` : chemin sans langue, segments traduits ramenés au chemin interne.
+    url.pathname = stripLocaleFromPath(pathname);
     const response = NextResponse.rewrite(url, { request: { headers: requestHeaders } });
     response.cookies.set('tb_locale', maybeLocale, { path: '/', sameSite: 'lax' });
     return response;

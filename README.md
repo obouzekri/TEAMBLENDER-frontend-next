@@ -419,17 +419,21 @@ npm run check:typography
   - `/fr/pricing`, `/en/pricing`
   - `/fr/contact`, `/en/contact`
   - `/fr/team-building`, `/en/team-building`
-  - `/fr/team-building/a-distance`, `/en/team-building/a-distance`
-  - `/fr/team-building/hybride`, `/en/team-building/hybride`
+  - `/fr/team-building/a-distance`, `/en/team-building/remote`
+  - `/fr/team-building/hybride`, `/en/team-building/hybrid`
   - `/fr/team-building/onboarding`, `/en/team-building/onboarding`
 - Les espaces prives (manager, participant, admin, session live, resume, etc.) sont non indexables via metadonnees et robots.
 - Les URL publiques sans prefixe de langue redirigent en 308 vers leur URL francaise canonique (`/fr/...`); les variantes `/en/...` restent servies comme pages indexables distinctes.
+- Certaines URL sont traduites (`LOCALIZED_PATHS` dans `lib/i18n/routing.js`) : le code utilise le chemin interne (`/team-building/a-distance`) et `withLocalePath` produit l'URL de la langue (`/en/team-building/remote`). L'ancienne URL anglaise redirige en 308 vers la nouvelle (`proxy.js`).
 - En environnement preview Vercel, l'indexation est desactivee (`robots.txt` global + sitemap vide).
-- Un endpoint `llms.txt` est expose (`/llms.txt`) pour aider les outils IA a decouvrir les pages publiques et leur contexte.
+- Un endpoint `llms.txt` est expose (`/llms.txt`) pour aider les outils IA a decouvrir les pages publiques et leur contexte. Il donne aussi des faits cles en anglais : fonctionnement, duree des defis, langues, contact, offres (grille de `lib/pricingFallbackPlans.js`) et exemples de defis de l'accueil.
+- Chaque page publique a une image de partage dans sa langue (`/social-preview/<langue>.png`, rendue par `lib/socialPreview.js`) ; `/opengraph-image` reste l'image par defaut des pages privees.
 - Des donnees structurees JSON-LD sont servies:
   - globales (`Organization`, `WebSite`, `SoftwareApplication`, `WebPage`/`ContactPage`, `BreadcrumbList`) dans le layout;
-  - specifiques FAQ (`FAQPage`) sur les pages guide Team Building.
+  - specifiques FAQ (`FAQPage`) sur les pages guide Team Building;
+  - offres (`Offer`) sur `/pricing`, construites a partir des plans affiches et rattachees au `SoftwareApplication` par son `@id`.
+- Le bloc `Organization` donne l'adresse de contact (`contactPoint`).
 - Les guides exposent aussi un `Article` relie a la page, avec titre, langue, auteur organisationnel et sujets (`keywords`) coherents avec le contenu. Aucune date, note ou statistique artificielle n'est ajoutee.
 - Les expressions recherchees (organiser un team building, challenges entre equipes, team building a distance, onboarding) sont reparties selon le sujet de chaque page dans les titres, descriptions et donnees structurees FR/EN. Les questions du guide general apportent des reponses directement consultables.
 - Aucun bloc de texte cache ni bourrage de mots-cles : les sujets JSON-LD ne sont pas affiches comme une liste dans l'interface. La balise `meta keywords`, ignoree par Google, n'est pas utilisee. Ces informations ne garantissent ni classement, ni resultat enrichi, ni citation par une IA.
-- Validation : `npm run test:unit:seo` couvre les metadonnees FR/EN, les sujets, les articles et l'exclusion des pages privees et previews. `npm run test:smoke:seo` (frontend demarre, Chrome disponible, `SMOKE_FRONTEND_URL` facultatif) controle les 14 pages publiques sans JavaScript, la concordance FAQ/HTML, le sitemap, `llms.txt` et les guides inconnus en 404.
+- Validation : `npm run test:unit:seo` couvre les metadonnees FR/EN, les sujets, les articles et l'exclusion des pages privees et previews. `npm run test:smoke:seo` (frontend demarre, Chrome disponible, `SMOKE_FRONTEND_URL` facultatif) controle les 14 pages publiques sans JavaScript, la concordance FAQ/HTML, le sitemap, `llms.txt`, les images de partage, la redirection des anciennes URL anglaises, le H1 unique de `/demo`, les offres de `/pricing` et les guides inconnus en 404.

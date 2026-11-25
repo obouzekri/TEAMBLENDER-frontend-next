@@ -1,5 +1,7 @@
 import PricingPageClient from './PricingPageClient';
 import { getPricingPlansFallback } from '@/lib/pricingFallbackPlans';
+import { getPricingStructuredData } from '@/lib/structuredData';
+import { getSeoRequest } from '@/lib/seoRequest';
 
 function resolveServerApiOrigin() {
   const explicit = process.env.NEXT_PUBLIC_BACKEND_ORIGIN || process.env.BACKEND_ORIGIN || process.env.NEXT_BACKEND_ORIGIN;
@@ -30,6 +32,14 @@ async function fetchPricingPlans() {
 }
 
 export default async function PricingPage() {
-  const initialPlans = await fetchPricingPlans();
-  return <PricingPageClient initialPlans={initialPlans} />;
+  const [initialPlans, { locale }] = await Promise.all([fetchPricingPlans(), getSeoRequest()]);
+  const offersData = getPricingStructuredData(initialPlans, locale);
+  return (
+    <>
+      {offersData ? (
+        <script type="application/ld+json" dangerouslySetInnerHTML={{ __html: JSON.stringify(offersData).replace(/</g, '\\u003c') }} />
+      ) : null}
+      <PricingPageClient initialPlans={initialPlans} />
+    </>
+  );
 }
