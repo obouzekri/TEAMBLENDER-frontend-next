@@ -325,7 +325,7 @@
   display: grid;
   gap: 1.2rem;
   overflow-x: clip;
-  font-family: "Inter", var(--font-ui);
+  font-family: var(--font-ui);
 }
 
 .landing-v2 > section {

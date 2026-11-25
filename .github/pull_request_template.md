@@ -30,7 +30,7 @@
 
 ## Typography Checklist
 - [ ] No hardcoded `Inter` or `Roboto` in app files
-- [ ] App UI uses `--font-family-ui`
+- [ ] App UI uses `--font-ui` (`--font-display` for marketing/hero)
 - [ ] Display font usage is limited to marketing/hero contexts
 - [ ] No non-tokenized `font-family` in app components
 - [ ] Desktop and mobile typography reviewed visually

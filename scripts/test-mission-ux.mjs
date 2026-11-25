@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
 import { createRealtimeFixture } from './helpers/realtime-ux-fixture.mjs';
+import { dismissCookieBanner } from './helpers/cookie-banner.mjs';
 
 const baseUrl = process.env.SMOKE_FRONTEND_URL || 'http://localhost:3100';
 const engineKey = 'mission_critique_v1';
@@ -27,7 +28,6 @@ const mission = {
     dependency_issues: { t1: ['t3'] },
   },
 };
-const refuseCookiesLabel = { fr: 'Refuser les cookies de mesure', en: 'Refuse analytics cookies' };
 const browser = await chromium.launch({ headless: true, channel: process.env.SMOKE_BROWSER_CHANNEL || 'chrome' });
 try {
   for (const { locale, role, theme, width } of [
@@ -45,7 +45,7 @@ try {
     const errors = [];
     page.on('pageerror', (error) => errors.push(error.message));
     await page.goto(`${baseUrl}/${locale}/challenges/${engineKey}?sessionId=42`);
-    await page.getByRole('button', { name: refuseCookiesLabel[locale], exact: true }).click({ timeout: 60000 });
+    await dismissCookieBanner(page);
     if (role === 'manager') {
       await page.getByRole('heading', { name: locale === 'fr' ? 'Tableau de bord facilitateur' : 'Facilitator dashboard', exact: true }).waitFor();
       const cards = page.locator('[class*="facilitatorCard"]');
@@ -216,7 +216,7 @@ try {
   });
   const page = await context.newPage();
   await page.goto(`${baseUrl}/fr/challenges/${engineKey}?sessionId=42`);
-  await page.getByRole('button', { name: 'Refuser les cookies de mesure', exact: true }).click();
+  await dismissCookieBanner(page);
   await page.getByRole('heading', { name: "Débrief de l'équipe", exact: true }).waitFor();
   assert.equal(await page.getByRole('tab').count(), 0);
   assert.equal(await page.getByRole('heading', { name: 'Backlog mission', exact: true }).count(), 0);

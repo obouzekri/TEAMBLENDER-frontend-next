@@ -222,7 +222,7 @@ export default async function PolitiqueConfidentialitePage() {
           <section>
             <h2 style={{ fontSize: '1rem', fontWeight: 600, marginBottom: '0.75rem' }}>{copy.sections.cookies}</h2>
             <p style={{ lineHeight: 1.7, color: 'var(--muted)' }}>
-              {translate(locale, 'privacyPage.teamblenderOnlyUsesStrictlyNecessaryCookies')}
+              {translate(locale, 'privacyPage.cookiesNecessaryAndConsent')}
             </p>
             <p style={{ lineHeight: 1.7, color: 'var(--muted)' }}>
               {translate(locale, 'privacyPage.cookielessAudienceMeasurement')}

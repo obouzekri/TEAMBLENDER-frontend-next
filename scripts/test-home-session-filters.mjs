@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import path from 'node:path';
 import { chromium } from 'playwright';
 import { createRealtimeFixture } from './helpers/realtime-ux-fixture.mjs';
+import { dismissCookieBanner } from './helpers/cookie-banner.mjs';
 
 const baseUrl = process.env.SMOKE_FRONTEND_URL || 'http://localhost:3100';
 const browser = await chromium.launch({ headless: true, channel: process.env.SMOKE_BROWSER_CHANNEL || 'chrome' });
@@ -36,7 +37,7 @@ try {
       const controls = page.locator('input.home-sessions-control, select.home-sessions-control');
       await controls.first().waitFor();
       await page.locator('.manager-onboarding-close').click();
-      await page.getByRole('button', { name: 'Refuser les cookies de mesure', exact: true }).click();
+      await dismissCookieBanner(page);
       const period = page.locator('.home-sessions-period-toggle');
       const dateFilters = page.locator('#home-sessions-period');
       assert.equal(await period.getAttribute('aria-expanded'), 'false');

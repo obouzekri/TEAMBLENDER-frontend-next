@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { chromium, expect } from 'playwright/test';
 import { createRealtimeFixture } from './helpers/realtime-ux-fixture.mjs';
+import { dismissCookieBanner } from './helpers/cookie-banner.mjs';
 
 const baseUrl = process.env.SMOKE_FRONTEND_URL || 'http://localhost:3100';
 const engineKey = 'vrai_ou_mensonge_v1';
@@ -40,7 +41,7 @@ try {
         const errors = [];
         page.on('pageerror', (error) => errors.push(error.message));
         await page.goto(`${baseUrl}/${locale}/challenges/${engineKey}?sessionId=42`);
-        await page.getByRole('button', { name: 'Refuser les cookies de mesure', exact: true }).click();
+        await dismissCookieBanner(page);
         const card = page.locator('[class*="votingCard"]');
         await card.getByRole('heading', { name: 'Sophie Hidaya', exact: true }).waitFor();
 

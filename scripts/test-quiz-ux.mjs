@@ -3,6 +3,7 @@ import { chromium } from 'playwright';
 import { createRealtimeFixture } from './helpers/realtime-ux-fixture.mjs';
 import fr from '../lib/i18n/dictionaries/fr.js';
 import en from '../lib/i18n/dictionaries/en.js';
+import { dismissCookieBanner } from './helpers/cookie-banner.mjs';
 
 const baseUrl = process.env.SMOKE_FRONTEND_URL || 'http://127.0.0.1:3100';
 const engineKey = 'the_quiz_v1';
@@ -30,7 +31,7 @@ try {
         const errors = [];
         page.on('pageerror', (error) => errors.push(error.message));
         await page.goto(`${baseUrl}/${locale}/challenges/${engineKey}?sessionId=42`);
-        await page.getByRole('button', { name: 'Refuser les cookies de mesure', exact: true }).click();
+        await dismissCookieBanner(page);
         await page.getByRole('heading', { name: question.question, exact: true }).waitFor();
         assert.equal(await page.getByText(locale === 'fr' ? 'Question live' : 'Live question', { exact: true }).count(), 0);
         const submit = page.getByRole('button', { name: locale === 'fr' ? 'Valider ma réponse' : 'Submit my answer', exact: true });
@@ -153,7 +154,7 @@ try {
           const errors = [];
           page.on('pageerror', (error) => errors.push(error.message));
           await page.goto(`${baseUrl}/${locale}/challenges/${engineKey}?sessionId=42`);
-          await page.getByRole('button', { name: 'Refuser les cookies de mesure', exact: true }).click();
+          await dismissCookieBanner(page);
           const notice = page.getByRole('status').filter({ hasText: locale === 'fr' ? 'Seuls les participants peuvent répondre' : 'Only participants can answer' });
           await notice.waitFor();
           const contrast = await notice.evaluate((node) => {

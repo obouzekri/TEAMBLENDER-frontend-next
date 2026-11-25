@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
+import { dismissCookieBanner } from './helpers/cookie-banner.mjs';
 
 const baseUrl = process.env.SMOKE_FRONTEND_URL || 'http://localhost:3100';
 const catalog = [
@@ -54,8 +55,7 @@ try {
     const errors = [];
     page.on('pageerror', (error) => errors.push(error.message));
     await page.goto(`${baseUrl}/${locale}/session-builder`);
-    const cookieButton = page.getByRole('button', { name: locale === 'fr' ? 'Refuser les cookies de mesure' : 'Refuse analytics cookies', exact: true });
-    await cookieButton.click();
+    await dismissCookieBanner(page);
     await page.locator('#session-name').fill('Session planning UX');
     const choiceTitle = locale === 'fr' ? 'Composer votre programme' : 'Build your program';
     assert.equal(await page.getByRole('region', { name: choiceTitle, exact: true }).count(), 0);

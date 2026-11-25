@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { join } from 'node:path';
 import { chromium } from 'playwright';
+import { dismissCookieBanner } from './helpers/cookie-banner.mjs';
 
 const baseUrl = process.env.SMOKE_FRONTEND_URL || 'http://localhost:3100';
 const browser = await chromium.launch({
@@ -131,8 +132,7 @@ try {
           page.on('pageerror', (error) => errors.push(error.message));
           await page.goto(`${baseUrl}/${locale}/admin/billing`);
           await page.locator('.user-row').first().waitFor();
-          const rejectCookies = page.getByRole('button', { name: 'Refuser les cookies de mesure', exact: true });
-          if (await rejectCookies.isVisible()) await rejectCookies.click();
+          await dismissCookieBanner(page);
           await page.evaluate(() => document.fonts.ready);
           await checkLayout(page, label);
           if (process.env.ADMIN_SCREENSHOT_DIR) {

@@ -3,6 +3,7 @@ import { join } from 'node:path';
 import { chromium } from 'playwright';
 import fr from '../lib/i18n/dictionaries/fr.js';
 import en from '../lib/i18n/dictionaries/en.js';
+import { dismissCookieBanner } from './helpers/cookie-banner.mjs';
 
 const baseUrl = process.env.SMOKE_FRONTEND_URL || 'http://127.0.0.1:3100';
 const browser = await chromium.launch({
@@ -69,8 +70,7 @@ async function check({ role, locale, width, theme, colorScheme = 'light' }) {
     page.on('pageerror', (error) => errors.push(error.message));
     await page.goto(`${baseUrl}/${locale}/account?tab=invoices&source=navigation-test`);
     await page.locator('.account-panel.is-active').waitFor();
-    const rejectCookies = page.getByRole('button', { name: 'Refuser les cookies de mesure', exact: true });
-    if (await rejectCookies.isVisible()) await rejectCookies.click();
+    await dismissCookieBanner(page);
     await page.evaluate(() => document.fonts.ready);
     const accountHeaderPadding = await page.locator('.account-page-header').evaluate((element) => {
       const styles = getComputedStyle(element);

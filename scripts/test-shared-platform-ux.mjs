@@ -3,6 +3,7 @@ import { chromium } from 'playwright';
 import { createRealtimeFixture } from './helpers/realtime-ux-fixture.mjs';
 import fr from '../lib/i18n/dictionaries/fr.js';
 import en from '../lib/i18n/dictionaries/en.js';
+import { dismissCookieBanner } from './helpers/cookie-banner.mjs';
 
 const baseUrl = process.env.SMOKE_FRONTEND_URL || 'http://127.0.0.1:3100';
 const browser = await chromium.launch({ headless: true, channel: process.env.SMOKE_BROWSER_CHANNEL || 'chrome' });
@@ -64,7 +65,7 @@ try {
     const errors = [];
     page.on('pageerror', (error) => errors.push(error.message));
     await page.goto(`${baseUrl}/${locale}/challenges/${engineKey}?sessionId=42`);
-    await page.getByRole('button', { name: 'Refuser les cookies de mesure', exact: true }).click();
+    await dismissCookieBanner(page);
 
     const preparation = page.locator('details').filter({ has: page.getByText(locale === 'en' ? 'Prepare your session' : 'Préparer votre session', { exact: true }) });
     const rules = page.getByRole('button', { name: dictionary.challengeRulesPanel.showRules, exact: true });
@@ -167,7 +168,7 @@ try {
     try {
       const facilitatorPage = await facilitatorFixture.context.newPage();
       await facilitatorPage.goto(`${baseUrl}/${locale}/challenges/${engineKey}?sessionId=42`);
-      await facilitatorPage.getByRole('button', { name: 'Refuser les cookies de mesure', exact: true }).click();
+      await dismissCookieBanner(facilitatorPage);
 
       const facilitatorPreparation = facilitatorPage.locator('details').filter({ has: facilitatorPage.getByText(locale === 'en' ? 'Prepare your session' : 'Préparer votre session', { exact: true }) });
       await facilitatorPage.getByRole('button', { name: dictionary.challengeTimer.pause, exact: true }).waitFor();

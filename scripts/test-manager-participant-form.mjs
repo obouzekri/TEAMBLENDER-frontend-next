@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
 import { createRealtimeFixture } from './helpers/realtime-ux-fixture.mjs';
+import { dismissCookieBanner } from './helpers/cookie-banner.mjs';
 
 const baseUrl = process.env.SMOKE_FRONTEND_URL || 'http://localhost:3100';
 const browser = await chromium.launch({ headless: true, channel: process.env.SMOKE_BROWSER_CHANNEL || 'chrome' });
@@ -108,7 +109,7 @@ try {
         page.on('pageerror', (error) => errors.push(error.message));
         await page.goto(`${baseUrl}/${locale}/home`);
         await page.locator('.manager-onboarding-close').click();
-        await page.getByRole('button', { name: 'Refuser les cookies de mesure', exact: true }).click();
+        await dismissCookieBanner(page);
         const card = page.locator('.participant-card').first();
         if (width < 768) {
           await card.getByRole('button', { name: en ? 'Open participant actions' : 'Ouvrir les actions participant', exact: true }).click();

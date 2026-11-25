@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import path from 'node:path';
 import { chromium } from 'playwright';
 import { createRealtimeFixture } from './helpers/realtime-ux-fixture.mjs';
+import { dismissCookieBanner } from './helpers/cookie-banner.mjs';
 
 const baseUrl = process.env.SMOKE_FRONTEND_URL || 'http://localhost:3100';
 const browser = await chromium.launch({
@@ -56,7 +57,7 @@ try {
         const errors = [];
         page.on('pageerror', (error) => errors.push(error.message));
         await page.goto(`${baseUrl}/${locale}/session-builder`);
-        await page.getByRole('button', { name: 'Refuser les cookies de mesure', exact: true }).click();
+        await dismissCookieBanner(page);
         const form = page.locator('#create-session-form');
         const name = page.locator('#session-name');
         const submit = form.getByRole('button', { name: locale === 'fr' ? 'Créer la session' : 'Create session', exact: true });

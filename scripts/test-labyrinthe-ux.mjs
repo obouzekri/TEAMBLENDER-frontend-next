@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
 import { createRealtimeFixture } from './helpers/realtime-ux-fixture.mjs';
+import { dismissCookieBanner } from './helpers/cookie-banner.mjs';
 
 const baseUrl = process.env.SMOKE_FRONTEND_URL || 'http://localhost:3100';
 const engineKey = 'labyrinthe_live_v1';
@@ -56,7 +57,7 @@ try {
     const errors = [];
     page.on('pageerror', (error) => errors.push(error.message));
     await page.goto(`${baseUrl}/${locale}/challenges/${engineKey}?sessionId=42`);
-    await page.getByRole('button', { name: 'Refuser les cookies de mesure', exact: true }).click();
+    await dismissCookieBanner(page);
     if (role === 'manager') {
       await page.getByRole('heading', { name: 'Tableau de bord facilitateur', exact: true }).waitFor();
       assert.ok(await page.getByText('Élodie Dupont', { exact: true }).count());

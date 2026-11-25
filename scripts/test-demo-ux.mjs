@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import path from 'node:path';
 import { chromium } from 'playwright';
+import { dismissCookieBanner } from './helpers/cookie-banner.mjs';
 
 const baseUrl = process.env.SMOKE_FRONTEND_URL || 'http://localhost:3100';
 const screenshotDir = process.env.DEMO_SCREENSHOT_DIR || '';
@@ -88,8 +89,7 @@ async function runDemo(browser, locale, viewport, { flowMode }) {
 
   await page.goto(`${baseUrl}/${locale}/demo`, { waitUntil: 'networkidle' });
   await page.getByText(copy.notice, { exact: true }).waitFor();
-  const refuseCookies = page.getByRole('button', { name: /Refuser les cookies|Refuse|Decline/ });
-  if (await refuseCookies.count()) await refuseCookies.first().click();
+  await dismissCookieBanner(page);
   const tag = `${locale}-${viewport.width}`;
 
   // Manager space, then preparation: the programme is already composed.

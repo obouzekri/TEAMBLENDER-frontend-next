@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
 import { createRealtimeFixture } from './helpers/realtime-ux-fixture.mjs';
+import { dismissCookieBanner } from './helpers/cookie-banner.mjs';
 
 const baseUrl = process.env.SMOKE_FRONTEND_URL || 'http://localhost:3100';
 const engineKey = 'vrai_ou_mensonge_v1';
@@ -64,7 +65,7 @@ try {
     const errors = [];
     page.on('pageerror', (error) => errors.push(error.message));
     await page.goto(`${baseUrl}/${locale}/challenges/${engineKey}?sessionId=42`);
-    await page.getByRole('button', { name: locale === 'fr' ? 'Refuser les cookies de mesure' : 'Refuse analytics cookies', exact: true }).click();
+    await dismissCookieBanner(page);
     await page.getByText(locale === 'fr' ? '✅ Bonne réponse : +1 point' : '✅ Correct answer: +1 point', { exact: true }).waitFor();
     assert.ok(await page.getByText(locale === 'fr' ? '❌ Mauvaise réponse : 0 point' : '❌ Wrong answer: 0 points', { exact: true }).count());
     assert.ok(await page.getByText(locale === 'fr' ? '⏱️ Hors délai : 0 point' : '⏱️ Time expired: 0 points', { exact: true }).count());

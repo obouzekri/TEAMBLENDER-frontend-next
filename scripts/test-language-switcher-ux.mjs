@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
+import { dismissCookieBanner } from './helpers/cookie-banner.mjs';
 
 const baseUrl = process.env.SMOKE_FRONTEND_URL || 'http://localhost:3100';
 const browser = await chromium.launch({ headless: true, channel: process.env.SMOKE_BROWSER_CHANNEL || 'chrome' });
@@ -24,8 +25,7 @@ try {
           const errors = [];
           page.on('pageerror', (error) => errors.push(error.message));
           await page.goto(`${baseUrl}/${locale}/login?mode=login&source=language-test`);
-          const cookies = page.getByRole('button', { name: 'Refuser les cookies de mesure', exact: true });
-          if (await cookies.isVisible()) await cookies.click();
+          await dismissCookieBanner(page);
           if (width < 768) await page.locator('.nav-toggle').click();
           const trigger = page.locator('.lang-switch:visible button[aria-haspopup="menu"]').first();
           const menu = page.getByRole('menu');

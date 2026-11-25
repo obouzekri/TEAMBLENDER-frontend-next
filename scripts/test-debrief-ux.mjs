@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { chromium } from 'playwright';
 import { createRealtimeFixture } from './helpers/realtime-ux-fixture.mjs';
+import { dismissCookieBanner } from './helpers/cookie-banner.mjs';
 
 const require = createRequire(import.meta.url);
 const runtime = (engine) => require(`../../backend/src/challenges/engines/${engine}/server-runtime.js`);
@@ -134,7 +135,7 @@ try {
             const errors = [];
             page.on('pageerror', (error) => errors.push(error.message));
             await page.goto(`${baseUrl}/${locale}/challenges/${engineKey}?sessionId=42`, { waitUntil: 'domcontentloaded' });
-            await page.getByRole('button', { name: /^(Refuser les cookies de mesure|Refuse analytics cookies)$/ }).click();
+            await dismissCookieBanner(page);
             await page.getByRole('timer').first().waitFor({ state: 'attached' });
             assert.ok(await page.getByRole('timer').count() > 0, 'Playing clock missing');
             escapeState = { ...escape, status: 'completed', timer: finalTimer, current_enigme: null, finished_at: '2026-10-08T11:00:00Z' };
