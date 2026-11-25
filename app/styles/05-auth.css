@@ -11,22 +11,6 @@
     linear-gradient(180deg, rgba(255, 255, 255, 0.78), rgba(245, 249, 255, 0.94));
 }
 
-.auth-page--split {
-  min-height: calc(100svh - 88px);
-  display: grid;
-  grid-template-columns: minmax(0, 1fr);
-  align-items: start;
-  gap: clamp(1rem, 2vw, 1.5rem);
-  width: 100%;
-  max-width: min(100%, 1140px);
-  margin-inline: auto;
-  box-sizing: border-box;
-}
-
-.auth-showcase-pane {
-  min-width: 0;
-}
-
 .auth-login-pane,
 .auth-showcase-card {
   min-width: 0;
@@ -675,8 +659,7 @@
 .home-sessions-panel,
 .participants-panel,
 .session-card,
-.participant-card,
-.manager-onboarding-step--premium {
+.participant-card {
   border-color: var(--surface-soft-border);
   background: linear-gradient(180deg, var(--surface-panel) 0%, var(--surface-panel-soft) 100%);
   box-shadow: var(--surface-shadow-soft);
@@ -685,8 +668,7 @@
 .home-sessions-panel:hover,
 .participants-panel:hover,
 .session-card:hover,
-.participant-card:hover,
-.manager-onboarding-step--premium:hover {
+.participant-card:hover {
   border-color: var(--surface-soft-border-strong);
   box-shadow: var(--surface-shadow-hover);
 }
@@ -718,21 +700,6 @@
 .participant-card__avatar {
   color: var(--text-on-accent);
   box-shadow: 0 10px 20px rgba(15, 23, 42, 0.18);
-}
-
-.manager-onboarding-grid--modal .manager-onboarding-step--premium {
-  border: 1px solid var(--surface-soft-border);
-  color: var(--text-strong);
-}
-
-.manager-onboarding-grid--modal .manager-onboarding-step--premium h3,
-.manager-onboarding-grid--modal .manager-onboarding-step--premium p {
-  color: var(--text-muted);
-}
-
-.manager-onboarding-grid--modal .manager-onboarding-step__badge,
-.manager-onboarding-grid--modal .manager-onboarding-step__index {
-  color: var(--accent-strong);
 }
 
 .social-auth-separator {
@@ -808,20 +775,6 @@ html, body, .shell {
   margin-inline-start: auto;
 }
 
-.appnav-desktop-link {
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  min-height: var(--nav-control-height, 42px);
-}
-
-.appnav-desktop-link--button {
-  appearance: none;
-  border: 0;
-  background: transparent;
-  cursor: pointer;
-}
-
 .nav-mobile-menu-actions .lang-switch {
   display: inline-flex;
   align-items: center;
@@ -838,15 +791,6 @@ html, body, .shell {
 .nav-mobile-menu-actions .lang-switch__chevron,
 .nav-mobile-menu-actions .lang-switch__value {
   color: #e6eef8;
-}
-
-.lang-switch__select {
-  position: absolute;
-  inset: 0;
-  width: 100%;
-  height: 100%;
-  margin: 0;
-  cursor: pointer;
 }
 
 /* Burger button: dark, minimal background and white bars (mobile only, see base .nav-toggle for display) */
@@ -990,23 +934,11 @@ html, body, .shell {
 }
 
 .form-help,
-.form-error,
-.notice-ok {
+.form-error {
   font-size: 0.85rem;
 }
 
 @media (max-width: 980px) {
-  .auth-page--split {
-    grid-template-columns: 1fr;
-    gap: 0.9rem;
-    min-height: auto;
-    max-width: 100%;
-  }
-
-  .auth-page--split .auth-shell,
-  .auth-page--split .auth-showcase-card {
-    width: min(100%, 42rem);
-  }
 
   .auth-showcase-copy h1 {
     max-width: none;
@@ -1023,14 +955,6 @@ html, body, .shell {
 }
 
 @media (min-width: 1024px) {
-  .auth-page--split {
-    grid-template-columns: minmax(0, 0.88fr) minmax(0, 1fr);
-  }
-
-  .auth-showcase-pane {
-    display: block;
-    max-width: 520px;
-  }
 
   .auth-login-pane {
     max-width: 560px;
@@ -1043,10 +967,6 @@ html, body, .shell {
 @media (max-width: 720px) {
   .auth-page {
     padding: 0.85rem 0.65rem 1.6rem;
-  }
-
-  .auth-page--split {
-    gap: 0.8rem;
   }
 
   .auth-showcase-card {
@@ -1149,11 +1069,6 @@ html, body, .shell {
     gap: 0.45rem;
   }
 
-  .nav-auth-signup-btn {
-    padding: 0.46rem 0.8rem;
-    font-size: 0.8rem;
-  }
-
   .social-auth-row,
   .auth-field-grid {
     grid-template-columns: 1fr;
@@ -1176,18 +1091,18 @@ html, body, .shell {
 }
 
 @media (prefers-color-scheme: dark) {
-  :where(html:not([data-theme='light'])) .feature-card,:where(html:not([data-theme='light'])) .auth-card,:where(html:not([data-theme='light'])) .pricing-controls,:where(html:not([data-theme='light'])) .pricing-card,:where(html:not([data-theme='light'])) .pricing-card-featured,:where(html:not([data-theme='light'])) .account-field-card,:where(html:not([data-theme='light'])) .account-section-surface,:where(html:not([data-theme='light'])) .account-saas-card,:where(html:not([data-theme='light'])) .account-form-input,:where(html:not([data-theme='light'])) .account-kpi-card,:where(html:not([data-theme='light'])) .account-quick-actions-surface,:where(html:not([data-theme='light'])) .account-pricing-surface,:where(html:not([data-theme='light'])) .checkout-plan-tab,:where(html:not([data-theme='light'])) .checkout-plan-summary,:where(html:not([data-theme='light'])) .checkout-method-card,:where(html:not([data-theme='light'])) .account-plan-option,:where(html:not([data-theme='light'])) .account-plan-history .session-item,:where(html:not([data-theme='light'])) .participant-form,:where(html:not([data-theme='light'])) .participant-inline-form,:where(html:not([data-theme='light'])) .session-card-actions,:where(html:not([data-theme='light'])) .contact-info-item,:where(html:not([data-theme='light'])) .contact-trust-box{
+  :where(html:not([data-theme='light'])) .feature-card,:where(html:not([data-theme='light'])) .auth-card,:where(html:not([data-theme='light'])) .pricing-controls,:where(html:not([data-theme='light'])) .pricing-card,:where(html:not([data-theme='light'])) .pricing-card-featured,:where(html:not([data-theme='light'])) .account-field-card,:where(html:not([data-theme='light'])) .account-saas-card,:where(html:not([data-theme='light'])) .account-form-input,:where(html:not([data-theme='light'])) .checkout-plan-tab,:where(html:not([data-theme='light'])) .checkout-plan-summary,:where(html:not([data-theme='light'])) .checkout-method-card,:where(html:not([data-theme='light'])) .participant-form,:where(html:not([data-theme='light'])) .participant-inline-form,:where(html:not([data-theme='light'])) .session-card-actions{
     border-color: var(--surface-border) !important;
     box-shadow: var(--shadow-sm);
   }
 
-  :where(html:not([data-theme='light'])) .feature-card,:where(html:not([data-theme='light'])) .auth-card,:where(html:not([data-theme='light'])) .pricing-controls,:where(html:not([data-theme='light'])) .pricing-card,:where(html:not([data-theme='light'])) .pricing-card-featured,:where(html:not([data-theme='light'])) .checkout-plan-summary,:where(html:not([data-theme='light'])) .checkout-method-card,:where(html:not([data-theme='light'])) .participant-form,:where(html:not([data-theme='light'])) .participant-inline-form,:where(html:not([data-theme='light'])) .contact-info-item,:where(html:not([data-theme='light'])) .contact-trust-box{
+  :where(html:not([data-theme='light'])) .feature-card,:where(html:not([data-theme='light'])) .auth-card,:where(html:not([data-theme='light'])) .pricing-controls,:where(html:not([data-theme='light'])) .pricing-card,:where(html:not([data-theme='light'])) .pricing-card-featured,:where(html:not([data-theme='light'])) .checkout-plan-summary,:where(html:not([data-theme='light'])) .checkout-method-card,:where(html:not([data-theme='light'])) .participant-form,:where(html:not([data-theme='light'])) .participant-inline-form{
     background:
       radial-gradient(circle at top right, rgba(53, 160, 255, 0.12), transparent 46%),
       linear-gradient(160deg, rgba(17, 26, 46, 0.96) 0%, rgba(12, 18, 34, 0.98) 100%) !important;
   }
 
-  :where(html:not([data-theme='light'])) .account-field-card,:where(html:not([data-theme='light'])) .account-section-surface,:where(html:not([data-theme='light'])) .account-saas-card,:where(html:not([data-theme='light'])) .account-kpi-card,:where(html:not([data-theme='light'])) .account-quick-actions-surface,:where(html:not([data-theme='light'])) .account-pricing-surface,:where(html:not([data-theme='light'])) .checkout-plan-tab,:where(html:not([data-theme='light'])) .account-plan-option,:where(html:not([data-theme='light'])) .account-plan-history .session-item,:where(html:not([data-theme='light'])) .session-card-actions{
+  :where(html:not([data-theme='light'])) .account-field-card,:where(html:not([data-theme='light'])) .account-saas-card,:where(html:not([data-theme='light'])) .checkout-plan-tab,:where(html:not([data-theme='light'])) .session-card-actions{
     background: rgba(16, 24, 44, 0.92) !important;
   }
 
@@ -1217,7 +1132,7 @@ html, body, .shell {
     border-color: rgba(47, 98, 255, 0.25);
   }
 
-  :where(html:not([data-theme='light'])) .pricing-description,:where(html:not([data-theme='light'])) .pricing-meta-row span,:where(html:not([data-theme='light'])) .account-plan-option__meta,:where(html:not([data-theme='light'])) .form-help{
+  :where(html:not([data-theme='light'])) .pricing-description,:where(html:not([data-theme='light'])) .pricing-meta-row span,:where(html:not([data-theme='light'])) .form-help{
     color: var(--ink-soft) !important;
   }
 
@@ -1226,20 +1141,20 @@ html, body, .shell {
     background: rgba(53, 160, 255, 0.12) !important;
   }
 
-  :where(html:not([data-theme='light'])) .toggle-group,:where(html:not([data-theme='light'])) .currency-select,:where(html:not([data-theme='light'])) .password-toggle,:where(html:not([data-theme='light'])) .icon-action-btn,:where(html:not([data-theme='light'])) .account-select,:where(html:not([data-theme='light'])) .participant-form input,:where(html:not([data-theme='light'])) .team-toolbar input,:where(html:not([data-theme='light'])) .auth-form input,:where(html:not([data-theme='light'])) .auth-form select,:where(html:not([data-theme='light'])) .auth-form textarea,:where(html:not([data-theme='light'])) .contact-page input,:where(html:not([data-theme='light'])) .contact-page select,:where(html:not([data-theme='light'])) .contact-page textarea,:where(html:not([data-theme='light'])) .pricing-page select{
+  :where(html:not([data-theme='light'])) .toggle-group,:where(html:not([data-theme='light'])) .currency-select,:where(html:not([data-theme='light'])) .password-toggle,:where(html:not([data-theme='light'])) .icon-action-btn,:where(html:not([data-theme='light'])) .participant-form input,:where(html:not([data-theme='light'])) .auth-form input,:where(html:not([data-theme='light'])) .auth-form select,:where(html:not([data-theme='light'])) .auth-form textarea,:where(html:not([data-theme='light'])) .contact-page input,:where(html:not([data-theme='light'])) .contact-page select,:where(html:not([data-theme='light'])) .contact-page textarea,:where(html:not([data-theme='light'])) .pricing-page select{
     border-color: var(--field-line) !important;
     background: rgba(16, 24, 44, 0.94) !important;
     color: var(--field-text) !important;
     box-shadow: none;
   }
 
-  :where(html:not([data-theme='light'])) .auth-form input:focus,:where(html:not([data-theme='light'])) .auth-form select:focus,:where(html:not([data-theme='light'])) .auth-form textarea:focus,:where(html:not([data-theme='light'])) .contact-page input:focus,:where(html:not([data-theme='light'])) .contact-page select:focus,:where(html:not([data-theme='light'])) .contact-page textarea:focus,:where(html:not([data-theme='light'])) .pricing-page select:focus,:where(html:not([data-theme='light'])) .participant-form input:focus,:where(html:not([data-theme='light'])) .team-toolbar input:focus,:where(html:not([data-theme='light'])) .currency-select:focus,:where(html:not([data-theme='light'])) .account-select:focus{
+  :where(html:not([data-theme='light'])) .auth-form input:focus,:where(html:not([data-theme='light'])) .auth-form select:focus,:where(html:not([data-theme='light'])) .auth-form textarea:focus,:where(html:not([data-theme='light'])) .contact-page input:focus,:where(html:not([data-theme='light'])) .contact-page select:focus,:where(html:not([data-theme='light'])) .contact-page textarea:focus,:where(html:not([data-theme='light'])) .pricing-page select:focus,:where(html:not([data-theme='light'])) .participant-form input:focus,:where(html:not([data-theme='light'])) .currency-select:focus{
     border-color: var(--field-line-focus) !important;
     background: var(--field-bg-focus) !important;
     box-shadow: 0 0 0 4px rgba(125, 211, 252, 0.12) !important;
   }
 
-  :where(html:not([data-theme='light'])) .password-toggle,:where(html:not([data-theme='light'])) .icon-action-btn,:where(html:not([data-theme='light'])) .account-select,:where(html:not([data-theme='light'])) .checkout-plan-tab__price,:where(html:not([data-theme='light'])) .checkout-plan-summary__price span,:where(html:not([data-theme='light'])) .checkout-method-card__header p,:where(html:not([data-theme='light'])) .checkout-secure-note,:where(html:not([data-theme='light'])) .contact-page label,:where(html:not([data-theme='light'])) .auth-form label{
+  :where(html:not([data-theme='light'])) .password-toggle,:where(html:not([data-theme='light'])) .icon-action-btn,:where(html:not([data-theme='light'])) .checkout-plan-tab__price,:where(html:not([data-theme='light'])) .checkout-plan-summary__price span,:where(html:not([data-theme='light'])) .checkout-method-card__header p,:where(html:not([data-theme='light'])) .checkout-secure-note,:where(html:not([data-theme='light'])) .contact-page label,:where(html:not([data-theme='light'])) .auth-form label{
     color: var(--ink-soft) !important;
   }
 

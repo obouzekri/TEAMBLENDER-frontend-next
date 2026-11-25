@@ -6,22 +6,14 @@ html[data-theme='dark'] .pricing-controls,
 html[data-theme='dark'] .pricing-card,
 html[data-theme='dark'] .pricing-card-featured,
 html[data-theme='dark'] .account-field-card,
-html[data-theme='dark'] .account-section-surface,
 html[data-theme='dark'] .account-saas-card,
 html[data-theme='dark'] .account-form-input,
-html[data-theme='dark'] .account-kpi-card,
-html[data-theme='dark'] .account-quick-actions-surface,
-html[data-theme='dark'] .account-pricing-surface,
 html[data-theme='dark'] .checkout-plan-tab,
 html[data-theme='dark'] .checkout-plan-summary,
 html[data-theme='dark'] .checkout-method-card,
-html[data-theme='dark'] .account-plan-option,
-html[data-theme='dark'] .account-plan-history .session-item,
 html[data-theme='dark'] .participant-form,
 html[data-theme='dark'] .participant-inline-form,
-html[data-theme='dark'] .session-card-actions,
-html[data-theme='dark'] .contact-info-item,
-html[data-theme='dark'] .contact-trust-box{
+html[data-theme='dark'] .session-card-actions{
     border-color: var(--surface-border) !important;
     box-shadow: var(--shadow-sm);
   }
@@ -34,23 +26,15 @@ html[data-theme='dark'] .pricing-card-featured,
 html[data-theme='dark'] .checkout-plan-summary,
 html[data-theme='dark'] .checkout-method-card,
 html[data-theme='dark'] .participant-form,
-html[data-theme='dark'] .participant-inline-form,
-html[data-theme='dark'] .contact-info-item,
-html[data-theme='dark'] .contact-trust-box{
+html[data-theme='dark'] .participant-inline-form{
     background:
       radial-gradient(circle at top right, rgba(53, 160, 255, 0.12), transparent 46%),
       linear-gradient(160deg, rgba(17, 26, 46, 0.96) 0%, rgba(12, 18, 34, 0.98) 100%) !important;
   }
 
   html[data-theme='dark'] .account-field-card,
-html[data-theme='dark'] .account-section-surface,
 html[data-theme='dark'] .account-saas-card,
-html[data-theme='dark'] .account-kpi-card,
-html[data-theme='dark'] .account-quick-actions-surface,
-html[data-theme='dark'] .account-pricing-surface,
 html[data-theme='dark'] .checkout-plan-tab,
-html[data-theme='dark'] .account-plan-option,
-html[data-theme='dark'] .account-plan-history .session-item,
 html[data-theme='dark'] .session-card-actions{
     background: rgba(16, 24, 44, 0.92) !important;
   }
@@ -84,7 +68,6 @@ html[data-theme='dark'] .account-form-input:disabled{
 
   html[data-theme='dark'] .pricing-description,
 html[data-theme='dark'] .pricing-meta-row span,
-html[data-theme='dark'] .account-plan-option__meta,
 html[data-theme='dark'] .form-help{
     color: var(--ink-soft) !important;
   }
@@ -98,9 +81,7 @@ html[data-theme='dark'] .form-help{
 html[data-theme='dark'] .currency-select,
 html[data-theme='dark'] .password-toggle,
 html[data-theme='dark'] .icon-action-btn,
-html[data-theme='dark'] .account-select,
 html[data-theme='dark'] .participant-form input,
-html[data-theme='dark'] .team-toolbar input,
 html[data-theme='dark'] .auth-form input,
 html[data-theme='dark'] .auth-form select,
 html[data-theme='dark'] .auth-form textarea,
@@ -122,9 +103,7 @@ html[data-theme='dark'] .contact-page select:focus,
 html[data-theme='dark'] .contact-page textarea:focus,
 html[data-theme='dark'] .pricing-page select:focus,
 html[data-theme='dark'] .participant-form input:focus,
-html[data-theme='dark'] .team-toolbar input:focus,
-html[data-theme='dark'] .currency-select:focus,
-html[data-theme='dark'] .account-select:focus{
+html[data-theme='dark'] .currency-select:focus{
     border-color: var(--field-line-focus) !important;
     background: var(--field-bg-focus) !important;
     box-shadow: 0 0 0 4px rgba(125, 211, 252, 0.12) !important;
@@ -132,7 +111,6 @@ html[data-theme='dark'] .account-select:focus{
 
   html[data-theme='dark'] .password-toggle,
 html[data-theme='dark'] .icon-action-btn,
-html[data-theme='dark'] .account-select,
 html[data-theme='dark'] .checkout-plan-tab__price,
 html[data-theme='dark'] .checkout-plan-summary__price span,
 html[data-theme='dark'] .checkout-method-card__header p,
@@ -212,7 +190,6 @@ html[data-theme='dark'] .icon-action-btn:hover{
   gap: 1.25rem;
 }
 
-.contact-hero,
 .pricing-hero,
 .pricing-controls,
 .pricing-empty,
@@ -224,12 +201,10 @@ html[data-theme='dark'] .icon-action-btn:hover{
   backdrop-filter: blur(16px);
 }
 
-.contact-hero,
 .pricing-hero {
   padding: 1.8rem;
 }
 
-.contact-hero h1,
 .pricing-hero h1 {
   margin: 0.4rem 0 0;
   font-size: clamp(2rem, 4vw, 3.5rem);
@@ -237,7 +212,6 @@ html[data-theme='dark'] .icon-action-btn:hover{
   letter-spacing: -0.04em;
 }
 
-.contact-hero p,
 .pricing-hero p {
   margin-top: 0.9rem;
   max-width: 68ch;
@@ -247,8 +221,7 @@ html[data-theme='dark'] .icon-action-btn:hover{
 }
 
 .contact-layout,
-.pricing-grid,
-.pricing-controls .controls-group {
+.pricing-grid {
   display: grid;
   gap: 1rem;
 }
@@ -261,50 +234,11 @@ html[data-theme='dark'] .icon-action-btn:hover{
   padding: 1.1rem 1.2rem;
 }
 
-.pricing-controls .controls-group {
-  grid-template-columns: repeat(2, minmax(0, 1fr));
-  align-items: start;
-}
-
 .pricing-card,
 .contact-info-card,
 .pricing-empty,
 .pricing-footer-cta {
   padding: 1.35rem;
-}
-
-.contact-info-items {
-  display: grid;
-  gap: 0.75rem;
-  margin-top: 1rem;
-}
-
-.contact-info-item {
-  display: grid;
-  grid-template-columns: auto 1fr;
-  gap: 0.75rem;
-  align-items: start;
-  border: 1px solid rgba(148, 163, 184, 0.16);
-  border-radius: 20px;
-  padding: 0.9rem;
-  background: rgba(255, 255, 255, 0.76);
-}
-
-.contact-info-icon {
-  width: 2.5rem;
-  height: 2.5rem;
-  border-radius: 14px;
-  display: grid;
-  place-items: center;
-  background: linear-gradient(135deg, rgba(53, 160, 255, 0.12), rgba(124, 58, 237, 0.1));
-}
-
-.contact-trust-box {
-  margin-top: 1rem;
-  padding: 1rem;
-  border-radius: 20px;
-  border: 1px solid rgba(124, 58, 237, 0.16);
-  background: linear-gradient(135deg, rgba(241, 245, 255, 0.96), rgba(255, 255, 255, 0.9));
 }
 
 .contact-layout .feature-card,
@@ -437,10 +371,7 @@ html[data-theme='dark'] .icon-action-btn:hover{
 :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-meta-row,
 :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-feature-list,
 :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-empty p,
-:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .contact-page .contact-hero p,
-:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .contact-page .contact-info-card p,
-:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .contact-page .contact-info-text span,
-:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .contact-page .contact-trust-box p {
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .contact-page .contact-info-card p {
   color: var(--text-muted);
 }
 
@@ -448,9 +379,7 @@ html[data-theme='dark'] .icon-action-btn:hover{
 :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-card,
 :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-empty,
 :is(html[data-theme='dark'], body[data-theme='dark'], .dark) .pricing-page .pricing-footer-cta,
-:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .contact-page .contact-info-card,
-:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .contact-page .contact-trust-box,
-:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .contact-page .contact-info-item {
+:is(html[data-theme='dark'], body[data-theme='dark'], .dark) .contact-page .contact-info-card {
   border-color: rgba(148, 163, 184, 0.2);
   background-clip: padding-box;
 }
@@ -617,8 +546,7 @@ html[data-theme='dark'] .icon-action-btn:hover{
 }
 
 .btn-primary,
-.btn-secondary,
-.btn-insight {
+.btn-secondary {
   display: inline-flex;
   align-items: center;
   justify-content: center;
@@ -685,24 +613,6 @@ html[data-theme='dark'] .icon-action-btn:hover{
   outline: 3px solid color-mix(in srgb, var(--accent) 64%, #ffffff);
   outline-offset: 2px;
   box-shadow: 0 0 0 5px color-mix(in srgb, var(--accent) 18%, transparent);
-}
-
-:where(
-  button,
-  [role="button"],
-  .btn-primary,
-  .btn-secondary,
-  .btn-insight,
-  .btn--sm,
-  .btn-mini,
-  .toggle-btn,
-  .nav-link,
-  .nav-cta-btn,
-  a.btn-primary,
-  a.btn-secondary,
-  a.btn-insight
-) {
-  min-height: var(--touch-target-min);
 }
 
 :where(input:not([type="hidden"]), select, textarea) {

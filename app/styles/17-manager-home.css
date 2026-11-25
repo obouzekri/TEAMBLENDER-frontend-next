@@ -21,14 +21,6 @@
   background: none;
 }
 
-.home-hero-trust span,
-.home-hero-trust a {
-  border: 1px solid color-mix(in srgb, var(--home-line, rgba(53,160,255,0.24)) 48%, transparent);
-  background: var(--surface-panel);
-  color: var(--ch-text-main, var(--ink));
-  box-shadow: 0 10px 18px rgba(23, 37, 84, 0.07);
-}
-
 .home-hero-summary {
   border: 1px solid color-mix(in srgb, var(--home-line, rgba(122,92,255,0.24)) 48%, transparent);
   background: var(--surface-panel);
@@ -165,14 +157,6 @@ html[data-theme='dark'] .manager-home .session-card{
   color: #1d3270;
 }
 
-.home-hero-summary__list li {
-  color: #3f557f;
-}
-
-.home-hero-summary__list li::before {
-  background: linear-gradient(135deg, #7a5cff 0%, #35a0ff 100%);
-}
-
 .home-prerequisite-hint {
   border: 1px solid rgba(53, 160, 255, 0.24);
   background: linear-gradient(135deg, rgba(231, 238, 255, 0.95) 0%, rgba(255, 255, 255, 0.94) 100%);
@@ -230,60 +214,6 @@ html[data-theme='dark'] .manager-home .session-card{
   color: var(--ink);
 }
 
-.manager-onboarding-shell {
-  display: grid;
-  gap: 1.25rem;
-}
-
-.manager-onboarding-hero {
-  display: flex;
-  align-items: flex-start;
-  justify-content: space-between;
-  gap: 1.1rem;
-  padding: 1rem 1.1rem;
-  border-bottom: 1px solid var(--surface-border);
-  border-radius: 20px;
-  background: linear-gradient(135deg, var(--surface-panel-soft), var(--surface-panel));
-}
-
-.manager-onboarding-actions {
-  display: flex;
-  gap: 0.7rem;
-  flex-wrap: wrap;
-  justify-content: flex-end;
-}
-
-.manager-onboarding-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
-  gap: 1rem;
-}
-
-.manager-onboarding-step {
-  position: relative;
-  padding: 1.2rem 1.05rem;
-  border-radius: 18px;
-  border: 1px solid var(--surface-border);
-  background: linear-gradient(160deg, var(--surface-panel) 0%, var(--surface-panel-soft) 100%);
-  box-shadow: var(--shadow-sm);
-  display: grid;
-  grid-template-rows: auto auto 1fr auto;
-  align-content: start;
-  gap: 0.8rem;
-  transition: transform 0.22s ease, box-shadow 0.22s ease, border-color 0.22s ease;
-}
-
-.manager-onboarding-step:hover {
-  transform: translateY(-3px);
-  border-color: var(--surface-border-strong);
-  box-shadow: var(--shadow-md), 0 0 0 1px color-mix(in srgb, var(--accent) 10%, transparent);
-}
-
-.manager-onboarding-step:focus-within {
-  border-color: var(--surface-border-strong);
-  box-shadow: 0 0 0 3px color-mix(in srgb, var(--accent) 18%, transparent), var(--shadow-md);
-}
-
 .admin-edit-modal-body {
   padding: 0.45rem 0.15rem 0.2rem;
   max-height: min(70vh, 620px);
@@ -336,45 +266,6 @@ html[data-theme='dark'] .manager-home .session-card{
   font-size: 0.85rem;
 }
 
-.manager-onboarding-step h3 {
-  margin: 0;
-  color: var(--ink);
-  font-weight: 800;
-  align-self: start;
-}
-
-.manager-onboarding-step__head {
-  display: flex;
-  align-items: center;
-  justify-content: space-between;
-  gap: 0.75rem;
-}
-
-.manager-onboarding-step p {
-  margin: 0;
-  color: var(--ink-soft);
-  line-height: 1.5;
-}
-
-.manager-onboarding-step__badge {
-  display: inline-flex;
-  align-items: center;
-  width: fit-content;
-  border-radius: 999px;
-  padding: 0.3rem 0.62rem;
-  background: color-mix(in srgb, var(--accent-soft) 58%, transparent);
-  border: 1px solid var(--surface-border-strong);
-  color: var(--accent-strong);
-  font-size: 0.72rem;
-  font-weight: 800;
-  letter-spacing: 0.03em;
-}
-
-.manager-onboarding-step__cta {
-  width: fit-content;
-  margin-top: 0.2rem;
-}
-
 .home-quickview-guide-cta {
   width: 100%;
   justify-content: center;
@@ -389,18 +280,6 @@ html[data-theme='dark'] .manager-home .session-card{
 
 .home-quickview-guide-cta:hover,
 .home-quickview-guide-cta:focus-visible {
-  border-color: var(--control-border-strong);
-  background: var(--surface-control-hover);
-}
-
-.manager-onboarding-step__cta {
-  border: 1px solid var(--surface-border-strong);
-  background: var(--surface-control);
-  color: var(--accent-strong);
-}
-
-.manager-onboarding-step__cta:hover,
-.manager-onboarding-step__cta:focus-visible {
   border-color: var(--control-border-strong);
   background: var(--surface-control-hover);
 }
@@ -448,58 +327,6 @@ html[data-theme='dark'] .manager-home .session-card{
   box-shadow: var(--shadow-lg);
 }
 
-.manager-onboarding-hero--modal {
-  align-items: flex-start;
-  border-bottom: 1px solid var(--surface-border);
-}
-
-.manager-onboarding-copy h2 {
-  margin: 0;
-  color: var(--accent-strong);
-  font-family: var(--font-ui);
-  font-size: clamp(1.35rem, 2.2vw, 2rem);
-  line-height: 1.08;
-}
-
-.manager-onboarding-copy p:last-child {
-  margin: 0.65rem 0 0;
-  color: var(--ink-soft);
-  line-height: 1.6;
-}
-
-.manager-onboarding-eyebrow {
-  color: var(--accent-strong);
-}
-
-.manager-onboarding-grid--modal .manager-onboarding-step {
-  animation: ui-fade-in-up var(--motion-medium) var(--ease-standard) both;
-  animation-delay: var(--onboarding-delay, 0ms);
-}
-
-.manager-onboarding-grid--modal {
-  display: flex;
-  flex-direction: row;
-  flex-wrap: nowrap;
-  gap: 1rem;
-  overflow-x: auto;
-  padding-bottom: 0.25rem;
-}
-
-.manager-onboarding-grid--modal .manager-onboarding-step {
-  flex: 1 1 0;
-  min-width: 240px;
-  scroll-snap-align: start;
-}
-
-.manager-onboarding-step--premium::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  pointer-events: none;
-  background: linear-gradient(180deg, color-mix(in srgb, var(--card) 42%, transparent) 0%, transparent 34%);
-}
-
 @media (prefers-color-scheme: dark) {
   :where(html:not([data-theme='light'])) .manager-onboarding-panel{
     border-color: var(--surface-border-strong);
@@ -511,63 +338,8 @@ html[data-theme='dark'] .manager-home .session-card{
     color: var(--ink);
   }
 
-  :where(html:not([data-theme='light'])) .manager-onboarding-hero{
-    border-bottom-color: var(--surface-border);
-  }
-
-  :where(html:not([data-theme='light'])) .manager-onboarding-step{
-    border-color: var(--surface-border);
-    background: linear-gradient(160deg, var(--surface-panel) 0%, var(--surface-panel-soft) 100%);
-    box-shadow: var(--shadow-sm);
-  }
-
-  :where(html:not([data-theme='light'])) .manager-onboarding-step:hover{
-    border-color: var(--surface-border-strong);
-    box-shadow: var(--shadow-md), 0 0 0 1px color-mix(in srgb, var(--accent) 10%, transparent);
-  }
-
-  :where(html:not([data-theme='light'])) .manager-onboarding-step h3{
-    color: var(--ink);
-  }
-
-  :where(html:not([data-theme='light'])) .manager-onboarding-step p{
-    color: var(--ink-soft);
-  }
-
-  :where(html:not([data-theme='light'])) .manager-onboarding-step__badge{
-    background: color-mix(in srgb, var(--accent-soft) 58%, transparent);
-    border-color: var(--surface-border-strong);
-    color: var(--accent-strong);
-  }
-
-  :where(html:not([data-theme='light'])) .manager-onboarding-step__index{
-    color: color-mix(in srgb, var(--accent) 22%, transparent);
-  }
-
-  :where(html:not([data-theme='light'])) .manager-onboarding-step__icon{
-    background: linear-gradient(135deg, color-mix(in srgb, var(--accent-soft) 52%, transparent) 0%, color-mix(in srgb, var(--accent) 12%, transparent) 100%);
-    border-color: var(--surface-border-strong);
-    color: var(--accent-strong);
-  }
-
   :where(html:not([data-theme='light'])) .manager-onboarding-modalOverlay{
     background: var(--modal-scrim);
-  }
-
-  :where(html:not([data-theme='light'])) .manager-onboarding-copy h2{
-    color: var(--accent-strong);
-  }
-
-  :where(html:not([data-theme='light'])) .manager-onboarding-copy p:last-child{
-    color: var(--ink-soft);
-  }
-
-  :where(html:not([data-theme='light'])) .manager-onboarding-eyebrow{
-    color: var(--accent-strong);
-  }
-
-  :where(html:not([data-theme='light'])) .manager-onboarding-step--premium::after{
-    background: linear-gradient(180deg, color-mix(in srgb, var(--card) 8%, transparent) 0%, transparent 32%);
   }
 }
 /* Explicit dark theme mirror of the block above */
@@ -582,81 +354,11 @@ html[data-theme='dark'] .manager-home .session-card{
     color: var(--ink);
   }
 
-  html[data-theme='dark'] .manager-onboarding-hero{
-    border-bottom-color: var(--surface-border);
-  }
-
-  html[data-theme='dark'] .manager-onboarding-step{
-    border-color: var(--surface-border);
-    background: linear-gradient(160deg, var(--surface-panel) 0%, var(--surface-panel-soft) 100%);
-    box-shadow: var(--shadow-sm);
-  }
-
-  html[data-theme='dark'] .manager-onboarding-step:hover{
-    border-color: var(--surface-border-strong);
-    box-shadow: var(--shadow-md), 0 0 0 1px color-mix(in srgb, var(--accent) 10%, transparent);
-  }
-
-  html[data-theme='dark'] .manager-onboarding-step h3{
-    color: var(--ink);
-  }
-
-  html[data-theme='dark'] .manager-onboarding-step p{
-    color: var(--ink-soft);
-  }
-
-  html[data-theme='dark'] .manager-onboarding-step__badge{
-    background: color-mix(in srgb, var(--accent-soft) 58%, transparent);
-    border-color: var(--surface-border-strong);
-    color: var(--accent-strong);
-  }
-
-  html[data-theme='dark'] .manager-onboarding-step__index{
-    color: color-mix(in srgb, var(--accent) 22%, transparent);
-  }
-
-  html[data-theme='dark'] .manager-onboarding-step__icon{
-    background: linear-gradient(135deg, color-mix(in srgb, var(--accent-soft) 52%, transparent) 0%, color-mix(in srgb, var(--accent) 12%, transparent) 100%);
-    border-color: var(--surface-border-strong);
-    color: var(--accent-strong);
-  }
-
   html[data-theme='dark'] .manager-onboarding-modalOverlay{
     background: var(--modal-scrim);
   }
 
-  html[data-theme='dark'] .manager-onboarding-copy h2{
-    color: var(--accent-strong);
-  }
-
-  html[data-theme='dark'] .manager-onboarding-copy p:last-child{
-    color: var(--ink-soft);
-  }
-
-  html[data-theme='dark'] .manager-onboarding-eyebrow{
-    color: var(--accent-strong);
-  }
-
-  html[data-theme='dark'] .manager-onboarding-step--premium::after{
-    background: linear-gradient(180deg, color-mix(in srgb, var(--card) 8%, transparent) 0%, transparent 32%);
-  }
-
 @media (prefers-color-scheme: dark) {
-  :where(html:not([data-theme='light'])) .admin-console-layout :where(
-    .inline-input,
-    input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]),
-    select,
-    textarea,
-    .account-form-input,
-    .currency-select,
-    .account-select
-  ){
-    border-color: rgba(151, 176, 225, 0.52) !important;
-    background: linear-gradient(180deg, rgba(25, 38, 64, 0.98) 0%, rgba(20, 32, 56, 0.98) 100%) !important;
-    color: #f5f9ff !important;
-    -webkit-text-fill-color: #f5f9ff !important;
-    caret-color: #f5f9ff !important;
-  }
 
   :where(html:not([data-theme='light'])) .admin-console-layout :where(
     .inline-input,
@@ -667,21 +369,7 @@ html[data-theme='dark'] .manager-home .session-card{
     opacity: 1 !important;
   }
 
-  :where(html:not([data-theme='light'])) .admin-console-layout :where(
-    .inline-input,
-    input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]),
-    select,
-    textarea,
-    .account-form-input,
-    .currency-select,
-    .account-select
-  ):focus{
-    border-color: #8fd7ff !important;
-    background: linear-gradient(180deg, rgba(33, 52, 87, 0.98) 0%, rgba(28, 45, 76, 0.98) 100%) !important;
-    box-shadow: 0 0 0 4px rgba(143, 215, 255, 0.24) !important;
-  }
-
-  :where(html:not([data-theme='light'])) .admin-console-layout .auth-form label,:where(html:not([data-theme='light'])) .admin-console-layout .session-meta,:where(html:not([data-theme='light'])) .admin-console-layout .list-count{
+  :where(html:not([data-theme='light'])) .admin-console-layout .auth-form label,:where(html:not([data-theme='light'])) .admin-console-layout .session-meta{
     color: #c5d3ee !important;
   }
 }
@@ -690,62 +378,16 @@ html[data-theme='dark'] .manager-home .session-card{
   html[data-theme='dark'] .admin-console-layout :where(
     .inline-input,
     input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]),
-    select,
-    textarea,
-    .account-form-input,
-    .currency-select,
-    .account-select
-  ){
-    border-color: rgba(151, 176, 225, 0.52) !important;
-    background: linear-gradient(180deg, rgba(25, 38, 64, 0.98) 0%, rgba(20, 32, 56, 0.98) 100%) !important;
-    color: #f5f9ff !important;
-    -webkit-text-fill-color: #f5f9ff !important;
-    caret-color: #f5f9ff !important;
-  }
-
-  html[data-theme='dark'] .admin-console-layout :where(
-    .inline-input,
-    input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]),
     textarea
   )::placeholder{
     color: #c8d6f2 !important;
     opacity: 1 !important;
   }
 
-  html[data-theme='dark'] .admin-console-layout :where(
-    .inline-input,
-    input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]),
-    select,
-    textarea,
-    .account-form-input,
-    .currency-select,
-    .account-select
-  ):focus{
-    border-color: #8fd7ff !important;
-    background: linear-gradient(180deg, rgba(33, 52, 87, 0.98) 0%, rgba(28, 45, 76, 0.98) 100%) !important;
-    box-shadow: 0 0 0 4px rgba(143, 215, 255, 0.24) !important;
-  }
-
   html[data-theme='dark'] .admin-console-layout .auth-form label,
-html[data-theme='dark'] .admin-console-layout .session-meta,
-html[data-theme='dark'] .admin-console-layout .list-count{
+html[data-theme='dark'] .admin-console-layout .session-meta{
     color: #c5d3ee !important;
   }
-
-.home-guide-trigger {
-  white-space: nowrap;
-}
-
-.home-create-participants-cta {
-  border-color: rgba(53, 160, 255, 0.26);
-  background: linear-gradient(145deg, rgba(255, 255, 255, 0.97) 0%, rgba(238, 246, 255, 0.95) 100%);
-  color: #1f3f73;
-}
-
-.home-create-participants-cta:hover {
-  border-color: rgba(53, 160, 255, 0.46);
-  box-shadow: 0 12px 22px rgba(53, 160, 255, 0.16);
-}
 
 .home-hero-summary {
   gap: 0.8rem;
@@ -840,11 +482,6 @@ html[data-theme='dark'] .admin-console-layout .list-count{
     width: 100%;
   }
 
-  .team-member-item {
-    align-items: flex-start;
-    padding: 0.82rem;
-  }
-
   .team-member-actions {
     width: 100%;
     justify-content: flex-end;
@@ -861,33 +498,9 @@ html[data-theme='dark'] .admin-console-layout .list-count{
     min-height: 2.5rem;
   }
 
-  .manager-onboarding-hero {
-    flex-direction: column;
-  }
-
-  .manager-onboarding-actions {
-    width: 100%;
-    justify-content: flex-start;
-  }
-
-  .manager-onboarding-grid--modal {
-    flex-direction: column;
-    overflow-x: visible;
-  }
-
-  .manager-onboarding-grid--modal .manager-onboarding-step {
-    min-width: 0;
-    width: 100%;
-  }
-
-
 @media (max-width: 600px) {
   .top-nav:not(.top-nav--live-inline) .nav-top-row {
     grid-template-columns: minmax(0, 1fr) auto;
-  }
-
-  .top-nav:not(.top-nav--live-inline) .nav-mobile-cta {
-    display: none;
   }
 
   .home-hero-actions {
@@ -905,34 +518,6 @@ html[data-theme='dark'] .admin-console-layout .list-count{
     justify-content: center;
   }
 
-  .home-hero-trust {
-    flex-wrap: nowrap;
-    overflow-x: auto;
-    scroll-snap-type: x proximity;
-    padding-bottom: 0.2rem;
-    margin-inline-end: -0.15rem;
-    scrollbar-width: none;
-  }
-
-  .home-hero-trust::-webkit-scrollbar {
-    display: none;
-  }
-
-  .home-hero-trust span,
-  .home-hero-trust a {
-    flex: 0 0 82%;
-    scroll-snap-align: start;
-    justify-content: center;
-    min-height: 44px;
-  }
-
-  .home-hero-trust-dots {
-    display: inline-flex;
-    align-items: center;
-    justify-content: center;
-    gap: 0.34rem;
-  }
-
   .cards-grid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
   }
@@ -941,8 +526,7 @@ html[data-theme='dark'] .admin-console-layout .list-count{
     font-size: 0.82rem;
   }
 
-  .session-item,
-  .team-member-item {
+  .session-item {
     flex-direction: column;
     align-items: stretch;
   }
@@ -997,10 +581,6 @@ html[data-theme='dark'] .admin-console-layout .list-count{
 
   .manager-onboarding-panel--modal {
     padding: 1rem;
-  }
-
-  .manager-onboarding-hero {
-    padding: 0.9rem;
   }
 
   .site-footer {
@@ -1346,15 +926,13 @@ html[data-theme='dark'] .admin-console-layout .list-count{
   padding: clamp(1rem, 2vw, 1.5rem);
 }
 
-.participant-form input,
-.team-toolbar input {
+.participant-form input {
   border: 1.5px solid var(--control-border, rgba(148, 163, 184, 0.28));
   background: var(--surface-control);
   color: var(--ink);
 }
 
-.participant-form input:focus,
-.team-toolbar input:focus {
+.participant-form input:focus {
   border-color: var(--control-border-strong);
   box-shadow: 0 0 0 4px color-mix(in srgb, var(--accent) 14%, transparent);
 }
@@ -1420,7 +998,6 @@ html[data-theme='dark'] .admin-console-layout .list-count{
     color: var(--text-subtle, #94a3b8);
   }
 
-
   @media (max-width: 640px) {
     .participant-modal-dialog {
       width: calc(100vw - 1rem);
@@ -1435,11 +1012,6 @@ html[data-theme='dark'] .admin-console-layout .list-count{
       white-space: normal;
     }
   }
-
-.manager-member-list .team-member-item {
-  border: 1px solid var(--surface-soft-border, rgba(148, 163, 184, 0.18));
-  box-shadow: var(--surface-shadow-soft);
-}
 
 .auth-page,
 .contact-page {
@@ -1482,33 +1054,9 @@ html[data-theme='dark'] .admin-console-layout .list-count{
   color: #6b7280;
 }
 
-.contact-hero {
-  border: 1px solid rgba(99, 130, 255, 0.16);
-  background: linear-gradient(130deg, #f6f9ff 0%, #edf4ff 58%, #f4f2ff 100%);
-  box-shadow: 0 16px 40px rgba(30, 41, 78, 0.10);
-}
-
 .contact-layout .feature-card {
   border-color: rgba(53, 160, 255, 0.2);
   box-shadow: 0 12px 28px rgba(30, 41, 78, 0.1);
-}
-
-.contact-info-items {
-  border: 1px solid rgba(53, 160, 255, 0.2);
-}
-
-.contact-info-item {
-  border-bottom: 1px solid rgba(53, 160, 255, 0.16);
-  background: linear-gradient(180deg, #ffffff 0%, #f4f8ff 100%);
-}
-
-.contact-info-icon {
-  background: linear-gradient(135deg, rgba(122, 92, 255, 0.16), rgba(53, 160, 255, 0.22));
-}
-
-.contact-trust-box {
-  border: 1px solid rgba(122, 92, 255, 0.26);
-  background: linear-gradient(135deg, rgba(241, 245, 255, 0.98), rgba(255, 255, 255, 0.92));
 }
 
 .form-help {
@@ -1518,7 +1066,6 @@ html[data-theme='dark'] .admin-console-layout .list-count{
 .form-error {
   color: #b91c1c;
 }
-
 
 /* Filtre « Période » : chevron en SVG (un « + » en texte se lisait « Period+ »). */
 .home-sessions-period-toggle {

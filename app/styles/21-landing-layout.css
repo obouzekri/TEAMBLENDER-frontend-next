@@ -46,13 +46,6 @@
   line-height: 1.65;
 }
 
-.landing-hero-keyline {
-  max-width: 56ch;
-  margin-top: 0.85rem;
-  font-size: 0.94rem;
-  line-height: 1.55;
-}
-
 .landing-hero-actions {
   margin-top: 1.5rem;
   gap: 0.75rem;
@@ -173,11 +166,6 @@
   .landing-hero-description {
     margin-top: 1rem;
     font-size: 1rem;
-  }
-
-  .landing-hero-keyline {
-    margin-top: 0.7rem;
-    font-size: 0.86rem;
   }
 
   .landing-hero-product-shell {
@@ -437,7 +425,6 @@
   text-wrap: balance;
 }
 
-.landing-v2 .landing-section-heading .landing-section-description,
 .landing-v2 .landing-section-heading .landing-offer-subtitle,
 .landing-v2 .landing-section-heading > div > p:not(.eyebrow):not(.landing-section-eyebrow) {
   max-width: 58ch;
@@ -518,29 +505,10 @@
   line-height: 1.7;
 }
 
-.landing-proof-section .landing-partners-usage,
 .landing-proof-section .landing-social-proof-evidence {
   border-color: #e2eaf4;
   background: #f5f8fc;
   box-shadow: 0 10px 28px rgba(16, 38, 70, 0.06);
-}
-
-.landing-proof-section .landing-partners-title,
-.landing-proof-section .landing-partners-summary {
-  color: #334a66;
-}
-
-.landing-proof-section .landing-usecase-chip {
-  border-color: #d9e5f2;
-  background: #ffffff;
-  color: #243c59;
-}
-
-.landing-proof-section .landing-metric-card {
-  border-color: #e0e8f2;
-  border-radius: 1rem;
-  background: #ffffff;
-  box-shadow: 0 8px 22px rgba(16, 38, 70, 0.05);
 }
 
 .landing-platform-section {
@@ -567,58 +535,8 @@
   line-height: 1.7;
 }
 
-.landing-platform-section .landing-core-features-grid {
-  gap: 1rem;
-  margin-top: clamp(1.75rem, 3vw, 2.5rem);
-}
-
-.landing-platform-section .landing-core-feature-card {
-  min-height: 10rem;
-  padding: 1.25rem;
-  border: 1px solid #e0e8f2;
-  border-radius: 1.1rem;
-  background: #ffffff;
-  box-shadow: 0 8px 22px rgba(16, 38, 70, 0.045);
-  transition: transform 180ms ease, box-shadow 180ms ease, border-color 180ms ease;
-}
-
-.landing-platform-section .landing-core-feature-card:nth-child(2n),
-.landing-platform-section .landing-core-feature-card:nth-child(3n) {
-  transform: none;
-}
-
-.landing-platform-section .landing-core-feature-card:hover,
-.landing-platform-section .landing-core-feature-card:nth-child(2n):hover,
-.landing-platform-section .landing-core-feature-card:nth-child(3n):hover {
-  transform: translateY(-3px);
-  border-color: #c6d8ec;
-  box-shadow: 0 14px 30px rgba(16, 38, 70, 0.09);
-}
-
-.landing-platform-section .landing-core-feature-title {
-  align-self: center;
-  color: #172b45;
-  font-size: 1.08rem;
-  line-height: 1.35;
-}
-
-.landing-platform-section .landing-core-feature-description {
-  grid-column: 2;
-  color: #5d6b7d;
-  font-size: 0.9rem;
-  line-height: 1.6;
-}
-
 .landing-platform-benefits {
   margin-top: clamp(1.5rem, 3vw, 2.5rem);
-}
-
-.landing-platform-section .landing-benefits-head .landing-section-eyebrow {
-  color: #2563a8;
-}
-
-.landing-platform-section .landing-benefits-head .landing-section-title {
-  color: #142b49;
 }
 
 .landing-challenges-section {
@@ -643,18 +561,6 @@
   box-shadow: 0 14px 32px rgba(2, 6, 23, 0.22);
 }
 
-.landing-benefits-section:not(.landing-why-section) {
-  background: linear-gradient(180deg, #ffffff 0%, #f3f7fc 100%);
-}
-
-.landing-benefits-section:not(.landing-why-section) .landing-benefits-head .landing-section-eyebrow {
-  color: #2563a8;
-}
-
-.landing-benefits-section:not(.landing-why-section) .landing-benefits-head .landing-section-title {
-  color: #142b49;
-}
-
 .landing-benefits-grid {
   overflow: hidden;
   margin-top: clamp(1rem, 2vw, 1.75rem);
@@ -665,45 +571,6 @@
     radial-gradient(circle at 50% 46%, rgba(37, 99, 235, 0.16), transparent 36%),
     linear-gradient(145deg, #0b1a30, #102746);
   box-shadow: 0 20px 48px rgba(20, 43, 73, 0.12);
-}
-
-.landing-why-section {
-  background: #f6f8fc;
-}
-
-.landing-why-section .landing-benefits-head .landing-section-eyebrow {
-  color: #2563a8;
-}
-
-.landing-why-section .landing-benefits-head .landing-section-title {
-  color: #142b49;
-}
-
-.landing-why-section .landing-benefits-head .landing-section-description {
-  color: #5d6b7d;
-}
-
-.landing-why-section .landing-benefits-head .landing-section-description,
-.landing-why-section .landing-benefits-head p {
-  max-width: 58ch;
-}
-
-.landing-why-section .landing-section-inner > .mt-6.grid > article {
-  border-color: #e0e8f2;
-  border-radius: 1.1rem;
-  background: #ffffff;
-  box-shadow: 0 8px 22px rgba(16, 38, 70, 0.045);
-  padding: 1.35rem;
-}
-
-.landing-why-section .landing-section-inner > .mt-6.grid > article h3 {
-  color: #172b45;
-  line-height: 1.4;
-}
-
-.landing-why-section .landing-section-inner > .mt-6.grid > article p {
-  color: #5d6b7d;
-  line-height: 1.65;
 }
 
 .landing-outcomes-section {
@@ -879,20 +746,6 @@
   margin-inline: 0;
 }
 
-.landing-benefits-section:not(.landing-why-section) .landing-benefits-head .landing-section-title {
-  max-width: 25ch;
-}
-
-.landing-why-section .landing-section-inner > .mt-6.grid {
-  margin-top: clamp(1.75rem, 3vw, 2.5rem);
-}
-
-.landing-platform-section .landing-core-feature-icon {
-  border-radius: 0.9rem;
-  background: linear-gradient(145deg, #2563eb, #0ea5e9);
-  box-shadow: 0 8px 18px rgba(37, 99, 235, 0.18);
-}
-
 .landing-impact-card > div > span:first-child {
   background: linear-gradient(145deg, #2563eb, #0ea5e9);
   box-shadow: 0 8px 18px rgba(37, 99, 235, 0.16);
@@ -919,10 +772,6 @@
   .landing-proof-section .landing-section-heading h2,
   .landing-v2 .landing-section-heading .landing-section-title {
     font-size: clamp(1.8rem, 8vw, 2.25rem);
-  }
-
-  .landing-platform-section .landing-core-feature-card {
-    min-height: 0;
   }
 
   .landing-benefits-grid {
