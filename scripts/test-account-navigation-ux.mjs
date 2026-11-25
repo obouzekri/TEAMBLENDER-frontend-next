@@ -147,18 +147,15 @@ async function check({ role, locale, width, theme, colorScheme = 'light' }) {
     assert.match((await downloadPromise).suggestedFilename(), /^invoice-navigation-\d+\.pdf$/);
     await page.locator('#account-tab-pricing').click();
     await page.getByRole('button', { name: account.annual, exact: false }).click();
-    await page.locator('.account-pricing-control-group select').selectOption('EUR');
-    await page.locator('.account-plan-card-actions__primary').first().click();
-    await page.getByRole('dialog', { name: 'Finaliser le paiement', exact: true }).waitFor();
-    await page.keyboard.press('Escape');
-    await page.getByRole('dialog', { name: 'Finaliser le paiement', exact: true }).waitFor({ state: 'hidden' });
     await page.evaluate(() => window.scrollTo({ top: 0, left: 0, behavior: 'instant' }));
     await page.locator('#account-tab-invoices').click();
     assert.equal(await invoicePanel.evaluate((element) => element.scrollTop), 0);
     await page.locator('#account-tab-pricing').click();
-    assert.equal(await page.locator('.account-pricing-control-group select').inputValue(), 'EUR');
     assert.ok(await page.getByRole('button', { name: account.annual, exact: false }).evaluate((element) => element.classList.contains('is-active')));
     assert.deepEqual(errors, []);
+    // Paid plans are activated on request (no card checkout since 2026-11-12): the button opens the contact form.
+    await page.locator('.account-plan-card-actions__primary').first().click();
+    await page.waitForURL(new RegExp(`/${locale}/contact\\?plan=team$`));
   } finally {
     await context.close();
   }
