@@ -4,6 +4,7 @@ import { chromium } from 'playwright';
 import { createRealtimeFixture } from './helpers/realtime-ux-fixture.mjs';
 import fr from '../lib/i18n/dictionaries/fr.js';
 import en from '../lib/i18n/dictionaries/en.js';
+import { dismissCookieBanner } from './helpers/cookie-banner.mjs';
 
 const require = createRequire(import.meta.url);
 const runtime = (engine) => require(`../../backend/src/challenges/engines/${engine}/server-runtime.js`);
@@ -63,7 +64,7 @@ try {
         page.on('pageerror', (error) => errors.push(error.message));
         const route = sessionRoute ? 'session-live/42' : `challenges/${engineKey}?sessionId=42`;
         await page.goto(`${baseUrl}/${locale}/${route}`);
-        await page.getByRole('button', { name: /^(Refuser les cookies de mesure|Refuse analytics cookies)$/ }).click();
+        await dismissCookieBanner(page);
         const rules = page.locator('[data-challenge-rules-card]').first();
         await rules.waitFor();
         const header = page.locator('section[class*="header"]').filter({ has: page.locator('[class*="topRow"]') });

@@ -199,7 +199,8 @@ if (process.argv.includes('--http')) {
           for (const [index, question] of faq.mainEntity.entries()) {
             const details = page.locator('main details').nth(index);
             assert.equal(await details.locator('summary').innerText(), question.name);
-            assert.equal(await details.locator('p').innerText(), question.acceptedAnswer.text);
+            // Answers may be collapsed: compare the DOM text, which crawlers read too.
+            assert.equal((await details.locator('p').textContent()).trim(), question.acceptedAnswer.text);
           }
         }
       }

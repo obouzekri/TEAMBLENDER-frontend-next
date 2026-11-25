@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import { chromium } from 'playwright';
 import { createRealtimeFixture } from './helpers/realtime-ux-fixture.mjs';
+import { dismissCookieBanner } from './helpers/cookie-banner.mjs';
 
 const baseUrl = process.env.SMOKE_FRONTEND_URL || 'http://localhost:3100';
 const headerCss = fs.readFileSync(
@@ -115,9 +116,7 @@ try {
           exact: true,
         });
       await page.goto(`${baseUrl}/${locale}/session-live/42`);
-      await page
-        .getByRole('button', { name: 'Refuser les cookies de mesure', exact: true })
-        .click();
+      await dismissCookieBanner(page);
       await info().click();
       await page.getByText('1 / 8', { exact: true }).waitFor();
       await page.getByText(en ? 'Registered : 2' : 'Inscrits : 2', { exact: true }).waitFor();
@@ -449,7 +448,7 @@ try {
     );
     const page = await fixture.context.newPage();
     await page.goto(`${baseUrl}/${locale}/challenges/mission_critique_v1?sessionId=42`);
-    await page.getByRole('button', { name: 'Refuser les cookies de mesure', exact: true }).click();
+    await dismissCookieBanner(page);
     await page
       .getByRole('button', { name: en ? 'Session info' : 'Infos de session', exact: true })
       .click();

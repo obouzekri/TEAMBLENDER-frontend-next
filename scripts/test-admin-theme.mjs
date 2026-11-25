@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
+import { dismissCookieBanner } from './helpers/cookie-banner.mjs';
 
 const baseUrl = process.env.SMOKE_FRONTEND_URL || 'http://localhost:3100';
 const browser = await chromium.launch({
@@ -97,8 +98,7 @@ try {
           await page.goto(`${baseUrl}/${locale}/admin?tab=challenges`);
           const item = page.locator('.session-item').filter({ hasText: challenge.name });
           await item.waitFor();
-          const rejectCookies = page.getByRole('button', { name: 'Refuser les cookies de mesure', exact: true });
-          if (await rejectCookies.isVisible()) await rejectCookies.click();
+          await dismissCookieBanner(page);
           await item.getByRole('button', { name: locale === 'en' ? 'Edit challenge' : 'Modifier challenge', exact: true }).click();
           const form = page.locator('.admin-console-layout form.auth-form');
           await form.waitFor();

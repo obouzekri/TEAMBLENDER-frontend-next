@@ -83,7 +83,7 @@ Frontend cible du produit TeamBlender (migration depuis le legacy).
 - Nom et email sont presentes ensemble, puis entreprise et effectif facultatifs. Le besoin et le message gardent toute la largeur. Les champs passent sur une colonne sur mobile.
 - Demande d'activation (2026-11-12) : `?plan=team` ou `?plan=enterprise` (boutons de la page Tarifs et de « Mon compte ») preselectionne l'offre souhaitee et le besoin correspondant, et affiche un encart « nous activons votre offre sous 24 h apres reception du virement ». Trois champs facultatifs s'ajoutent : offre souhaitee, nombre de personnes a faire jouer, pays des equipes (Maroc, France, Autre). Ils sont transmis a l'API (`planCode`, `headcount`, `country`) et repris dans l'email recu par l'equipe.
 - Les libelles obligatoires, l'autocompletion, le lien email et la politique de confidentialite restent accessibles au clavier. L'envoi conserve la protection CSRF, le champ anti-spam, les etats d'attente, les erreurs avec conservation du brouillon et la confirmation.
-- Validation : `node scripts/test-contact-ux.mjs` (frontend sur 3100, Chrome disponible, API simulees sans envoi d'email) : FR/EN, clair/sombre/automatique, 320 a 1440 px, hauteur compacte, clavier, validation, champs facultatifs, requete et CSRF, attente, erreurs 429/500/reseau, nouvelle tentative et succes.
+- Validation : `node scripts/test-contact-ux.mjs` (frontend sur 3100, Chrome disponible, API simulees sans envoi d'email) : FR/EN, clair/sombre/automatique, 320 a 1440 px, hauteur compacte (page < 1260 px et formulaire < 980 px a 1440 px depuis l'ajout des champs d'activation), clavier, validation, champs facultatifs, requete et CSRF, attente, erreurs 429/500/reseau, nouvelle tentative et succes.
 
 ### Pied de page et section « Pour qui »
 
@@ -349,7 +349,11 @@ npm run test:smoke:participant
 npm run test:smoke:session-builder
 npm run test:smoke:login
 npm run test:smoke:preview
+npm run check:typography
 ```
+
+- `npm run check:typography` verifie la checklist typographie du modele de PR : les polices viennent des tokens `--font-ui` / `--font-display` (`app/styles/01-tokens-and-themes.css`), sans « Inter » ni « Roboto » en dur ni `font-family` hors token (polices monospace et rapport telechargeable du Lab exceptes).
+- Bandeau cookies dans les tests UX : il ne s'affiche que si un outil de mesure est configure (`hasTrackingStackConfigured`), ce qui n'est pas le cas en local ni en CI. Les scripts le ferment avec `dismissCookieBanner(page)` (`scripts/helpers/cookie-banner.mjs`), qui ne fait rien s'il est absent.
 
 ### Build de production et caches
 

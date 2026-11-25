@@ -4,6 +4,7 @@ import { mkdir } from 'node:fs/promises';
 import path from 'node:path';
 import { chromium } from 'playwright';
 import { createRealtimeFixture } from './helpers/realtime-ux-fixture.mjs';
+import { dismissCookieBanner } from './helpers/cookie-banner.mjs';
 
 const require = createRequire(import.meta.url);
 const engine = require('../../backend/src/challenges/engines/pixel_architect_v1');
@@ -41,7 +42,7 @@ async function testCrossBridge(locale, width, disableWebgl, templateId = 'pont_c
       });
     }
     await page.goto(`${baseUrl}/${locale}/challenges/pixel_architect_v1?sessionId=42`);
-    await page.getByRole('button', { name: 'Refuser les cookies de mesure', exact: true }).click();
+    await dismissCookieBanner(page);
     const navigation = page.getByRole('group', { name: locale === 'en' ? 'Layer navigation' : 'Navigation des couches' });
     await navigation.waitFor();
     const layers = page.locator('[data-active-layer]');

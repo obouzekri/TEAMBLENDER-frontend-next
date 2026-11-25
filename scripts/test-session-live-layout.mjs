@@ -4,6 +4,7 @@ import { createRequire } from 'node:module';
 import { chromium } from 'playwright';
 import { readGlobalCss } from './helpers/global-css.mjs';
 import { createRealtimeFixture } from './helpers/realtime-ux-fixture.mjs';
+import { dismissCookieBanner } from './helpers/cookie-banner.mjs';
 
 const require = createRequire(import.meta.url);
 const { buildPieces } = require('../../backend/src/challenges/engines/copuzzle_live_v1/server-runtime.js');
@@ -42,8 +43,7 @@ try {
         page.on('pageerror', (error) => errors.push(error.message));
         const route = role === 'user' ? 'session-live/42' : `challenges/${engineKey}?sessionId=42`;
         await page.goto(`${baseUrl}/${locale}/${route}`);
-        const cookieButtonName = locale === 'fr' ? 'Refuser les cookies de mesure' : 'Refuse analytics cookies';
-        await page.getByRole('button', { name: cookieButtonName, exact: true }).click();
+        await dismissCookieBanner(page);
         const header = page.locator('section[class*="header"]').filter({ has: page.locator('[class*="topRow"]') });
         const arena = page.locator('[class*="boardPanel"]');
         await arena.waitFor();

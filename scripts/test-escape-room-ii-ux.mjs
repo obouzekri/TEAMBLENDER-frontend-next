@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { chromium } from 'playwright';
 import { createRealtimeFixture } from './helpers/realtime-ux-fixture.mjs';
+import { dismissCookieBanner } from './helpers/cookie-banner.mjs';
 
 const require = createRequire(import.meta.url);
 const { SECRET_ROOM_II_ENIGMES } = require('../../backend/data/secret-room-ii');
@@ -59,7 +60,7 @@ async function createFixture({ locale, role, width, theme }) {
   if (localizedResponse && localizedResponse.status() === 404) {
     await page.goto(`${baseUrl}${challengePath}`, { waitUntil: 'domcontentloaded' });
   }
-  await page.getByRole('button', { name: 'Refuser les cookies de mesure', exact: true }).click();
+  await dismissCookieBanner(page);
   await page.getByText(config.enigmes[0].description, { exact: true }).waitFor();
   return {
     ...fixture, page, errors, config, submissions,

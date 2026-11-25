@@ -2,6 +2,7 @@ import assert from 'node:assert/strict';
 import { createRequire } from 'node:module';
 import { chromium } from 'playwright';
 import { createRealtimeFixture } from './helpers/realtime-ux-fixture.mjs';
+import { dismissCookieBanner } from './helpers/cookie-banner.mjs';
 
 const require = createRequire(import.meta.url);
 const runtime = (engine) => require(`../../backend/src/challenges/engines/${engine}/server-runtime.js`);
@@ -31,7 +32,7 @@ async function open(engineKey, state, { locale = 'en', role = 'participant', wid
     if (/cannot.*descendant|validateDOMNesting|nested.*button/i.test(message.text())) nestingWarnings.push(message.text());
   });
   await page.goto(`${baseUrl}/${locale}/challenges/${engineKey}?sessionId=42`);
-  await page.getByRole('button', { name: /^(Refuser les cookies de mesure|Refuse analytics cookies)$/ }).click();
+  await dismissCookieBanner(page);
   if (role === 'participant') {
     await page.locator('[class*="challengeContainer"]').waitFor();
     assert.equal(await page.getByText(locale === 'en' ? 'Prepare your session' : 'Préparer votre session', { exact: true }).count(), 0, `${engineKey}: participants must not see the preparation guide`);

@@ -1,5 +1,6 @@
 import assert from 'node:assert/strict';
 import { chromium } from 'playwright';
+import { dismissCookieBanner } from './helpers/cookie-banner.mjs';
 
 const baseUrl = process.env.SMOKE_FRONTEND_URL || 'http://localhost:3100';
 const challenges = [{
@@ -58,7 +59,7 @@ try {
       const errors = [];
       page.on('pageerror', (error) => errors.push(error.message));
       await page.goto(`${baseUrl}/${locale}/session-builder?sessionId=42`);
-      await page.getByRole('button', { name: 'Refuser les cookies de mesure', exact: true }).click();
+      await dismissCookieBanner(page);
       const card = page.locator('[data-catalog] [class*="card"]').filter({
         has: page.getByRole('heading', { name: challenges[0].name, exact: true }),
       }).filter({ has: page.locator('[class*="cardMeta"]') });

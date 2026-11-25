@@ -1,6 +1,7 @@
 import assert from 'node:assert/strict';
 import path from 'node:path';
 import { chromium } from 'playwright';
+import { dismissCookieBanner } from './helpers/cookie-banner.mjs';
 
 const baseUrl = process.env.SMOKE_FRONTEND_URL || 'http://localhost:3100';
 const browser = await chromium.launch({ headless: true, channel: process.env.SMOKE_BROWSER_CHANNEL || 'chrome' });
@@ -42,11 +43,11 @@ try {
         await page.goto(`${baseUrl}/${locale}/contact`);
         const form = page.locator('.contact-form');
         await form.waitFor();
-        await page.getByRole('button', { name: 'Refuser les cookies de mesure', exact: true }).click();
+        await dismissCookieBanner(page);
         assert.equal(await page.locator('main form').count(), 1);
         assert.equal(await page.locator('.contact-panel').count(), 1);
         assert.equal(await page.locator('.contact-layout, .contact-info-card').count(), 0);
-        const emailLink = page.getByRole('link', { name: 'contact@teamblender.io', exact: true });
+        const emailLink = page.locator('main').getByRole('link', { name: 'contact@teamblender.io', exact: true });
         assert.equal(await emailLink.getAttribute('href'), 'mailto:contact@teamblender.io');
         const contrast = await emailLink.evaluate((element) => {
           const luminance = (color) => {
@@ -96,9 +97,10 @@ try {
           assert.equal(layout.overflow, false, `${locale}/${theme}/${width}: horizontal overflow`);
           assert.equal(layout.columns, width <= 640 ? 1 : 2);
           assert.ok(layout.controls.every((control) => control.inside && control.height >= 44), 'Controls must fit and remain touch accessible');
+          // Budgets raised on 2026-11-25 for the plan, headcount and country fields of the activation request.
           if (width === 1440) {
-            assert.ok(layout.mainHeight < 1110, `Compact page exceeds height budget: ${layout.mainHeight}`);
-            assert.ok(layout.panelHeight < 820, `Contact panel exceeds height budget: ${layout.panelHeight}`);
+            assert.ok(layout.mainHeight < 1260, `Compact page exceeds height budget: ${layout.mainHeight}`);
+            assert.ok(layout.panelHeight < 980, `Contact panel exceeds height budget: ${layout.panelHeight}`);
             console.log(`${locale}/${theme}: main ${Math.round(layout.mainHeight)}px, panel ${Math.round(layout.panelHeight)}px`);
           }
           if (process.env.UX_SCREENSHOT_DIR && [390, 1440].includes(width)) {
@@ -115,7 +117,7 @@ try {
         assert.equal(submissions.length, 0, 'Empty required fields must prevent submission');
         await name.fill('Sarah Martin');
         await email.fill('not-an-email');
-        await need.selectOption({ index: 1 });
+        await need.selectOption({ label: locale === 'en' ? 'Request a demo' : 'Demander une démonstration' });
         await message.fill('A workshop for our team.');
         await submit.click();
         assert.equal(submissions.length, 0, 'Invalid email must prevent submission');
@@ -146,6 +148,7 @@ try {
             company: status === 200 ? 'Example company' : '',
             companySize: status === 200 ? await companySize.inputValue() : '',
             need: locale === 'en' ? 'Request a demo' : 'Demander une démonstration',
+            planCode: '', headcount: '', country: '',
             message: 'A workshop for our team.', website: '', locale,
           });
           assert.equal(request.headers['x-csrf-token'], 'contact-ux-token');

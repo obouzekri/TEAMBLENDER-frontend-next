@@ -33,7 +33,7 @@ export default function Logo({ size = 'default' }) {
       <text
         x="120"
         y="70"
-        fontFamily="Inter, Segoe UI, sans-serif"
+        style={{ fontFamily: 'var(--font-ui, system-ui, sans-serif)' }}
         fontSize="28"
         fontWeight="600"
         className="logo-wordmark"
