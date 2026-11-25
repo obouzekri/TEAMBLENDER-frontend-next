@@ -22,6 +22,8 @@ Frontend cible du produit TeamBlender (migration depuis le legacy).
 - La liste des sessions affiche le créateur de chaque session (nom et e-mail du manager) ; la recherche porte aussi sur ces informations.
 - Les objectifs distinguent les etats selectionne, disponible et indisponible sans reduire l'opacite du texte. La limite de trois objectifs et la navigation clavier sont conservees.
 - Validation : `node scripts/test-admin-theme.mjs` (frontend sur 3100, Chrome disponible, API simulees) : FR/EN, mobile/desktop, clair/sombre/automatique, contraste du texte d'au moins 4,5:1 et selection des objectifs.
+- Organisation du code (2026-11-25) : `app/admin/AdminClient.js` garde l'etat, le chargement des donnees et toutes les actions (creation, modification, suppression) ; le rendu de chaque onglet est dans `app/admin/tabs/` (`AnalyticsTab`, `UsersTab`, `ParticipantsTab`, `SessionsTab`, `ChallengesTab`, `PricingTab`, `LandingTab`), qui recoit l'etat et les actions en props. Le tableau de bord reste dans `AdminDashboardPanel`, les fenetres de modification d'un utilisateur ou d'un participant dans `AdminClient`.
+- `npm run test:ux:admin` (frontend sur 3100, Chrome disponible, API simulees) : en FR/EN, chaque onglet s'affiche, chaque formulaire de modification (utilisateur, participant, session, formule, bloc d'accueil) s'enregistre vers la bonne route, la suppression d'un participant n'envoie qu'un `DELETE` sur ce participant ; puis le test de theme ci-dessus.
 
 ### Minuteur des challenges
 
