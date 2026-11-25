@@ -615,6 +615,24 @@ html[data-theme='dark'] .icon-action-btn:hover{
   box-shadow: 0 0 0 5px color-mix(in srgb, var(--accent) 18%, transparent);
 }
 
+:where(
+  button,
+  [role="button"],
+  .btn-primary,
+  .btn-secondary,
+  .btn-insight,
+  .btn--sm,
+  .btn-mini,
+  .toggle-btn,
+  .nav-link,
+  .nav-cta-btn,
+  a.btn-primary,
+  a.btn-secondary,
+  a.btn-insight
+) {
+  min-height: var(--touch-target-min);
+}
+
 :where(input:not([type="hidden"]), select, textarea) {
   min-height: var(--touch-target-min);
 }

@@ -359,6 +359,21 @@ html[data-theme='dark'] .manager-home .session-card{
   }
 
 @media (prefers-color-scheme: dark) {
+  :where(html:not([data-theme='light'])) .admin-console-layout :where(
+    .inline-input,
+    input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]),
+    select,
+    textarea,
+    .account-form-input,
+    .currency-select,
+    .account-select
+  ){
+    border-color: rgba(151, 176, 225, 0.52) !important;
+    background: linear-gradient(180deg, rgba(25, 38, 64, 0.98) 0%, rgba(20, 32, 56, 0.98) 100%) !important;
+    color: #f5f9ff !important;
+    -webkit-text-fill-color: #f5f9ff !important;
+    caret-color: #f5f9ff !important;
+  }
 
   :where(html:not([data-theme='light'])) .admin-console-layout :where(
     .inline-input,
@@ -367,6 +382,20 @@ html[data-theme='dark'] .manager-home .session-card{
   )::placeholder{
     color: #c8d6f2 !important;
     opacity: 1 !important;
+  }
+
+  :where(html:not([data-theme='light'])) .admin-console-layout :where(
+    .inline-input,
+    input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]),
+    select,
+    textarea,
+    .account-form-input,
+    .currency-select,
+    .account-select
+  ):focus{
+    border-color: #8fd7ff !important;
+    background: linear-gradient(180deg, rgba(33, 52, 87, 0.98) 0%, rgba(28, 45, 76, 0.98) 100%) !important;
+    box-shadow: 0 0 0 4px rgba(143, 215, 255, 0.24) !important;
   }
 
   :where(html:not([data-theme='light'])) .admin-console-layout .auth-form label,:where(html:not([data-theme='light'])) .admin-console-layout .session-meta{
@@ -378,10 +407,40 @@ html[data-theme='dark'] .manager-home .session-card{
   html[data-theme='dark'] .admin-console-layout :where(
     .inline-input,
     input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]),
+    select,
+    textarea,
+    .account-form-input,
+    .currency-select,
+    .account-select
+  ){
+    border-color: rgba(151, 176, 225, 0.52) !important;
+    background: linear-gradient(180deg, rgba(25, 38, 64, 0.98) 0%, rgba(20, 32, 56, 0.98) 100%) !important;
+    color: #f5f9ff !important;
+    -webkit-text-fill-color: #f5f9ff !important;
+    caret-color: #f5f9ff !important;
+  }
+
+  html[data-theme='dark'] .admin-console-layout :where(
+    .inline-input,
+    input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]),
     textarea
   )::placeholder{
     color: #c8d6f2 !important;
     opacity: 1 !important;
+  }
+
+  html[data-theme='dark'] .admin-console-layout :where(
+    .inline-input,
+    input:not([type="hidden"]):not([type="checkbox"]):not([type="radio"]),
+    select,
+    textarea,
+    .account-form-input,
+    .currency-select,
+    .account-select
+  ):focus{
+    border-color: #8fd7ff !important;
+    background: linear-gradient(180deg, rgba(33, 52, 87, 0.98) 0%, rgba(28, 45, 76, 0.98) 100%) !important;
+    box-shadow: 0 0 0 4px rgba(143, 215, 255, 0.24) !important;
   }
 
   html[data-theme='dark'] .admin-console-layout .auth-form label,
