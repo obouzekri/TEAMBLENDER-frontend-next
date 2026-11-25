@@ -237,10 +237,11 @@ try {
         exact: true,
       })
       .waitFor();
-    await page.waitForFunction(() => Boolean(localStorage.getItem('selectedChallenges')));
+    // Local draft per session since #114 (lib/session-builder/drafts.js).
+    await page.waitForFunction(() => Boolean(localStorage.getItem('sessionBuilderDraft:42')));
     assert.deepEqual(
       await page.evaluate(() =>
-        JSON.parse(localStorage.getItem('selectedChallenges')).map((item) => item.id)
+        JSON.parse(localStorage.getItem('sessionBuilderDraft:42')).selectedChallenges.map((item) => item.id)
       ),
       [102, 103, 101]
     );
