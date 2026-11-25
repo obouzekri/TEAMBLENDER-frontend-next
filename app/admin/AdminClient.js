@@ -1,7 +1,6 @@
 "use client";
 
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react';
-import Image from 'next/image';
 import AppNav from '@/components/AppNav';
 import Footer from '@/components/Footer';
 import Modal from '@/components/ui/Modal';
@@ -12,7 +11,7 @@ import { clearSessionAuth } from '@/lib/auth';
 import { getStoredCurrentUser as readAuthStoredCurrentUser } from '@/lib/auth-storage';
 import { resolveChallengePlayerRange } from '@/lib/challenges/playerRange';
 import useI18n from '@/lib/i18n/useI18n';
-import { formatDate, formatDateTime, NUMERIC_DATE_TIME } from '@/lib/i18n/format';
+import { formatDateTime } from '@/lib/i18n/format';
 import {
   ADMIN_TAB_IDS,
   CHALLENGE_CATEGORY_LABELS,
@@ -20,28 +19,26 @@ import {
   CHALLENGE_OBJECTIVE_LABELS,
   CHALLENGE_OBJECTIVE_OPTIONS,
   CHALLENGE_SOURCES,
-  CHALLENGE_SOURCE_OPTION_LABELS,
   CHALLENGE_STATUSES,
-  CHALLENGE_STATUS_OPTION_LABELS,
   CHALLENGE_TYPES,
-  CHALLENGE_TYPE_OPTION_LABELS,
   DEFAULT_NEW_CHALLENGE,
   DEFAULT_NEW_LANDING_BLOCK,
   DEFAULT_NEW_PRICING_PLAN,
   DEFAULT_NEW_SESSION,
   KNOWN_ENGINE_KEYS,
-  LANDING_ALLOWED_BLOCK_KEYS,
   LANDING_ALLOWED_BLOCK_KEY_HINT,
-  MAX_CHALLENGE_OBJECTIVES,
   PRICING_BILLING_CYCLES,
-  PRICING_BILLING_CYCLE_LABELS,
   SESSION_MODALITIES,
-  SESSION_MODALITY_OPTION_LABELS,
   SESSION_STATUSES,
-  SESSION_STATUS_OPTION_LABELS,
   USER_ROLES,
 } from '@/lib/admin/constants';
-import PricingLocalizedContentEditor from './PricingLocalizedContentEditor';
+import AnalyticsTab from './tabs/AnalyticsTab';
+import UsersTab from './tabs/UsersTab';
+import ParticipantsTab from './tabs/ParticipantsTab';
+import SessionsTab from './tabs/SessionsTab';
+import ChallengesTab from './tabs/ChallengesTab';
+import PricingTab from './tabs/PricingTab';
+import LandingTab from './tabs/LandingTab';
 import { ensureAdminCatalogChallenges } from '@/lib/admin/challengeCatalog';
 import {
   applyPlayerRangeToEngineConfig,
@@ -51,24 +48,13 @@ import {
   ensureCopuzzleConfig,
   ensureEscapeRoomE5Image,
   fetchAdminJson,
-  formatCurrency,
-  formatDurationSeconds,
   buildLocalizedContentFromDraft,
-  getAdminPricingPlanSummary,
-  getChallengeStatusLabel,
-  getChallengeTypeLabel,
   getCopuzzleDefaultImages,
-  getCopuzzleImageSrc,
-  getEscapeRoomE5ImageSrc,
   getLocalizedLabel,
   getParticipantDisplayName,
   getParticipantFirstName,
   getParticipantLastName,
-  getPricingBillingCycleLabel,
-  getSessionModalityLabel,
-  getSessionStatusLabel,
   isAllowedLandingBlockKey,
-  isPlatformAdminEmail,
   isStrongPassword,
   isTokenAuthError,
   isValidEmail,
@@ -78,11 +64,9 @@ import {
   parseList,
   pickUserLabel,
   planToDraft,
-  renderUploadInputLabel,
   resolveLocalizedRuleValue,
   resolveUserPricingPlanId,
   stripRulesFromEngineConfig,
-  toggleObjectiveSelection,
 } from '@/lib/admin/utils';
 
 const fetch = (input, options = {}) => {
@@ -2427,509 +2411,81 @@ export default function AdminClient() {
 
           {/* ── ANALYTICS ── */}
           {activeTab === 'analytics' ? (
-            <div>
-              <div style={{ marginBottom: '20px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap' }}>
-                <div>
-                  <h1 style={{ fontSize: '22px', fontWeight: 700, margin: '0 0 4px' }}>{t('adminConsole.posthogAnalytics')}</h1>
-                  <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '14px' }}>
-                    {t('adminConsole.summaryOfTheLastLookbackdaysDays', { lookbackDays: analyticsSnapshot.lookbackDays })}
-                  </p>
-                </div>
-                <div style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                  {[7, 30, 90].map((days) => (
-                    <button
-                      key={`analytics-period-${days}`}
-                      type="button"
-                      className="btn-secondary"
-                      onClick={() => setAnalyticsDays(days)}
-                      disabled={analyticsLoading || analyticsDays === days}
-                      style={{
-                        fontSize: '12px',
-                        padding: '6px 10px',
-                        borderColor: analyticsDays === days ? 'var(--color-primary, #4f46e5)' : undefined,
-                        color: analyticsDays === days ? 'var(--color-primary, #4f46e5)' : undefined,
-                      }}
-                    >
-                      {days}{t('adminConsole.d')}
-                    </button>
-                  ))}
-                  <button
-                    type="button"
-                    className="btn-secondary"
-                    onClick={() => loadAnalytics()}
-                    disabled={analyticsLoading}
-                    style={{ fontSize: '12px', padding: '6px 10px' }}
-                  >
-                    {analyticsLoading ? t('adminConsole.refreshing') : t('adminConsole.refresh')}
-                  </button>
-                  <button
-                    type="button"
-                    className="btn-primary"
-                    onClick={exportAnalyticsCsv}
-                    disabled={analyticsLoading || !analyticsSnapshot.configured || analyticsSnapshot.degraded || Boolean(analyticsError)}
-                    style={{ fontSize: '12px', padding: '6px 10px' }}
-                  >
-                    {t('adminConsole.exportCsv')}
-                  </button>
-                </div>
-              </div>
-
-              <div className="admin-panel-card" style={{ marginBottom: '16px' }}>
-                {analyticsSnapshot.configured ? (
-                  <p style={{ margin: 0, fontSize: '13px', color: analyticsSnapshot.degraded ? 'var(--color-warning, #b45309)' : 'var(--color-success, #15803d)', fontWeight: 600 }}>
-                    {analyticsSnapshot.degraded
-                      ? t('adminConsole.posthogUnavailableDegradedMode')
-                      : t('adminConsole.posthogConnected')}
-                  </p>
-                ) : (
-                  <>
-                    <p style={{ margin: 0, fontSize: '13px', color: 'var(--color-warning, #b45309)', fontWeight: 600 }}>{t('adminConsole.analyticsNotConfigured')}</p>
-                    <p style={{ margin: '6px 0 0', fontSize: '12px', color: 'var(--color-muted, #6b7280)', lineHeight: 1.55 }}>
-                      {t('adminConsole.add')}<code style={{ fontFamily: 'monospace', background: 'var(--color-code-bg, #f3f4f6)', padding: '1px 4px', borderRadius: '3px' }}>POSTHOG_PROJECT_ID</code>{t('adminConsole.and')}
-                      <code style={{ fontFamily: 'monospace', background: 'var(--color-code-bg, #f3f4f6)', padding: '1px 4px', borderRadius: '3px' }}>POSTHOG_PERSONAL_API_KEY</code>{' '}
-                      {t('adminConsole.toTheBackend')}<code style={{ fontFamily: 'monospace', background: 'var(--color-code-bg, #f3f4f6)', padding: '1px 4px', borderRadius: '3px' }}>.env</code>{t('adminConsole.fileThenRestartTheServer')}
-                    </p>
-                  </>
-                )}
-                {analyticsSnapshot.configured && analyticsSnapshot.degraded && analyticsSnapshot.reason ? (
-                  <p style={{ margin: '8px 0 0', fontSize: '12px', color: 'var(--color-warning-dark, #92400e)', lineHeight: 1.5 }}>
-                    {t('adminConsole.reason')}: {analyticsSnapshot.reason}
-                  </p>
-                ) : null}
-                {analyticsSnapshot.errorCode === 'POSTHOG_AUTHENTICATION_FAILED' || analyticsSnapshot.errorCode === 'POSTHOG_ACCESS_DENIED' ? (
-                  <p style={{ margin: '8px 0 0', fontSize: '12px', color: 'var(--color-warning-dark, #92400e)', lineHeight: 1.5 }}>
-                    {analyticsSnapshot.errorCode === 'POSTHOG_AUTHENTICATION_FAILED'
-                      ? t('adminConsole.replacePosthogPersonalApiKeyWith')
-                      : t('adminConsole.checkThatThePersonalApiKey')}
-                  </p>
-                ) : null}
-                {analyticsSnapshot.generatedAt ? (
-                  <p style={{ margin: '6px 0 0', fontSize: '11px', color: 'var(--color-muted, #6b7280)' }}>
-                    {t('adminConsole.generatedAt')} {formatDate(analyticsSnapshot.generatedAt, locale, NUMERIC_DATE_TIME)}
-                  </p>
-                ) : null}
-                {analyticsError ? (
-                  <p style={{ margin: '8px 0 0', fontSize: '12px', color: '#b45309' }}>
-                    {t('adminConsole.dataTemporarilyUnavailable')}: {analyticsError}
-                  </p>
-                ) : null}
-              </div>
-
-              {analyticsLoading ? (
-                <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
-                  <p style={{ margin: 0, color: 'var(--color-muted, #6b7280)' }}>{t('adminConsole.loadingAnalyticsData')}</p>
-                </div>
-              ) : null}
-
-              <div className="admin-stat-grid" style={{ marginBottom: '16px' }}>
-                {[
-                  { label: t('adminConsole.activeUsers'), value: Number(analyticsSnapshot.users.totalActive || 0) },
-                  { label: t('adminConsole.newUsers'), value: Number(analyticsSnapshot.users.newUsers || 0) },
-                  { label: t('adminConsole.returningUsers'), value: Number(analyticsSnapshot.users.returningUsers || 0) },
-                  { label: t('adminConsole.pageViews'), value: Number(analyticsSnapshot.engagement.pageViews || 0) },
-                  { label: t('adminConsole.averageSessionDuration'), value: formatDurationSeconds(analyticsSnapshot.engagement.avgSessionDurationSec) },
-                  { label: t('adminConsole.signups'), value: Number(analyticsSnapshot.conversion.signupCount || 0) },
-                  { label: t('adminConsole.purchasesCheckout'), value: Number(analyticsSnapshot.conversion.purchaseCount || 0) },
-                  { label: t('adminConsole.keyActionSessionsCreated'), value: Number(analyticsSnapshot.conversion.keyActionCount || 0) },
-                  { label: t('adminConsole.averageLoadTime'), value: `${Math.round(Number(analyticsSnapshot.performance.avgPageLoadMs || 0))} ms` },
-                  { label: t('adminConsole.frontendErrors'), value: Number(analyticsSnapshot.performance.frontendErrorCount || 0) },
-                  {
-                    label: `${t('adminConsole.revenue')} (${String(analyticsSnapshot.business.currency || 'EUR').toUpperCase()})`,
-                    value: formatCurrency(analyticsSnapshot.business.revenue, analyticsSnapshot.business.currency),
-                  },
-                  {
-                    label: t('adminConsole.averageBasket'),
-                    value: formatCurrency(analyticsSnapshot.business.avgBasket, analyticsSnapshot.business.currency),
-                  },
-                ].map((item) => (
-                  <div key={item.label} style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '14px 12px' }}>
-                    <p style={{ margin: '0 0 4px', fontWeight: 700, fontSize: '20px', color: 'var(--color-text, #111)' }}>{!analyticsSnapshot.configured || analyticsSnapshot.degraded ? t('adminConsole.unavailable') : item.value}</p>
-                    <p style={{ margin: 0, fontSize: '12px', color: 'var(--color-muted, #6b7280)' }}>{item.label}</p>
-                  </div>
-                ))}
-              </div>
-
-              {analyticsSnapshot.configured && !analyticsSnapshot.degraded ? (
-                <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '12px', marginBottom: '16px' }}>
-                  {[
-                    {
-                      title: t('adminConsole.topCountries'),
-                      list: visitorCountries,
-                      interactive: true,
-                    },
-                    {
-                      title: effectiveSelectedCountry
-                        ? `${t('adminConsole.cities')} - ${effectiveSelectedCountry}`
-                        : t('adminConsole.topCities'),
-                      list: displayedCitiesForAnalytics,
-                      expandable: canExpandCitiesForCountry,
-                    },
-                    { title: t('adminConsole.topBrowsers'), list: Array.isArray(analyticsSnapshot.visitors.browsers) ? analyticsSnapshot.visitors.browsers : [] },
-                    { title: t('adminConsole.topSystems'), list: Array.isArray(analyticsSnapshot.visitors.os) ? analyticsSnapshot.visitors.os : [] },
-                  ].map((block) => (
-                    <div key={block.title} style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '14px 14px' }}>
-                      <p style={{ margin: '0 0 8px', fontSize: '13px', fontWeight: 700 }}>{block.title}</p>
-                      {block.list.length > 0 ? (
-                        <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'flex', flexDirection: 'column', gap: '6px' }}>
-                          {block.list.slice(0, 6).map((item) => (
-                            <li key={`${block.title}-${item.label}`} style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', fontSize: '12px' }}>
-                              {block.interactive ? (
-                                <button
-                                  type="button"
-                                  onClick={() => setSelectedVisitorCountry(String(item.label || '').trim())}
-                                  style={{
-                                    border: 'none',
-                                    background: 'transparent',
-                                    padding: 0,
-                                    margin: 0,
-                                    textAlign: 'start',
-                                    cursor: 'pointer',
-                                    minWidth: 0,
-                                    overflow: 'hidden',
-                                    textOverflow: 'ellipsis',
-                                    whiteSpace: 'nowrap',
-                                    color: String(item.label || '').trim() === effectiveSelectedCountry
-                                      ? 'var(--color-primary, #4f46e5)'
-                                      : 'var(--color-text, #111)',
-                                    fontWeight: String(item.label || '').trim() === effectiveSelectedCountry ? 700 : 400,
-                                  }}
-                                  title={t('adminConsole.showCitiesForLabel', { label: item.label })}
-                                >
-                                  {item.label}
-                                </button>
-                              ) : (
-                                <span style={{ color: 'var(--color-text, #111)', minWidth: 0, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>{item.label}</span>
-                              )}
-                              <strong style={{ color: 'var(--color-primary, #4f46e5)', flexShrink: 0 }}>{item.value}</strong>
-                            </li>
-                          ))}
-                        </ul>
-                      ) : null}
-                      {block.expandable ? (
-                        <button
-                          type="button"
-                          className="btn-secondary"
-                          onClick={() => setShowAllCitiesForCountry((current) => !current)}
-                          style={{ marginTop: '10px', fontSize: '12px', padding: '4px 8px' }}
-                        >
-                          {showAllCitiesForCountry ? t('adminConsole.showLess') : t('adminConsole.showAllCities')}
-                        </button>
-                      ) : (
-                        block.list.length === 0 ? <p style={{ margin: 0, fontSize: '12px', color: 'var(--color-muted, #6b7280)' }}>{t('adminConsole.noDataAvailable')}</p> : null
-                      )}
-                    </div>
-                  ))}
-                </div>
-              ) : null}
-
-
-            </div>
+            <AnalyticsTab
+              analyticsDays={analyticsDays}
+              analyticsError={analyticsError}
+              analyticsLoading={analyticsLoading}
+              analyticsSnapshot={analyticsSnapshot}
+              canExpandCitiesForCountry={canExpandCitiesForCountry}
+              displayedCitiesForAnalytics={displayedCitiesForAnalytics}
+              effectiveSelectedCountry={effectiveSelectedCountry}
+              exportAnalyticsCsv={exportAnalyticsCsv}
+              loadAnalytics={loadAnalytics}
+              locale={locale}
+              setAnalyticsDays={setAnalyticsDays}
+              setSelectedVisitorCountry={setSelectedVisitorCountry}
+              setShowAllCitiesForCountry={setShowAllCitiesForCountry}
+              showAllCitiesForCountry={showAllCitiesForCountry}
+              t={t}
+              visitorCountries={visitorCountries}
+            />
           ) : null}
 
           {/* ── UTILISATEURS ── */}
           {activeTab === 'users' ? (
-            <div>
-              <div style={{ marginBottom: '28px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
-                <div>
-                  <h1 style={{ fontSize: '22px', fontWeight: 700, margin: '0 0 4px' }}>{t('adminConsole.users')}</h1>
-                  <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '14px' }}>{t('adminConsole.manageUserAccountsAndApprovalRequests')}</p>
-                </div>
-                <button
-                  type="button"
-                  className="btn-primary"
-                  onClick={() => {
-                    setEditingUser(null);
-                    setNewUserMessage('');
-                    setShowNewUserForm((current) => !current);
-                  }}
-                >
-                  {showNewUserForm ? t('adminConsole.closeForm') : t('adminConsole.createUser')}
-                </button>
-              </div>
-
-              <div style={{ display: 'grid', gap: '20px' }}>
-                <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
-                  <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>{t('adminConsole.pendingRequests')} {pendingUsers.length > 0 ? `(${pendingUsers.length})` : ''}</h2>
-                  {pendingUsers.length === 0 ? <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '13px' }}>{t('adminConsole.noPendingRequest')}</p> : null}
-                  {pendingUsers.length > 0 ? (
-                    <ul className="session-list" style={{ margin: 0 }}>
-                      {pendingUsers.map((u) => (
-                        <li key={String(u.id)} className="session-item" style={{ alignItems: 'center' }}>
-                          <div style={{ minWidth: 0, flex: '1 1 auto' }}>
-                            <p className="session-title">{u.first_name || ''} {u.last_name || ''}</p>
-                            <p className="session-meta">{u.email}</p>
-                          </div>
-                          <div className="session-item-actions" style={{ flexShrink: 0 }}>
-                            <button type="button" className="btn-primary" disabled={busyApprovalId === u.id} onClick={() => updateApproval(u.id, 'approved')} style={{ fontSize: '12px', padding: '5px 10px' }}>{t('adminConsole.approve')}</button>
-                            <button type="button" className="btn-secondary" disabled={busyApprovalId === u.id} onClick={() => updateApproval(u.id, 'rejected')} style={{ fontSize: '12px', padding: '5px 10px' }}>{t('adminConsole.reject')}</button>
-                          </div>
-                        </li>
-                      ))}
-                    </ul>
-                  ) : null}
-                </div>
-
-                {showNewUserForm ? (
-                  <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
-                    <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>{t('adminConsole.createAnAccount')}</h2>
-                    <form className="auth-form" onSubmit={submitNewUser} autoComplete="off">
-                      <input type="text" name="fake_username" autoComplete="username" style={{ display: 'none' }} tabIndex={-1} aria-hidden="true" />
-                      <input type="password" name="fake_password" autoComplete="current-password" style={{ display: 'none' }} tabIndex={-1} aria-hidden="true" />
-                      <label>{t('adminConsole.firstName')}<input name="create_user_first_name" autoComplete="off" value={newUser.first_name} onChange={(e) => setNewUser((p) => ({ ...p, first_name: e.target.value }))} required /></label>
-                      <label>{t('adminConsole.lastName')}<input name="create_user_last_name" autoComplete="off" value={newUser.last_name} onChange={(e) => setNewUser((p) => ({ ...p, last_name: e.target.value }))} /></label>
-                      <label>Email<input type="email" name="create_user_email" autoComplete="off" value={newUser.email} onChange={(e) => setNewUser((p) => ({ ...p, email: e.target.value }))} required /></label>
-                      <label>{t('adminConsole.password')}<input type="password" name="create_user_password" autoComplete="new-password" minLength={8} value={newUser.password} onChange={(e) => setNewUser((p) => ({ ...p, password: e.target.value }))} required /></label>
-                      <label>{t('adminConsole.role')}
-                        <select value={newUser.role} onChange={(e) => setNewUser((p) => ({ ...p, role: e.target.value }))}>
-                          <option value="user">{t('adminConsole.user')}</option>
-                          <option value="admin">Admin</option>
-                        </select>
-                      </label>
-                      <div style={{ display: 'flex', gap: '8px', marginTop: '4px', flexWrap: 'wrap' }}>
-                        <button type="submit" className="btn-primary">{t('adminConsole.createAccount')}</button>
-                        <button
-                          type="button"
-                          className="btn-secondary"
-                          onClick={() => {
-                            setShowNewUserForm(false);
-                            setNewUserMessage('');
-                          }}
-                        >
-                          {t('adminConsole.cancel')}
-                        </button>
-                      </div>
-                    </form>
-                    {newUserMessage ? <p className="session-meta" style={{ marginTop: '8px' }}>{newUserMessage}</p> : null}
-                  </div>
-                ) : null}
-
-                <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap', marginBottom: '12px' }}>
-                    <h2 style={{ fontSize: '15px', fontWeight: 700, margin: 0 }}>
-                      {t('adminConsole.list')} {users.length > 0 ? <span style={{ fontWeight: 400, color: 'var(--color-muted, #6b7280)', fontSize: '13px' }}>({filteredUsers.length}/{users.length})</span> : null}
-                    </h2>
-                    <input
-                      type="search"
-                      className="inline-input"
-                      placeholder={t('adminConsole.search')}
-                      value={userQuery}
-                      onChange={(e) => setUserQuery(e.target.value)}
-                      style={{ width: 'min(360px, 100%)' }}
-                    />
-                  </div>
-                  <ul className="session-list" style={{ margin: 0 }}>
-                    {filteredUsers.length === 0 ? <li className="list-empty">{t('adminConsole.noMatchingUser')}</li> : null}
-                    {filteredUsers.map((u) => (
-                      <li key={String(u.id)} className="session-item" style={{ alignItems: 'center' }}>
-                        <div style={{ minWidth: 0, flex: '1 1 auto' }}>
-                          <p className="session-title">{u.first_name || ''} {u.last_name || ''}</p>
-                          <p className="session-meta">
-                            {u.email} · {u.role || 'user'} · {u.disabled ? t('adminConsole.inactive') : t('adminConsole.active')}
-                            {isPlatformAdminEmail(u.email) ? ` · ${t('adminConsole.verificationNotRequired')}` : ''}
-                          </p>
-                        </div>
-                        <div className="session-item-actions icon-only-actions" style={{ flexShrink: 0 }}>
-                          {!isPlatformAdminEmail(u.email) ? (
-                            <button
-                              type="button"
-                              className="icon-action-btn"
-                              onClick={() => handleAdminUserVerificationOverride(u)}
-                              disabled={busySaveKey === `verify-admin:user:${u.id}`}
-                              title={t('adminConsole.manualAdminVerification')}
-                              aria-label={t('adminConsole.manualAdminVerification')}
-                            >
-                              {busySaveKey === `verify-admin:user:${u.id}` ? '…' : '✓'}
-                            </button>
-                          ) : null}
-                          {!isPlatformAdminEmail(u.email) ? (
-                            <button
-                              type="button"
-                              className="icon-action-btn"
-                              onClick={() => handleResendVerificationLink(u)}
-                              disabled={busySaveKey === `verify:user:${u.id}`}
-                              title={t('adminConsole.resendVerificationLink')}
-                              aria-label={t('adminConsole.resendVerificationLink')}
-                            >
-                              {busySaveKey === `verify:user:${u.id}` ? '…' : '✉'}
-                            </button>
-                          ) : null}
-                          <button
-                            type="button"
-                            className="icon-action-btn"
-                            onClick={() => beginEditUser(u)}
-                            title={t('adminConsole.edit')}
-                            aria-label={t('adminConsole.editUser')}
-                          >
-                            ✎
-                          </button>
-                          <button
-                            type="button"
-                            className="icon-action-btn"
-                            onClick={() => handleToggleUserStatus(u)}
-                            disabled={busySaveKey === `status:user:${u.id}` || String(u.id) === String(user?.id)}
-                            title={u.disabled ? t('adminConsole.enable') : t('adminConsole.disable')}
-                            aria-label={u.disabled ? t('adminConsole.enableUser') : t('adminConsole.disableUser')}
-                          >
-                            {busySaveKey === `status:user:${u.id}` ? '…' : u.disabled ? '↺' : '⏸'}
-                          </button>
-                          <button
-                            type="button"
-                            className="icon-action-btn icon-action-danger"
-                            onClick={() => handleDeleteUser(u)}
-                            disabled={busyDeleteKey === `user:${u.id}` || String(u.id) === String(user?.id)}
-                            title={t('adminConsole.delete')}
-                            aria-label={t('adminConsole.deleteUser')}
-                          >
-                            {busyDeleteKey === `user:${u.id}` ? '…' : '🗑'}
-                          </button>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            </div>
+            <UsersTab
+              beginEditUser={beginEditUser}
+              busyApprovalId={busyApprovalId}
+              busyDeleteKey={busyDeleteKey}
+              busySaveKey={busySaveKey}
+              filteredUsers={filteredUsers}
+              handleAdminUserVerificationOverride={handleAdminUserVerificationOverride}
+              handleDeleteUser={handleDeleteUser}
+              handleResendVerificationLink={handleResendVerificationLink}
+              handleToggleUserStatus={handleToggleUserStatus}
+              newUser={newUser}
+              newUserMessage={newUserMessage}
+              pendingUsers={pendingUsers}
+              setEditingUser={setEditingUser}
+              setNewUser={setNewUser}
+              setNewUserMessage={setNewUserMessage}
+              setShowNewUserForm={setShowNewUserForm}
+              setUserQuery={setUserQuery}
+              showNewUserForm={showNewUserForm}
+              submitNewUser={submitNewUser}
+              t={t}
+              updateApproval={updateApproval}
+              user={user}
+              userQuery={userQuery}
+              users={users}
+            />
           ) : null}
 
           {/* ── PARTICIPANTS ── */}
           {activeTab === 'participants' ? (
-            <div>
-              <div style={{ marginBottom: '28px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
-                <div>
-                  <h1 style={{ fontSize: '22px', fontWeight: 700, margin: '0 0 4px' }}>{t('adminConsole.participants')}</h1>
-                  <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '14px' }}>{t('adminConsole.manageParticipantAccountsLinkedToUsers')}</p>
-                </div>
-                <button
-                  type="button"
-                  className="btn-primary"
-                  onClick={() => {
-                    setEditingParticipant(null);
-                    setNewParticipantMessage('');
-                    setShowNewParticipantForm((current) => !current);
-                  }}
-                >
-                  {showNewParticipantForm ? t('adminConsole.closeForm') : t('adminConsole.createParticipant')}
-                </button>
-              </div>
-
-              <div style={{ display: 'grid', gap: '20px' }}>
-                {showNewParticipantForm ? (
-                  <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
-                    <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>{t('adminConsole.createParticipant')}</h2>
-                    <form className="auth-form" onSubmit={submitNewParticipant} autoComplete="off">
-                      <input type="text" name="fake_participant_username" autoComplete="username" style={{ display: 'none' }} tabIndex={-1} aria-hidden="true" />
-                      <input type="password" name="fake_participant_password" autoComplete="current-password" style={{ display: 'none' }} tabIndex={-1} aria-hidden="true" />
-                      <label>{t('adminConsole.owner')}
-                        <select value={newParticipant.owner_id} onChange={(e) => setNewParticipant((prev) => ({ ...prev, owner_id: e.target.value }))} required>
-                          <option value="">{t('adminConsole.selectAUser')}</option>
-                          {users.filter((u) => String(u.role || '') === 'user').map((u) => (
-                            <option key={String(u.id)} value={String(u.id)}>{u.first_name || ''} {u.last_name || ''} ({u.email})</option>
-                          ))}
-                        </select>
-                      </label>
-                      <label>{t('adminConsole.firstName')}<input name="create_participant_first_name" autoComplete="off" value={newParticipant.first_name} onChange={(e) => setNewParticipant((prev) => ({ ...prev, first_name: e.target.value }))} required /></label>
-                      <label>{t('adminConsole.lastName')}<input name="create_participant_last_name" autoComplete="off" value={newParticipant.last_name} onChange={(e) => setNewParticipant((prev) => ({ ...prev, last_name: e.target.value }))} /></label>
-                      <label>Email<input type="email" name="create_participant_email" autoComplete="off" value={newParticipant.email} onChange={(e) => setNewParticipant((prev) => ({ ...prev, email: e.target.value }))} required /></label>
-                      <label>{t('adminConsole.password')}<input type="password" name="create_participant_password" autoComplete="new-password" minLength={8} value={newParticipant.password} onChange={(e) => setNewParticipant((prev) => ({ ...prev, password: e.target.value }))} required /></label>
-                      <label>{t('adminConsole.jobTitle')}<input value={newParticipant.job_title} onChange={(e) => setNewParticipant((prev) => ({ ...prev, job_title: e.target.value }))} /></label>
-                      <label>{t('adminConsole.department')}<input value={newParticipant.department} onChange={(e) => setNewParticipant((prev) => ({ ...prev, department: e.target.value }))} /></label>
-                      <div style={{ display: 'flex', gap: '8px', marginTop: '4px', flexWrap: 'wrap' }}>
-                        <button type="submit" className="btn-primary" disabled={busySaveKey === 'create:participant'}>{busySaveKey === 'create:participant' ? t('adminConsole.creating') : t('adminConsole.createParticipant2')}</button>
-                        <button
-                          type="button"
-                          className="btn-secondary"
-                          onClick={() => {
-                            setShowNewParticipantForm(false);
-                            setNewParticipantMessage('');
-                          }}
-                        >
-                          {t('adminConsole.cancel')}
-                        </button>
-                      </div>
-                    </form>
-                    {newParticipantMessage ? <p className="session-meta" style={{ marginTop: '8px' }}>{newParticipantMessage}</p> : null}
-                  </div>
-                ) : null}
-
-                <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap', marginBottom: '12px' }}>
-                    <h2 style={{ fontSize: '15px', fontWeight: 700, margin: 0 }}>
-                      {t('adminConsole.list')} {participants.length > 0 ? <span style={{ fontWeight: 400, color: 'var(--color-muted, #6b7280)', fontSize: '13px' }}>({filteredParticipants.length}/{participants.length})</span> : null}
-                    </h2>
-                    <input
-                      type="search"
-                      className="inline-input"
-                      placeholder={t('adminConsole.search')}
-                      value={participantQuery}
-                      onChange={(e) => setParticipantQuery(e.target.value)}
-                      style={{ width: 'min(360px, 100%)' }}
-                    />
-                  </div>
-                  <ul className="session-list" style={{ margin: 0 }}>
-                    {filteredParticipants.length === 0 ? <li className="list-empty">{t('adminConsole.noMatchingParticipant')}</li> : null}
-                    {filteredParticipants.map((p) => (
-                      <li key={String(p.id)} className="session-item" style={{ alignItems: 'center' }}>
-                        <div style={{ minWidth: 0, flex: '1 1 auto' }}>
-                          <p className="session-title">{getParticipantDisplayName(p)}</p>
-                          <p className="session-meta">{p.email} · {p.disabled ? t('adminConsole.inactive') : t('adminConsole.active')} · {p.creator?.email || `${t('adminConsole.owner')} #${p.created_by || '?'}`}</p>
-                        </div>
-                        <div className="session-item-actions icon-only-actions" style={{ flexShrink: 0 }}>
-                          <button
-                            type="button"
-                            className="icon-action-btn"
-                            onClick={() => handleAdminParticipantVerificationOverride(p)}
-                            disabled={busySaveKey === `verify-admin:participant:${p.id}`}
-                            title={t('adminConsole.manualAdminVerification')}
-                            aria-label={t('adminConsole.manualParticipantVerification')}
-                          >
-                            {busySaveKey === `verify-admin:participant:${p.id}` ? '…' : '✓'}
-                          </button>
-                          <button
-                            type="button"
-                            className="icon-action-btn"
-                            onClick={() => handleResendParticipantVerificationLink(p)}
-                            disabled={busySaveKey === `verify:participant:${p.id}`}
-                            title={t('adminConsole.resendVerificationLink')}
-                            aria-label={t('adminConsole.resendParticipantVerificationLink')}
-                          >
-                            {busySaveKey === `verify:participant:${p.id}` ? '…' : '✉'}
-                          </button>
-                          <button
-                            type="button"
-                            className="icon-action-btn"
-                            onClick={() => beginEditParticipant(p)}
-                            title={t('adminConsole.edit')}
-                            aria-label={t('adminConsole.editParticipant')}
-                          >
-                            ✎
-                          </button>
-                          <button
-                            type="button"
-                            className="icon-action-btn"
-                            onClick={() => handleToggleParticipantStatus(p)}
-                            disabled={busySaveKey === `status:participant:${p.id}`}
-                            title={p.disabled ? t('adminConsole.enable') : t('adminConsole.disable')}
-                            aria-label={p.disabled ? t('adminConsole.enableParticipant') : t('adminConsole.disableParticipant')}
-                          >
-                            {busySaveKey === `status:participant:${p.id}` ? '…' : p.disabled ? '↺' : '⏸'}
-                          </button>
-                          <button
-                            type="button"
-                            className="icon-action-btn icon-action-danger"
-                            onClick={() => handleDeleteParticipant(p)}
-                            disabled={busyDeleteKey === `participant:${p.id}`}
-                            title={t('adminConsole.delete')}
-                            aria-label={t('adminConsole.deleteParticipant')}
-                          >
-                            {busyDeleteKey === `participant:${p.id}` ? '…' : '🗑'}
-                          </button>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            </div>
+            <ParticipantsTab
+              beginEditParticipant={beginEditParticipant}
+              busyDeleteKey={busyDeleteKey}
+              busySaveKey={busySaveKey}
+              filteredParticipants={filteredParticipants}
+              handleAdminParticipantVerificationOverride={handleAdminParticipantVerificationOverride}
+              handleDeleteParticipant={handleDeleteParticipant}
+              handleResendParticipantVerificationLink={handleResendParticipantVerificationLink}
+              handleToggleParticipantStatus={handleToggleParticipantStatus}
+              newParticipant={newParticipant}
+              newParticipantMessage={newParticipantMessage}
+              participantQuery={participantQuery}
+              participants={participants}
+              setEditingParticipant={setEditingParticipant}
+              setNewParticipant={setNewParticipant}
+              setNewParticipantMessage={setNewParticipantMessage}
+              setParticipantQuery={setParticipantQuery}
+              setShowNewParticipantForm={setShowNewParticipantForm}
+              showNewParticipantForm={showNewParticipantForm}
+              submitNewParticipant={submitNewParticipant}
+              t={t}
+              users={users}
+            />
           ) : null}
 
           <Modal
@@ -3014,1257 +2570,119 @@ export default function AdminClient() {
 
           {/* ── SESSIONS ── */}
           {activeTab === 'sessions' ? (
-            <div>
-              <div style={{ marginBottom: '28px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
-                <div>
-                  <h1 style={{ fontSize: '22px', fontWeight: 700, margin: '0 0 4px' }}>{t('adminConsole.sessions')}</h1>
-                  <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '14px' }}>{t('adminConsole.createSuperviseAndUpdateSessionsFrom')}</p>
-                </div>
-                <button
-                  type="button"
-                  className="btn-primary"
-                  onClick={() => {
-                    setEditingSession(null);
-                    setNewSessionMessage('');
-                    setShowNewSessionForm((current) => !current);
-                  }}
-                >
-                  {showNewSessionForm ? t('adminConsole.closeForm') : t('adminConsole.createSession')}
-                </button>
-              </div>
-
-              <div style={{ display: 'grid', gap: '20px' }}>
-                {showNewSessionForm ? (
-                  <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
-                    <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>{t('adminConsole.createSession')}</h2>
-                    <form className="auth-form" onSubmit={submitNewSession}>
-                      <p style={{ margin: 0, fontSize: '12px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--color-muted, #6b7280)' }}>{t('adminConsole.step1')}</p>
-                      <label>{t('adminConsole.name')}<input value={newSession.name} onChange={(e) => setNewSession((p) => ({ ...p, name: e.target.value }))} required /></label>
-                      <label>{t('adminConsole.status')}
-                        <select value={newSession.status} onChange={(e) => setNewSession((p) => ({ ...p, status: e.target.value }))}>
-                          <option value="preparee">{getLocalizedLabel(SESSION_STATUS_OPTION_LABELS.preparee, locale)}</option>
-                          <option value="en_cours">{getLocalizedLabel(SESSION_STATUS_OPTION_LABELS.en_cours, locale)}</option>
-                          <option value="terminee">{getLocalizedLabel(SESSION_STATUS_OPTION_LABELS.terminee, locale)}</option>
-                        </select>
-                      </label>
-                      <label>{t('adminConsole.format')}<input value={newSession.format} onChange={(e) => setNewSession((p) => ({ ...p, format: e.target.value }))} placeholder={t('adminConsole.exampleWorkshop')} /></label>
-                      <label>{t('adminConsole.modality')}
-                        <select value={newSession.modality} onChange={(e) => setNewSession((p) => ({ ...p, modality: e.target.value }))}>
-                          <option value="">{getLocalizedLabel(SESSION_MODALITY_OPTION_LABELS[''], locale)}</option>
-                          <option value="remote">{getLocalizedLabel(SESSION_MODALITY_OPTION_LABELS.remote, locale)}</option>
-                          <option value="hybrid">{getLocalizedLabel(SESSION_MODALITY_OPTION_LABELS.hybrid, locale)}</option>
-                          <option value="in-person">{getLocalizedLabel(SESSION_MODALITY_OPTION_LABELS['in-person'], locale)}</option>
-                        </select>
-                      </label>
-                      <label>{t('adminConsole.date')}<input type="date" value={newSession.session_date} onChange={(e) => setNewSession((p) => ({ ...p, session_date: e.target.value }))} /></label>
-                      <label>{t('adminConsole.durationMinutes')}<input type="number" min={1} value={newSession.duration_minutes} onChange={(e) => setNewSession((p) => ({ ...p, duration_minutes: e.target.value }))} /></label>
-
-                      <div style={{ border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '12px' }}>
-                        <p style={{ margin: '0 0 8px', fontSize: '12px', fontWeight: 700, letterSpacing: '0.08em', textTransform: 'uppercase', color: 'var(--color-muted, #6b7280)' }}>{t('adminConsole.step2Optional')}</p>
-                        <p style={{ margin: '0 0 10px', fontSize: '13px', color: 'var(--color-muted, #6b7280)' }}>
-                          {t('adminConsole.assignParticipantsNowSoTheyCan')}
-                        </p>
-                        <input
-                          type="search"
-                          className="inline-input"
-                          placeholder={t('adminConsole.searchAParticipant')}
-                          value={newSessionMemberQuery}
-                          onChange={(e) => setNewSessionMemberQuery(e.target.value)}
-                          style={{ marginBottom: '8px' }}
-                        />
-                        <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap', marginBottom: '8px' }}>
-                          <button
-                            type="button"
-                            className="btn-secondary"
-                            onClick={() => setNewSessionMemberIds(filteredAssignableMembers.map((m) => String(m.id)))}
-                            disabled={filteredAssignableMembers.length === 0}
-                          >
-                            {t('adminConsole.selectAll')}
-                          </button>
-                          <button
-                            type="button"
-                            className="btn-secondary"
-                            onClick={() => setNewSessionMemberIds([])}
-                            disabled={newSessionMemberIds.length === 0}
-                          >
-                            {t('adminConsole.unselectAll')}
-                          </button>
-                        </div>
-                        <div style={{ maxHeight: '160px', overflowY: 'auto', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '8px', padding: '8px' }}>
-                          {filteredAssignableMembers.length === 0 ? (
-                            <p style={{ margin: 0, fontSize: '13px', color: 'var(--color-muted, #6b7280)' }}>{t('adminConsole.noParticipantAvailable')}</p>
-                          ) : (
-                            <ul style={{ listStyle: 'none', margin: 0, padding: 0, display: 'grid', gap: '6px' }}>
-                              {filteredAssignableMembers.map((member) => {
-                                const selected = newSessionMemberIds.includes(String(member.id));
-                                return (
-                                  <li key={String(member.id)}>
-                                    <label style={{ display: 'flex', alignItems: 'center', gap: '8px', cursor: 'pointer' }}>
-                                      <input
-                                        type="checkbox"
-                                        checked={selected}
-                                        onChange={() => toggleNewSessionMember(member.id)}
-                                      />
-                                      <span style={{ fontSize: '13px' }}>
-                                        {getParticipantDisplayName(member)}
-                                        {member.email ? <span style={{ color: 'var(--color-muted, #6b7280)' }}> · {member.email}</span> : null}
-                                      </span>
-                                    </label>
-                                  </li>
-                                );
-                              })}
-                            </ul>
-                          )}
-                        </div>
-                        <p className="session-meta" style={{ marginTop: '8px' }}>
-                          {t('adminConsole.lengthParticipantValueAssigned', { length: newSessionMemberIds.length, value: newSessionMemberIds.length > 1 ? 's' : '' })}
-                        </p>
-                      </div>
-
-                      <button type="submit" className="btn-primary" disabled={busySaveKey === 'create:session'}>
-                        {busySaveKey === 'create:session' ? t('adminConsole.creating') : t('adminConsole.createSession2')}
-                      </button>
-                      <button
-                        type="button"
-                        className="btn-secondary"
-                        onClick={() => {
-                          setShowNewSessionForm(false);
-                          setNewSessionMessage('');
-                        }}
-                      >
-                        {t('adminConsole.cancel')}
-                      </button>
-                    </form>
-                    {newSessionMessage ? <p className="session-meta" style={{ marginTop: '8px' }}>{newSessionMessage}</p> : null}
-                  </div>
-                ) : null}
-
-                {editingSession ? (
-                  <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-primary, #4f46e5)', borderRadius: '10px', padding: '20px 24px' }}>
-                    <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>{t('adminConsole.editSession')}</h2>
-                    <form className="auth-form" onSubmit={submitEditSession}>
-                        <label>{t('adminConsole.name')}<input value={editingSession.name} onChange={(e) => setEditingSession((p) => ({ ...p, name: e.target.value }))} required /></label>
-                        <label>{t('adminConsole.status')}
-                          <select value={editingSession.status} onChange={(e) => setEditingSession((p) => ({ ...p, status: e.target.value }))}>
-                            <option value="preparee">{getSessionStatusLabel('preparee', locale)}</option>
-                            <option value="en_cours">{getSessionStatusLabel('en_cours', locale)}</option>
-                            <option value="terminee">{getSessionStatusLabel('terminee', locale)}</option>
-                          </select>
-                        </label>
-                        <label>{t('adminConsole.format')}<input value={editingSession.format} onChange={(e) => setEditingSession((p) => ({ ...p, format: e.target.value }))} /></label>
-                        <label>{t('adminConsole.modality')}
-                          <select value={editingSession.modality} onChange={(e) => setEditingSession((p) => ({ ...p, modality: e.target.value }))}>
-                            <option value="">{getSessionModalityLabel('', locale)}</option>
-                            <option value="remote">{getSessionModalityLabel('remote', locale)}</option>
-                            <option value="hybrid">{getSessionModalityLabel('hybrid', locale)}</option>
-                            <option value="in-person">{getSessionModalityLabel('in-person', locale)}</option>
-                          </select>
-                        </label>
-                        <label>{t('adminConsole.date')}<input type="date" value={editingSession.session_date} onChange={(e) => setEditingSession((p) => ({ ...p, session_date: e.target.value }))} /></label>
-                        <label>{t('adminConsole.durationMinutes')}<input type="number" min={1} value={editingSession.duration_minutes} onChange={(e) => setEditingSession((p) => ({ ...p, duration_minutes: e.target.value }))} /></label>
-                        <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
-                          <button type="submit" className="btn-primary" disabled={busySaveKey === `save:session:${editingSession.id}`}>{busySaveKey === `save:session:${editingSession.id}` ? t('adminConsole.saving') : t('adminConsole.save')}</button>
-                          <button type="button" className="btn-secondary" onClick={() => setEditingSession(null)}>{t('adminConsole.cancel')}</button>
-                        </div>
-                    </form>
-                  </div>
-                ) : null}
-
-                <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap', marginBottom: '12px' }}>
-                    <h2 style={{ fontSize: '15px', fontWeight: 700, margin: 0 }}>
-                      {t('adminConsole.list')} {sessions.length > 0 ? <span style={{ fontWeight: 400, color: 'var(--color-muted, #6b7280)', fontSize: '13px' }}>({filteredSessions.length}/{sessions.length})</span> : null}
-                    </h2>
-                    <input
-                      type="search"
-                      className="inline-input"
-                      placeholder={t('adminConsole.search')}
-                      value={sessionQuery}
-                      onChange={(e) => setSessionQuery(e.target.value)}
-                      style={{ width: 'min(360px, 100%)' }}
-                    />
-                  </div>
-                  <ul className="session-list" style={{ margin: 0 }}>
-                    {filteredSessions.length === 0 ? <li className="list-empty">{t('adminConsole.noMatchingSession')}</li> : null}
-                    {filteredSessions.map((s) => (
-                      <li key={String(s.id)} className="session-item" style={{ alignItems: 'center' }}>
-                        <div style={{ minWidth: 0, flex: '1 1 auto' }}>
-                          <p className="session-title">{s.name || `Session #${s.id}`}</p>
-                          <p className="session-meta" style={{ display: 'flex', alignItems: 'center', gap: '8px', flexWrap: 'wrap' }}>
-                            <span className={`status-pill status-${s.status || 'preparee'}`}>
-                              {getSessionStatusLabel(s.status, locale)}
-                            </span>
-                            {s.modality ? <span>{t('adminConsole.modality')}: {getSessionModalityLabel(s.modality, locale) || s.modality}</span> : null}
-                            <span>{t('adminConsole.owner')}: {getSessionOwnerLabel(s)}</span>
-                          </p>
-                        </div>
-                        <div className="session-item-actions" style={{ flexShrink: 0 }}>
-                          <button type="button" className="btn-secondary" onClick={() => beginEditSession(s)}>{t('adminConsole.edit')}</button>
-                          <button type="button" className="btn-secondary" onClick={() => handleDeleteSession(s)} disabled={busyDeleteKey === `session:${s.id}`}>
-                            {busyDeleteKey === `session:${s.id}` ? '...' : t('adminConsole.delete')}
-                          </button>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            </div>
+            <SessionsTab
+              beginEditSession={beginEditSession}
+              busyDeleteKey={busyDeleteKey}
+              busySaveKey={busySaveKey}
+              editingSession={editingSession}
+              filteredAssignableMembers={filteredAssignableMembers}
+              filteredSessions={filteredSessions}
+              getSessionOwnerLabel={getSessionOwnerLabel}
+              handleDeleteSession={handleDeleteSession}
+              locale={locale}
+              newSession={newSession}
+              newSessionMemberIds={newSessionMemberIds}
+              newSessionMemberQuery={newSessionMemberQuery}
+              newSessionMessage={newSessionMessage}
+              sessionQuery={sessionQuery}
+              sessions={sessions}
+              setEditingSession={setEditingSession}
+              setNewSession={setNewSession}
+              setNewSessionMemberIds={setNewSessionMemberIds}
+              setNewSessionMemberQuery={setNewSessionMemberQuery}
+              setNewSessionMessage={setNewSessionMessage}
+              setSessionQuery={setSessionQuery}
+              setShowNewSessionForm={setShowNewSessionForm}
+              showNewSessionForm={showNewSessionForm}
+              submitEditSession={submitEditSession}
+              submitNewSession={submitNewSession}
+              t={t}
+              toggleNewSessionMember={toggleNewSessionMember}
+            />
           ) : null}
 
           {/* ── CHALLENGES ── */}
           {activeTab === 'challenges' ? (
-            <div>
-              <div style={{ marginBottom: '28px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
-                <div>
-                  <h1 style={{ fontSize: '22px', fontWeight: 700, margin: '0 0 4px' }}>Challenges</h1>
-                  <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '14px' }}>{t('adminConsole.manageTheAvailableChallengeCatalog')}</p>
-                </div>
-                <button
-                  type="button"
-                  className="btn-primary"
-                  onClick={() => {
-                    setEditingChallenge(null);
-                    setChallengeImageUploadError('');
-                    setNewChallengeMessage('');
-                    setShowNewChallengeForm((current) => !current);
-                  }}
-                >
-                  {showNewChallengeForm ? t('adminConsole.closeForm') : t('adminConsole.addChallenge')}
-                </button>
-              </div>
-
-              <div style={{ display: 'grid', gap: '20px' }}>
-                {showNewChallengeForm ? (
-                  <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
-                    <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>{t('adminConsole.addChallenge')}</h2>
-                    <form className="auth-form" onSubmit={submitNewChallenge}>
-                      <label>{t('adminConsole.name')}<input value={newChallenge.name} onChange={(e) => setNewChallenge((p) => ({ ...p, name: e.target.value }))} required /></label>
-                      <label>{t('adminConsole.type')}
-                        <select value={newChallenge.type} onChange={(e) => setNewChallenge((p) => ({ ...p, type: e.target.value }))}>
-                          <option value="individuel">{getLocalizedLabel(CHALLENGE_TYPE_OPTION_LABELS.individuel, locale)}</option>
-                          <option value="equipe">{getLocalizedLabel(CHALLENGE_TYPE_OPTION_LABELS.equipe, locale)}</option>
-                        </select>
-                      </label>
-                      <label>{t('adminConsole.status')}
-                        <select value={newChallenge.status} onChange={(e) => setNewChallenge((p) => ({ ...p, status: e.target.value }))}>
-                          <option value="actif">{getLocalizedLabel(CHALLENGE_STATUS_OPTION_LABELS.actif, locale)}</option>
-                          <option value="brouillon">{getLocalizedLabel(CHALLENGE_STATUS_OPTION_LABELS.brouillon, locale)}</option>
-                          <option value="archive">{getLocalizedLabel(CHALLENGE_STATUS_OPTION_LABELS.archive, locale)}</option>
-                        </select>
-                      </label>
-                      <label>{t('adminConsole.source')}
-                        <select value={newChallenge.source} onChange={(e) => setNewChallenge((p) => ({ ...p, source: e.target.value }))}>
-                          <option value="local">{getLocalizedLabel(CHALLENGE_SOURCE_OPTION_LABELS.local, locale)}</option>
-                          <option value="external">{getLocalizedLabel(CHALLENGE_SOURCE_OPTION_LABELS.external, locale)}</option>
-                        </select>
-                      </label>
-                      <label>{t('adminConsole.category')}
-                        <select value={newChallenge.category} onChange={(e) => setNewChallenge((p) => ({ ...p, category: e.target.value }))}>
-                          <option value="">{t('adminConsole.select')}</option>
-                          {challengeCategoryOptions.map((option) => (
-                            <option key={option.value} value={option.value}>{option.label}</option>
-                          ))}
-                        </select>
-                      </label>
-                      <label>{t('adminConsole.objectives')}
-                        <div style={{ display: 'grid', gap: '8px' }}>
-                          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', fontSize: '13px', color: 'var(--color-muted, #6b7280)' }}>
-                            <span>{t('adminConsole.chooseUpToMaxChallengeObjectives', { MAX_CHALLENGE_OBJECTIVES })}</span>
-                            <strong>{normalizeObjectivesInput(newChallenge.objectives).length}/{MAX_CHALLENGE_OBJECTIVES}</strong>
-                          </div>
-                          <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                            {challengeObjectiveOptions.map((option) => {
-                              const selectedObjectives = normalizeObjectivesInput(newChallenge.objectives);
-                              const isSelected = selectedObjectives.includes(option.value);
-                              const limitReached = selectedObjectives.length >= MAX_CHALLENGE_OBJECTIVES;
-                              const disabled = !isSelected && limitReached;
-                              return (
-                                <button
-                                  key={option.value}
-                                  type="button"
-                                  className="admin-objective-chip"
-                                  aria-pressed={isSelected}
-                                  onClick={() => setNewChallenge((p) => ({ ...p, objectives: toggleObjectiveSelection(p.objectives, option.value) }))}
-                                  disabled={disabled}
-                                >
-                                  {option.label}
-                                </button>
-                              );
-                            })}
-                          </div>
-                          {normalizeObjectivesInput(newChallenge.objectives).length >= MAX_CHALLENGE_OBJECTIVES ? (
-                              <p className="session-meta" style={{ margin: 0 }}>{t('adminConsole.limitReachedRemoveOneObjectiveTo')}</p>
-                          ) : null}
-                        </div>
-                      </label>
-                      <label>{t('adminConsole.duration')}<input value={newChallenge.duration} onChange={(e) => setNewChallenge((p) => ({ ...p, duration: e.target.value }))} /></label>
-                      <label>{t('adminConsole.engineKey')}
-                        <input list="known-engine-keys" value={newChallenge.engine_key} onChange={(e) => setNewChallenge((p) => ({ ...p, engine_key: e.target.value }))} />
-                      </label>
-                      <label>{t('adminConsole.description')}<textarea rows={4} value={newChallenge.description} onChange={(e) => setNewChallenge((p) => ({ ...p, description: e.target.value }))} /></label>
-                      <div style={{ border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '8px', padding: '12px', display: 'grid', gap: '10px' }}>
-                        <p style={{ margin: 0, fontWeight: 600 }}>{t('adminConsole.challengeRules')}</p>
-                        <p className="session-meta" style={{ margin: 0 }}>{t('adminConsole.thisContentFeedsTheBriefShown')}</p>
-                        <label>{t('adminConsole.missionBrief')}
-                          <textarea rows={3} value={newChallenge.rules_objective} onChange={(e) => setNewChallenge((p) => ({ ...p, rules_objective: e.target.value }))} placeholder={t('adminConsole.describeTheMainChallengeObjective')} />
-                        </label>
-                        <label>{t('adminConsole.facilitatorInstructions1Line1Rule')}
-                          <textarea rows={4} value={newChallenge.rules_facilitator} onChange={(e) => setNewChallenge((p) => ({ ...p, rules_facilitator: e.target.value }))} placeholder={t('adminConsole.frameTheChallenge10StartThe')} />
-                        </label>
-                        <label>{t('adminConsole.participantInstructions1Line1Rule')}
-                          <textarea rows={4} value={newChallenge.rules_participant} onChange={(e) => setNewChallenge((p) => ({ ...p, rules_participant: e.target.value }))} placeholder={t('adminConsole.listenToTheBrief10Collaborate')} />
-                        </label>
-                        <label>{t('adminConsole.closingNote')}
-                          <textarea rows={2} value={newChallenge.rules_footnote} onChange={(e) => setNewChallenge((p) => ({ ...p, rules_footnote: e.target.value }))} placeholder={t('adminConsole.optionalSummaryMessage')} />
-                        </label>
-                        <div style={{ borderTop: '1px dashed var(--color-border, #e5e7eb)', paddingTop: '10px', display: 'grid', gap: '10px' }}>
-                          <p style={{ margin: 0, fontWeight: 600 }}>{t('adminConsole.playersMinRecommendedMax')}</p>
-                          <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
-                            <label>Min
-                              <input type="number" min="1" value={newChallenge.player_min} onChange={(e) => setNewChallenge((p) => ({ ...p, player_min: e.target.value }))} />
-                            </label>
-                            <label>{t('adminConsole.recommended')}
-                              <input type="number" min="1" value={newChallenge.player_recommended} onChange={(e) => setNewChallenge((p) => ({ ...p, player_recommended: e.target.value }))} />
-                            </label>
-                            <label>Max
-                              <input type="number" min="1" value={newChallenge.player_max} onChange={(e) => setNewChallenge((p) => ({ ...p, player_max: e.target.value }))} />
-                            </label>
-                          </div>
-                        </div>
-                      </div>
-                      <button type="submit" className="btn-primary" disabled={busySaveKey === 'create:challenge'}>
-                        {busySaveKey === 'create:challenge' ? t('adminConsole.creating') : t('adminConsole.createChallenge')}
-                      </button>
-                      <button
-                        type="button"
-                        className="btn-secondary"
-                        onClick={() => {
-                          setShowNewChallengeForm(false);
-                          setNewChallengeMessage('');
-                        }}
-                      >
-                        {t('adminConsole.cancel')}
-                      </button>
-                    </form>
-                    {newChallengeMessage ? <p className="session-meta" style={{ marginTop: '8px' }}>{newChallengeMessage}</p> : null}
-                  </div>
-                ) : null}
-
-                {editingChallenge ? (
-                  <div
-                    style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'var(--modal-scrim, rgba(0,0,0,0.45))', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflowY: 'auto', padding: '40px 16px' }}
-                    onClick={(e) => { if (e.target === e.currentTarget) { setEditingChallenge(null); setChallengeImageUploadError(''); } }}
-                  >
-                    <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-primary, #4f46e5)', borderRadius: '12px', padding: '24px 28px', width: '100%', maxWidth: '640px', position: 'relative', marginBottom: '40px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '16px' }}>
-                        <h2 style={{ fontSize: '15px', fontWeight: 700, margin: 0 }}>{t('adminConsole.editChallenge')}</h2>
-                        <button type="button" onClick={() => { setEditingChallenge(null); setChallengeImageUploadError(''); }} style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '20px', color: 'var(--color-muted, #6b7280)', padding: '2px 8px', lineHeight: 1 }} aria-label={t('adminConsole.closeWindow')}>✕</button>
-                      </div>
-                    <form className="auth-form" onSubmit={submitEditChallenge}>
-                        <label>{t('adminConsole.name')}<input value={editingChallenge.name} onChange={(e) => setEditingChallenge((p) => ({ ...p, name: e.target.value }))} required /></label>
-                        <label>{t('adminConsole.type')}
-                          <select value={editingChallenge.type} onChange={(e) => setEditingChallenge((p) => ({ ...p, type: e.target.value }))}>
-                            <option value="individuel">{getChallengeTypeLabel('individuel', locale)}</option>
-                            <option value="equipe">{getChallengeTypeLabel('equipe', locale)}</option>
-                          </select>
-                        </label>
-                        <label>{t('adminConsole.status')}
-                          <select value={editingChallenge.status} onChange={(e) => setEditingChallenge((p) => ({ ...p, status: e.target.value }))}>
-                            <option value="actif">{getChallengeStatusLabel('actif', locale)}</option>
-                            <option value="brouillon">{getChallengeStatusLabel('brouillon', locale)}</option>
-                            <option value="archive">{getChallengeStatusLabel('archive', locale)}</option>
-                          </select>
-                        </label>
-                        <label>{t('adminConsole.category')}
-                          <select value={editingChallenge.category} onChange={(e) => setEditingChallenge((p) => ({ ...p, category: e.target.value }))}>
-                            <option value="">{t('adminConsole.select')}</option>
-                            {challengeCategoryOptions.map((option) => (
-                              <option key={option.value} value={option.value}>{option.label}</option>
-                            ))}
-                          </select>
-                        </label>
-                        <label>{t('adminConsole.objectives')}
-                          <div style={{ display: 'grid', gap: '8px' }}>
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '8px', fontSize: '13px', color: 'var(--color-muted, #6b7280)' }}>
-                              <span>{t('adminConsole.chooseUpToMaxChallengeObjectives', { MAX_CHALLENGE_OBJECTIVES })}</span>
-                              <strong>{normalizeObjectivesInput(editingChallenge.objectives).length}/{MAX_CHALLENGE_OBJECTIVES}</strong>
-                            </div>
-                            <div style={{ display: 'flex', gap: '8px', flexWrap: 'wrap' }}>
-                              {challengeObjectiveOptions.map((option) => {
-                                const selectedObjectives = normalizeObjectivesInput(editingChallenge.objectives);
-                                const isSelected = selectedObjectives.includes(option.value);
-                                const limitReached = selectedObjectives.length >= MAX_CHALLENGE_OBJECTIVES;
-                                const disabled = !isSelected && limitReached;
-                                return (
-                                  <button
-                                    key={option.value}
-                                    type="button"
-                                    className="admin-objective-chip"
-                                    aria-pressed={isSelected}
-                                    onClick={() => setEditingChallenge((p) => ({ ...p, objectives: toggleObjectiveSelection(p.objectives, option.value) }))}
-                                    disabled={disabled}
-                                  >
-                                    {option.label}
-                                  </button>
-                                );
-                              })}
-                            </div>
-                            {normalizeObjectivesInput(editingChallenge.objectives).length >= MAX_CHALLENGE_OBJECTIVES ? (
-                              <p className="session-meta" style={{ margin: 0 }}>{t('adminConsole.limitReachedRemoveOneObjectiveTo')}</p>
-                            ) : null}
-                          </div>
-                        </label>
-                        <label>{t('adminConsole.duration')}<input value={editingChallenge.duration} onChange={(e) => setEditingChallenge((p) => ({ ...p, duration: e.target.value }))} /></label>
-                        <label>{t('adminConsole.engineKey')}
-                          <input list="known-engine-keys" value={editingChallenge.engine_key} onChange={(e) => setEditingChallenge((p) => ({ ...p, engine_key: e.target.value }))} />
-                        </label>
-                        <label>{t('adminConsole.description')}<textarea rows={4} value={editingChallenge.description} onChange={(e) => setEditingChallenge((p) => ({ ...p, description: e.target.value }))} /></label>
-                        <div style={{ border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '8px', padding: '12px', display: 'grid', gap: '10px' }}>
-                          <p style={{ margin: 0, fontWeight: 600 }}>{t('adminConsole.challengeRules')}</p>
-                          <p className="session-meta" style={{ margin: 0 }}>{t('adminConsole.thisContentFeedsTheBriefShown')}</p>
-                          <label>{t('adminConsole.missionBrief')}
-                            <textarea rows={3} value={editingChallenge.rules_objective || ''} onChange={(e) => setEditingChallenge((p) => ({ ...p, rules_objective: e.target.value }))} placeholder={t('adminConsole.describeTheMainChallengeObjective')} />
-                          </label>
-                          <label>{t('adminConsole.facilitatorInstructions1Line1Rule')}
-                            <textarea rows={4} value={editingChallenge.rules_facilitator || ''} onChange={(e) => setEditingChallenge((p) => ({ ...p, rules_facilitator: e.target.value }))} placeholder={t('adminConsole.frameTheChallenge10StartThe')} />
-                          </label>
-                          <label>{t('adminConsole.participantInstructions1Line1Rule')}
-                            <textarea rows={4} value={editingChallenge.rules_participant || ''} onChange={(e) => setEditingChallenge((p) => ({ ...p, rules_participant: e.target.value }))} placeholder={t('adminConsole.listenToTheBrief10Collaborate')} />
-                          </label>
-                          <label>{t('adminConsole.closingNote')}
-                            <textarea rows={2} value={editingChallenge.rules_footnote || ''} onChange={(e) => setEditingChallenge((p) => ({ ...p, rules_footnote: e.target.value }))} placeholder={t('adminConsole.optionalSummaryMessage')} />
-                          </label>
-                          <div style={{ borderTop: '1px dashed var(--color-border, #e5e7eb)', paddingTop: '10px', display: 'grid', gap: '10px' }}>
-                            <p style={{ margin: 0, fontWeight: 600 }}>{t('adminConsole.playersMinRecommendedMax')}</p>
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
-                              <label>Min
-                                <input
-                                  type="number"
-                                  min="1"
-                                  value={editingChallenge.player_min || ''}
-                                  onChange={(e) => setEditingChallenge((p) => ({ ...p, player_min: e.target.value }))}
-                                />
-                              </label>
-                              <label>{t('adminConsole.recommended')}
-                                <input
-                                  type="number"
-                                  min="1"
-                                  value={editingChallenge.player_recommended || ''}
-                                  onChange={(e) => setEditingChallenge((p) => ({ ...p, player_recommended: e.target.value }))}
-                                />
-                              </label>
-                              <label>Max
-                                <input
-                                  type="number"
-                                  min="1"
-                                  value={editingChallenge.player_max || ''}
-                                  onChange={(e) => setEditingChallenge((p) => ({ ...p, player_max: e.target.value }))}
-                                />
-                              </label>
-                            </div>
-                          </div>
-                        </div>
-                        {(editingChallenge.engine_key || '').toLowerCase() === 'escape_room_v1' ? (
-                          <div
-                            style={{
-                              border: '1px solid var(--color-border, #cbd5e1)',
-                              borderRadius: '14px',
-                              padding: '14px',
-                              display: 'grid',
-                              gap: '10px',
-                              background: 'var(--color-surface, #fff)',
-                              boxShadow: '0 10px 24px -20px rgba(15, 23, 42, 0.55)',
-                            }}
-                          >
-                            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '10px', flexWrap: 'wrap' }}>
-                              <p style={{ margin: 0, fontWeight: 700, color: 'var(--text-strong, #0f172a)' }}>{t('adminConsole.puzzle5ImageSecretRoom')}</p>
-                              <span style={{ fontSize: '12px', color: 'var(--color-muted, #334155)', fontWeight: 600 }}>{t('adminConsole.persistentStorageEnabled')}</span>
-                            </div>
-                            <p className="session-meta" style={{ margin: 0 }}>{t('adminConsole.thisImageIsUsedInThe')}</p>
-                            <label style={{ display: 'inline-flex', width: 'fit-content' }}>
-                              <input
-                                type="file"
-                                accept="image/png,image/jpeg,image/jpg"
-                                onChange={handleUploadEscapeRoomImage}
-                                disabled={challengeImageUploadBusy}
-                                style={{ position: 'absolute', opacity: 0, width: '1px', height: '1px', pointerEvents: 'none' }}
-                              />
-                              {renderUploadInputLabel({ locale, busy: challengeImageUploadBusy })}
-                            </label>
-                            {challengeImageUploadError ? (
-                              <p className="session-meta" style={{ margin: 0, color: '#b91c1c', fontWeight: 600 }}>{challengeImageUploadError}</p>
-                            ) : null}
-                            {getEscapeRoomE5ImageSrc(editingChallenge.engine_config) ? (
-                              <div style={{ border: '1px solid var(--color-border, #dbe4f0)', borderRadius: '12px', padding: '8px', background: 'var(--color-surface, #f8fafc)' }}>
-                                <Image
-                                  src={getEscapeRoomE5ImageSrc(editingChallenge.engine_config)}
-                                  alt={t('adminConsole.puzzle5Preview')}
-                                  unoptimized
-                                  width={640}
-                                  height={360}
-                                  loading="lazy"
-                                  style={{ display: 'block', width: '100%', maxHeight: '190px', objectFit: 'contain', borderRadius: '8px' }}
-                                />
-                              </div>
-                            ) : (
-                              <p className="session-meta" style={{ margin: 0 }}>{t('adminConsole.noImageConfiguredForE5')}</p>
-                            )}
-                          </div>
-                        ) : null}
-                        {(editingChallenge.engine_key || '').toLowerCase() === 'copuzzle_live_v1' ? (
-                          <div style={{ border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '8px', padding: '12px', display: 'grid', gap: '10px' }}>
-                            <p style={{ margin: 0, fontWeight: 600 }}>{t('adminConsole.copuzzleConfiguration3AdminReferenceImages')}</p>
-                            <p className="session-meta" style={{ margin: 0 }}>
-                              {t('adminConsole.defineUpTo3ReferenceImages')}
-                            </p>
-
-                            {getCopuzzleDefaultImages(editingChallenge.engine_config).map((imageItem, imageIndex) => {
-                              const slotIndex = imageIndex + 1;
-                              return (
-                                <div
-                                  key={imageItem.id || `copuzzle-default-${slotIndex}`}
-                                  style={{
-                                    border: '1px solid var(--color-border, #dbe4f0)',
-                                    borderRadius: '12px',
-                                    padding: '12px',
-                                    display: 'grid',
-                                    gap: '9px',
-                                    background: 'var(--color-surface, #fff)',
-                                  }}
-                                >
-                                  <p style={{ margin: 0, fontWeight: 600 }}>{t('adminConsole.referenceImageSlotindex', { slotIndex })}</p>
-
-                                  <label>{t('adminConsole.title')}
-                                    <input
-                                      value={String(imageItem.title || '')}
-                                      onChange={(e) => {
-                                        const nextTitle = String(e.target.value || '').trimStart();
-                                        setEditingChallenge((prev) => {
-                                          if (!prev) return prev;
-                                          const currentConfig = ensureCopuzzleConfig(prev.engine_config);
-                                          const defaultImages = getCopuzzleDefaultImages(currentConfig).map((item) => ({ ...item }));
-                                          defaultImages[imageIndex] = {
-                                            ...(defaultImages[imageIndex] || {}),
-                                            id: defaultImages[imageIndex]?.id || `default_${slotIndex}`,
-                                            src: String(defaultImages[imageIndex]?.src || imageItem.src || '').trim(),
-                                            title: nextTitle || `Image ${slotIndex}`,
-                                          };
-
-                                          return {
-                                            ...prev,
-                                            engine_config: {
-                                              ...currentConfig,
-                                              default_images: defaultImages,
-                                            },
-                                          };
-                                        });
-                                      }}
-                                      placeholder={`Image ${slotIndex}`}
-                                    />
-                                  </label>
-
-                                  <label>{t('adminConsole.imageUrl')}
-                                    <input
-                                      value={String(imageItem.src || '')}
-                                      onChange={(e) => {
-                                        const nextSrc = String(e.target.value || '').trim();
-                                        setEditingChallenge((prev) => {
-                                          if (!prev) return prev;
-                                          const currentConfig = ensureCopuzzleConfig(prev.engine_config);
-                                          const defaultImages = getCopuzzleDefaultImages(currentConfig).map((item) => ({ ...item }));
-                                          defaultImages[imageIndex] = {
-                                            ...(defaultImages[imageIndex] || {}),
-                                            id: defaultImages[imageIndex]?.id || `default_${slotIndex}`,
-                                            title: String(defaultImages[imageIndex]?.title || imageItem.title || `Image ${slotIndex}`),
-                                            src: nextSrc,
-                                          };
-                                          const selectedDefaultImageId = String(currentConfig.default_image_id || defaultImages[0]?.id || '').trim();
-                                          const selectedDefault = defaultImages.find((item) => item.id === selectedDefaultImageId) || defaultImages[0] || null;
-                                          return {
-                                            ...prev,
-                                            engine_config: {
-                                              ...currentConfig,
-                                              default_images: defaultImages,
-                                              image_url: String(selectedDefault?.src || nextSrc),
-                                              image: {
-                                                ...(currentConfig.image || {}),
-                                                src: String(selectedDefault?.src || nextSrc),
-                                              },
-                                            },
-                                          };
-                                        });
-                                      }}
-                                      placeholder={t('adminConsole.httpsOrCopuzzleDefaultBlueSvg')}
-                                    />
-                                  </label>
-
-                                  <label style={{ display: 'inline-flex', width: 'fit-content', gap: '8px' }}>
-                                    <input
-                                      type="file"
-                                      accept="image/png,image/jpeg,image/jpg"
-                                      onChange={(event) => handleUploadCopuzzleDefaultImage(event, imageIndex)}
-                                      disabled={challengeImageUploadBusy}
-                                      style={{ position: 'absolute', opacity: 0, width: '1px', height: '1px', pointerEvents: 'none' }}
-                                    />
-                                    {renderUploadInputLabel({ locale, busy: challengeImageUploadBusy })}
-                                  </label>
-
-                                  {String(imageItem.src || '').trim() ? (
-                                    <div style={{ border: '1px solid var(--color-border, #dbe4f0)', borderRadius: '10px', padding: '7px', background: 'var(--color-surface, #f8fafc)' }}>
-                                      <Image
-                                        src={String(imageItem.src || '').trim()}
-                                        alt={t('adminConsole.imagePreviewSlotindex', { slotIndex })}
-                                        unoptimized
-                                        width={640}
-                                        height={360}
-                                        loading="lazy"
-                                        style={{ display: 'block', width: '100%', maxHeight: '140px', objectFit: 'contain', borderRadius: '7px' }}
-                                      />
-                                    </div>
-                                  ) : null}
-
-                                  <label style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-                                    <input
-                                      type="radio"
-                                      name="copuzzle-default-image"
-                                      checked={String(ensureCopuzzleConfig(editingChallenge.engine_config).default_image_id || '') === String(imageItem.id || '')}
-                                      onChange={() => {
-                                        setEditingChallenge((prev) => {
-                                          if (!prev) return prev;
-                                          const currentConfig = ensureCopuzzleConfig(prev.engine_config);
-                                          const defaultImages = getCopuzzleDefaultImages(currentConfig);
-                                          const selected = defaultImages.find((item) => item.id === imageItem.id) || defaultImages[0] || null;
-                                          return {
-                                            ...prev,
-                                            engine_config: {
-                                              ...currentConfig,
-                                              default_image_id: String(imageItem.id || selected?.id || ''),
-                                              image_url: String(selected?.src || currentConfig.image_url || ''),
-                                              image: {
-                                                ...(currentConfig.image || {}),
-                                                src: String(selected?.src || currentConfig.image?.src || currentConfig.image_url || ''),
-                                              },
-                                            },
-                                          };
-                                        });
-                                      }}
-                                    />
-                                    {t('adminConsole.defaultSelectedImage')}
-                                  </label>
-                                </div>
-                              );
-                            })}
-
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                              <label>{t('adminConsole.gridRows')}
-                                <input
-                                  type="number"
-                                  min="2"
-                                  max="16"
-                                  value={ensureCopuzzleConfig(editingChallenge.engine_config).grid.rows}
-                                  onChange={(e) => {
-                                    const value = Number(e.target.value || 4);
-                                    setEditingChallenge((prev) => {
-                                      if (!prev) return prev;
-                                      const currentConfig = ensureCopuzzleConfig(prev.engine_config);
-                                      return {
-                                        ...prev,
-                                        engine_config: {
-                                          ...currentConfig,
-                                          grid: {
-                                            ...(currentConfig.grid || {}),
-                                            rows: value,
-                                          },
-                                        },
-                                      };
-                                    });
-                                  }}
-                                />
-                              </label>
-                              <label>{t('adminConsole.gridCols')}
-                                <input
-                                  type="number"
-                                  min="2"
-                                  max="16"
-                                  value={ensureCopuzzleConfig(editingChallenge.engine_config).grid.cols}
-                                  onChange={(e) => {
-                                    const value = Number(e.target.value || 4);
-                                    setEditingChallenge((prev) => {
-                                      if (!prev) return prev;
-                                      const currentConfig = ensureCopuzzleConfig(prev.engine_config);
-                                      return {
-                                        ...prev,
-                                        engine_config: {
-                                          ...currentConfig,
-                                          grid: {
-                                            ...(currentConfig.grid || {}),
-                                            cols: value,
-                                          },
-                                        },
-                                      };
-                                    });
-                                  }}
-                                />
-                              </label>
-                            </div>
-
-                            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                              <label>{t('adminConsole.timerSeconds')}
-                                <input
-                                  type="number"
-                                  min="30"
-                                  max="7200"
-                                  value={ensureCopuzzleConfig(editingChallenge.engine_config).timer.duration_seconds}
-                                  onChange={(e) => {
-                                    const value = Number(e.target.value || 1200);
-                                    setEditingChallenge((prev) => {
-                                      if (!prev) return prev;
-                                      const currentConfig = ensureCopuzzleConfig(prev.engine_config);
-                                      return {
-                                        ...prev,
-                                        engine_config: {
-                                          ...currentConfig,
-                                          timer: {
-                                            ...(currentConfig.timer || {}),
-                                            duration_seconds: value,
-                                          },
-                                        },
-                                      };
-                                    });
-                                  }}
-                                />
-                              </label>
-                              <label>{t('adminConsole.warningThresholdSeconds')}
-                                <input
-                                  type="number"
-                                  min="10"
-                                  max="600"
-                                  value={ensureCopuzzleConfig(editingChallenge.engine_config).timer.warning_threshold_seconds}
-                                  onChange={(e) => {
-                                    const value = Number(e.target.value || 60);
-                                    setEditingChallenge((prev) => {
-                                      if (!prev) return prev;
-                                      const currentConfig = ensureCopuzzleConfig(prev.engine_config);
-                                      return {
-                                        ...prev,
-                                        engine_config: {
-                                          ...currentConfig,
-                                          timer: {
-                                            ...(currentConfig.timer || {}),
-                                            warning_threshold_seconds: value,
-                                          },
-                                        },
-                                      };
-                                    });
-                                  }}
-                                />
-                              </label>
-                            </div>
-
-                            <label style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-                              <input
-                                type="checkbox"
-                                checked={ensureCopuzzleConfig(editingChallenge.engine_config).timer.enabled}
-                                onChange={(e) => {
-                                  const checked = e.target.checked;
-                                  setEditingChallenge((prev) => {
-                                    if (!prev) return prev;
-                                    const currentConfig = ensureCopuzzleConfig(prev.engine_config);
-                                    return {
-                                      ...prev,
-                                      engine_config: {
-                                        ...currentConfig,
-                                        timer: {
-                                          ...(currentConfig.timer || {}),
-                                          enabled: checked,
-                                        },
-                                      },
-                                    };
-                                  });
-                                }}
-                              />
-                              {t('adminConsole.timerEnabled')}
-                            </label>
-
-                            <label style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-                              <input
-                                type="checkbox"
-                                checked={ensureCopuzzleConfig(editingChallenge.engine_config).chat.enabled}
-                                onChange={(e) => {
-                                  const checked = e.target.checked;
-                                  setEditingChallenge((prev) => {
-                                    if (!prev) return prev;
-                                    const currentConfig = ensureCopuzzleConfig(prev.engine_config);
-                                    return {
-                                      ...prev,
-                                      engine_config: {
-                                        ...currentConfig,
-                                        chat: {
-                                          ...(currentConfig.chat || {}),
-                                          enabled: checked,
-                                        },
-                                      },
-                                    };
-                                  });
-                                }}
-                              />
-                              {t('adminConsole.chatEnabled')}
-                            </label>
-
-                            {challengeImageUploadBusy ? (
-                              <p className="session-meta" style={{ marginTop: '8px' }}>{t('adminConsole.uploadInProgress')}</p>
-                            ) : null}
-                            {challengeImageUploadError ? (
-                              <p className="session-meta" style={{ marginTop: '8px', color: '#dc2626' }}>{challengeImageUploadError}</p>
-                            ) : null}
-
-                            <Image
-                              src={getCopuzzleImageSrc(editingChallenge.engine_config)}
-                              alt={t('adminConsole.copuzzlePreview')}
-                              unoptimized
-                              width={840}
-                              height={840}
-                              loading="lazy"
-                              style={{ marginTop: '6px', maxWidth: '100%', maxHeight: '180px', objectFit: 'contain', borderRadius: '6px', border: '1px solid #e5e7eb' }}
-                              onError={(e) => { e.currentTarget.style.display = 'none'; }}
-                              onLoad={(e) => { e.currentTarget.style.display = 'block'; }}
-                            />
-                          </div>
-                        ) : null}
-                        <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
-                          <button type="submit" className="btn-primary" disabled={busySaveKey === `save:challenge:${editingChallenge.id}`}>{busySaveKey === `save:challenge:${editingChallenge.id}` ? t('adminConsole.saving') : t('adminConsole.save')}</button>
-                          <button type="button" className="btn-secondary" onClick={() => { setEditingChallenge(null); setChallengeImageUploadError(''); }}>{t('adminConsole.cancel')}</button>
-                        </div>
-                    </form>
-                    </div>
-                  </div>
-                ) : null}
-
-                <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap', marginBottom: '12px' }}>
-                    <h2 style={{ fontSize: '15px', fontWeight: 700, margin: 0 }}>
-                      {t('adminConsole.list')} {challenges.length > 0 ? <span style={{ fontWeight: 400, color: 'var(--color-muted, #6b7280)', fontSize: '13px' }}>({filteredChallenges.length}/{challenges.length})</span> : null}
-                    </h2>
-                    <input
-                      type="search"
-                      className="inline-input"
-                      placeholder={t('adminConsole.search')}
-                      value={challengeQuery}
-                      onChange={(e) => setChallengeQuery(e.target.value)}
-                      style={{ width: 'min(360px, 100%)' }}
-                    />
-                  </div>
-                  <ul className="session-list" style={{ margin: 0 }}>
-                    {filteredChallenges.length === 0 ? <li className="list-empty">{t('adminConsole.noMatchingChallenge')}</li> : null}
-                    {filteredChallenges.map((c) => (
-                      <li key={String(c.id)} className="session-item" style={{ alignItems: 'center' }}>
-                        <div style={{ minWidth: 0, flex: '1 1 auto' }}>
-                          <p className="session-title">{c.name || c.title || `Challenge #${c.id}`}</p>
-                          <p className="session-meta">{getChallengeTypeLabel(c.type, locale)} · {getChallengeStatusLabel(c.status, locale)} {c.engine_key ? `· ${c.engine_key}` : ''}</p>
-                          {(() => {
-                            const playerRange = resolveChallengePlayerRange(c);
-                            if (!playerRange.hasRange) return null;
-                            return (
-                              <p className="session-meta" style={{ marginTop: '4px' }}>
-                                ~{playerRange.recommended || '-'} {t('adminConsole.players')} · Min {playerRange.min || '-'} · Max {playerRange.max || '-'}
-                              </p>
-                            );
-                          })()}
-                        </div>
-                        <div className="session-item-actions icon-only-actions" style={{ flexShrink: 0 }}>
-                          <button
-                            type="button"
-                            className="icon-action-btn"
-                            onClick={() => beginEditChallenge(c)}
-                            title={t('adminConsole.edit')}
-                            aria-label={t('adminConsole.editChallenge2')}
-                          >
-                            ✎
-                          </button>
-                          <button
-                            type="button"
-                            className="icon-action-btn icon-action-danger"
-                            onClick={() => handleDeleteChallenge(c)}
-                            disabled={busyDeleteKey === `challenge:${c.id}`}
-                            title={t('adminConsole.delete')}
-                            aria-label={t('adminConsole.deleteChallenge')}
-                          >
-                            {busyDeleteKey === `challenge:${c.id}` ? '…' : '🗑'}
-                          </button>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            </div>
+            <ChallengesTab
+              beginEditChallenge={beginEditChallenge}
+              busyDeleteKey={busyDeleteKey}
+              busySaveKey={busySaveKey}
+              challengeCategoryOptions={challengeCategoryOptions}
+              challengeImageUploadBusy={challengeImageUploadBusy}
+              challengeImageUploadError={challengeImageUploadError}
+              challengeObjectiveOptions={challengeObjectiveOptions}
+              challengeQuery={challengeQuery}
+              challenges={challenges}
+              editingChallenge={editingChallenge}
+              filteredChallenges={filteredChallenges}
+              handleDeleteChallenge={handleDeleteChallenge}
+              handleUploadCopuzzleDefaultImage={handleUploadCopuzzleDefaultImage}
+              handleUploadEscapeRoomImage={handleUploadEscapeRoomImage}
+              locale={locale}
+              newChallenge={newChallenge}
+              newChallengeMessage={newChallengeMessage}
+              setChallengeImageUploadError={setChallengeImageUploadError}
+              setChallengeQuery={setChallengeQuery}
+              setEditingChallenge={setEditingChallenge}
+              setNewChallenge={setNewChallenge}
+              setNewChallengeMessage={setNewChallengeMessage}
+              setShowNewChallengeForm={setShowNewChallengeForm}
+              showNewChallengeForm={showNewChallengeForm}
+              submitEditChallenge={submitEditChallenge}
+              submitNewChallenge={submitNewChallenge}
+              t={t}
+            />
           ) : null}
 
           {/* ── TARIFICATION ── */}
           {activeTab === 'pricing' ? (
-            <div>
-              <div style={{ marginBottom: '28px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
-                <div>
-                  <h1 style={{ fontSize: '22px', fontWeight: 700, margin: '0 0 4px' }}>{t('adminConsole.pricing')}</h1>
-                  <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '14px' }}>
-                    {t('adminConsole.createAndManageYourCommercialOffers')}
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  className="btn-primary"
-                  onClick={() => {
-                    setEditingPricingPlan(null);
-                    setNewPricingMessage('');
-                    setShowNewPricingPlanForm((current) => !current);
-                  }}
-                >
-                  {showNewPricingPlanForm ? t('adminConsole.closeForm') : t('adminConsole.createPricingPlan')}
-                </button>
-              </div>
-
-              <div style={{ display: 'grid', gap: '20px' }}>
-                {showNewPricingPlanForm ? (
-                  <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
-                    <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>{t('adminConsole.createPricingPlan')}</h2>
-                    <form className="auth-form" onSubmit={submitNewPricingPlan}>
-                      <label>{t('adminConsole.offerName')}<input value={newPricingPlan.name} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, name: e.target.value }))} required /></label>
-                      <label>{t('adminConsole.shortDescription')}<textarea rows={3} value={newPricingPlan.description} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, description: e.target.value }))} /></label>
-                      <label>{t('adminConsole.includedFeatures1Line1Bullet')}
-                        <textarea rows={5} value={newPricingPlan.features} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, features: e.target.value }))} placeholder={t('adminConsole.exampleManagerDashboardLiveSessionEmail')} />
-                      </label>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                        <label>{t('adminConsole.price')}<input type="number" min="0" step="0.01" value={newPricingPlan.price} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, price: e.target.value }))} required /></label>
-                        <label>{t('adminConsole.currency')}<input value={newPricingPlan.currency} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, currency: e.target.value.toUpperCase() }))} maxLength={3} /></label>
-                      </div>
-                      <label>{t('adminConsole.annualPrice')}<input type="number" min="0" step="0.01" value={newPricingPlan.annual_price} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, annual_price: e.target.value }))} /></label>
-                      <label>{t('adminConsole.billingCycle')}
-                        <select value={newPricingPlan.billing_cycle} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, billing_cycle: e.target.value }))}>
-                          <option value="monthly">{getLocalizedLabel(PRICING_BILLING_CYCLE_LABELS.monthly, locale)}</option>
-                          <option value="yearly">{getLocalizedLabel(PRICING_BILLING_CYCLE_LABELS.yearly, locale)}</option>
-                          <option value="one_time">{getLocalizedLabel(PRICING_BILLING_CYCLE_LABELS.one_time, locale)}</option>
-                          <option value="custom">{getLocalizedLabel(PRICING_BILLING_CYCLE_LABELS.custom, locale)}</option>
-                        </select>
-                      </label>
-                      <label>{t('adminConsole.ctaButtonLabel')}<input value={newPricingPlan.cta_label} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, cta_label: e.target.value }))} /></label>
-                      <label>{t('adminConsole.maxUsers')}<input type="number" min="0" value={newPricingPlan.max_users} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, max_users: e.target.value }))} /></label>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
-                        <label>{t('adminConsole.supportLevel')}<input value={newPricingPlan.support_level} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, support_level: e.target.value }))} placeholder={t('adminConsole.emailPriority')} /></label>
-                        <label>{t('adminConsole.trialDays')}<input type="number" min="0" value={newPricingPlan.trial_days} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, trial_days: e.target.value }))} /></label>
-                        <label>{t('adminConsole.displayOrder')}<input type="number" min="0" value={newPricingPlan.display_order} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, display_order: e.target.value }))} /></label>
-                      </div>
-                      <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
-                        <label style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-                          <input type="checkbox" checked={newPricingPlan.is_active} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, is_active: e.target.checked }))} />
-                          {t('adminConsole.activeOffer')}
-                        </label>
-                        <label style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-                          <input type="checkbox" checked={newPricingPlan.highlighted} onChange={(e) => setNewPricingPlan((prev) => ({ ...prev, highlighted: e.target.checked }))} />
-                          {t('adminConsole.highlighted')}
-                        </label>
-                      </div>
-                      <PricingLocalizedContentEditor draft={newPricingPlan} setDraft={setNewPricingPlan} t={t} locale={locale} idPrefix="new-pricing-plan" />
-                      <button type="submit" className="btn-primary" disabled={busySaveKey === 'create:pricing-plan'}>
-                        {busySaveKey === 'create:pricing-plan' ? t('adminConsole.creating') : t('adminConsole.createPlan')}
-                      </button>
-                      <button
-                        type="button"
-                        className="btn-secondary"
-                        onClick={() => {
-                          setShowNewPricingPlanForm(false);
-                          setNewPricingMessage('');
-                        }}
-                      >
-                        {t('adminConsole.cancel')}
-                      </button>
-                    </form>
-                    {newPricingMessage ? <p className="session-meta" style={{ marginTop: '8px' }}>{newPricingMessage}</p> : null}
-                  </div>
-                ) : null}
-
-                {editingPricingPlan ? (
-                  <div
-                    style={{ position: 'fixed', inset: 0, zIndex: 1000, background: 'var(--modal-scrim, rgba(0,0,0,0.45))', display: 'flex', alignItems: 'flex-start', justifyContent: 'center', overflowY: 'auto', padding: '40px 16px' }}
-                    onClick={(e) => { if (e.target === e.currentTarget) setEditingPricingPlan(null); }}
-                  >
-                    <div style={{ background: 'var(--surface-elevated, #fff)', border: '1px solid var(--accent, var(--color-primary, #4f46e5))', borderRadius: '12px', width: '100%', maxWidth: '760px', maxHeight: 'calc(100vh - 80px)', overflowY: 'auto', padding: '22px 24px' }}>
-                      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: '12px' }}>
-                        <h2 style={{ fontSize: '15px', fontWeight: 700, margin: 0 }}>{t('adminConsole.editPricingPlan')}</h2>
-                        <button
-                          type="button"
-                          onClick={() => setEditingPricingPlan(null)}
-                          style={{ background: 'none', border: 'none', cursor: 'pointer', fontSize: '20px', color: 'var(--ink-soft, #6b7280)', padding: '2px 8px', lineHeight: 1 }}
-                          aria-label={t('adminConsole.closeWindow')}
-                        >
-                          ✕
-                        </button>
-                      </div>
-                    <form className="auth-form" onSubmit={submitEditPricingPlan}>
-                        <label>{t('adminConsole.offerName')}<input value={editingPricingPlan.name} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, name: e.target.value }))} required /></label>
-                        <label>{t('adminConsole.shortDescription')}<textarea rows={3} value={editingPricingPlan.description} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, description: e.target.value }))} /></label>
-                        <label>{t('adminConsole.includedFeatures1Line1Bullet')}
-                          <textarea rows={5} value={editingPricingPlan.features} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, features: e.target.value }))} />
-                        </label>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                          <label>{t('adminConsole.price')}<input type="number" min="0" step="0.01" value={editingPricingPlan.price} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, price: e.target.value }))} required /></label>
-                          <label>{t('adminConsole.currency')}<input value={editingPricingPlan.currency} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, currency: e.target.value.toUpperCase() }))} maxLength={3} /></label>
-                        </div>
-                        <label>{t('adminConsole.annualPrice')}<input type="number" min="0" step="0.01" value={editingPricingPlan.annual_price} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, annual_price: e.target.value }))} /></label>
-                        <label>{t('adminConsole.billingCycle')}
-                          <select value={editingPricingPlan.billing_cycle} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, billing_cycle: e.target.value }))}>
-                            <option value="monthly">{getPricingBillingCycleLabel('monthly', locale)}</option>
-                            <option value="yearly">{getPricingBillingCycleLabel('yearly', locale)}</option>
-                            <option value="one_time">{getPricingBillingCycleLabel('one_time', locale)}</option>
-                            <option value="custom">{getPricingBillingCycleLabel('custom', locale)}</option>
-                          </select>
-                        </label>
-                        <label>{t('adminConsole.ctaButtonLabel')}<input value={editingPricingPlan.cta_label} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, cta_label: e.target.value }))} /></label>
-                        <label>{t('adminConsole.maxUsers')}<input type="number" min="0" value={editingPricingPlan.max_users} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, max_users: e.target.value }))} /></label>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr 1fr', gap: '10px' }}>
-                          <label>{t('adminConsole.supportLevel')}<input value={editingPricingPlan.support_level} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, support_level: e.target.value }))} /></label>
-                          <label>{t('adminConsole.trialDays')}<input type="number" min="0" value={editingPricingPlan.trial_days} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, trial_days: e.target.value }))} /></label>
-                          <label>{t('adminConsole.displayOrder')}<input type="number" min="0" value={editingPricingPlan.display_order} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, display_order: e.target.value }))} /></label>
-                        </div>
-                        <div style={{ display: 'flex', gap: '14px', flexWrap: 'wrap' }}>
-                          <label style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-                            <input type="checkbox" checked={editingPricingPlan.is_active} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, is_active: e.target.checked }))} />
-                            {t('adminConsole.activeOffer')}
-                          </label>
-                          <label style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-                            <input type="checkbox" checked={editingPricingPlan.highlighted} onChange={(e) => setEditingPricingPlan((prev) => ({ ...prev, highlighted: e.target.checked }))} />
-                            {t('adminConsole.highlighted')}
-                          </label>
-                        </div>
-                        <PricingLocalizedContentEditor key={String(editingPricingPlan.id)} draft={editingPricingPlan} setDraft={setEditingPricingPlan} t={t} locale={locale} idPrefix={`edit-pricing-plan-${editingPricingPlan.id}`} />
-                        <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
-                          <button type="submit" className="btn-primary" disabled={busySaveKey === `save:pricing-plan:${editingPricingPlan.id}`}>
-                            {busySaveKey === `save:pricing-plan:${editingPricingPlan.id}` ? t('adminConsole.saving') : t('adminConsole.save')}
-                          </button>
-                          <button type="button" className="btn-secondary" onClick={() => setEditingPricingPlan(null)}>{t('adminConsole.cancel')}</button>
-                        </div>
-                    </form>
-                    </div>
-                  </div>
-                ) : null}
-
-                <div style={{ background: 'var(--surface-elevated, #fff)', border: '1px solid var(--line, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap', marginBottom: '12px' }}>
-                    <h2 style={{ fontSize: '15px', fontWeight: 700, margin: 0 }}>
-                      {t('adminConsole.list')} {pricingPlans.length > 0 ? <span style={{ fontWeight: 400, color: 'var(--ink-soft, #6b7280)', fontSize: '13px' }}>({filteredPricingPlans.length}/{pricingPlans.length})</span> : null}
-                    </h2>
-                    <input
-                      type="search"
-                      className="inline-input"
-                      placeholder={t('adminConsole.searchAPlan')}
-                      value={pricingQuery}
-                      onChange={(e) => setPricingQuery(e.target.value)}
-                      style={{ width: 'min(360px, 100%)' }}
-                    />
-                  </div>
-
-                  <ul className="session-list" style={{ margin: 0 }}>
-                    {filteredPricingPlans.length === 0 ? <li className="list-empty">{t('adminConsole.noMatchingPlan')}</li> : null}
-                    {filteredPricingPlans.map((plan) => {
-                      const summary = getAdminPricingPlanSummary(plan, locale);
-                      return (
-                      <li key={String(plan.id)} className="session-item" style={{ alignItems: 'center' }}>
-                        <div style={{ minWidth: 0, flex: '1 1 auto' }}>
-                          <p className="session-title">
-                            {summary.name}
-                            {summary.badge ? <span className="pricing-badge admin-pricing-inline-badge">{summary.badge}</span> : null}
-                          </p>
-                          <p className="session-meta">
-                            {summary.publicPrice}
-                            {summary.billedPrice ? ` (${t('adminConsole.billedPrice', { amount: summary.billedPrice })})` : null}
-                            {' · '}
-                            {getPricingBillingCycleLabel(plan.billing_cycle, locale)}
-                            {' · '}
-                            {plan.is_active ? t('adminConsole.active2') : t('adminConsole.inactive2')}
-                          </p>
-                        </div>
-                        <div className="session-item-actions icon-only-actions" style={{ flexShrink: 0 }}>
-                          <button
-                            type="button"
-                            className="icon-action-btn"
-                            onClick={() => beginEditPricingPlan(plan)}
-                            title={t('adminConsole.edit')}
-                            aria-label={t('adminConsole.editPlan')}
-                          >
-                            ✎
-                          </button>
-                          <button
-                            type="button"
-                            className="icon-action-btn icon-action-danger"
-                            onClick={() => handleDeletePricingPlan(plan)}
-                            disabled={busyDeleteKey === `pricing-plan:${plan.id}`}
-                            title={t('adminConsole.delete')}
-                            aria-label={t('adminConsole.deletePlan')}
-                          >
-                            {busyDeleteKey === `pricing-plan:${plan.id}` ? '…' : '🗑'}
-                          </button>
-                        </div>
-                      </li>
-                      );
-                    })}
-                  </ul>
-                </div>
-              </div>
-            </div>
+            <PricingTab
+              beginEditPricingPlan={beginEditPricingPlan}
+              busyDeleteKey={busyDeleteKey}
+              busySaveKey={busySaveKey}
+              editingPricingPlan={editingPricingPlan}
+              filteredPricingPlans={filteredPricingPlans}
+              handleDeletePricingPlan={handleDeletePricingPlan}
+              locale={locale}
+              newPricingMessage={newPricingMessage}
+              newPricingPlan={newPricingPlan}
+              pricingPlans={pricingPlans}
+              pricingQuery={pricingQuery}
+              setEditingPricingPlan={setEditingPricingPlan}
+              setNewPricingMessage={setNewPricingMessage}
+              setNewPricingPlan={setNewPricingPlan}
+              setPricingQuery={setPricingQuery}
+              setShowNewPricingPlanForm={setShowNewPricingPlanForm}
+              showNewPricingPlanForm={showNewPricingPlanForm}
+              submitEditPricingPlan={submitEditPricingPlan}
+              submitNewPricingPlan={submitNewPricingPlan}
+              t={t}
+            />
           ) : null}
 
           {/* ── LANDING CMS ── */}
           {activeTab === 'landing' ? (
-            <div>
-              <datalist id="landing-allowed-keys">
-                {LANDING_ALLOWED_BLOCK_KEYS.map((key) => (
-                  <option key={key} value={key} />
-                ))}
-              </datalist>
-
-              <div style={{ marginBottom: '28px', display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: '16px', flexWrap: 'wrap' }}>
-                <div>
-                  <h1 style={{ fontSize: '22px', fontWeight: 700, margin: '0 0 4px' }}>{t('adminConsole.landingCms2')}</h1>
-                  <p style={{ color: 'var(--color-muted, #6b7280)', margin: 0, fontSize: '14px' }}>
-                    {t('adminConsole.reducedStructureModeHero3Proof')}
-                  </p>
-                </div>
-                <button
-                  type="button"
-                  className="btn-primary"
-                  onClick={() => {
-                    setEditingLandingBlock(null);
-                    setNewLandingMessage('');
-                    setShowNewLandingBlockForm((current) => !current);
-                  }}
-                >
-                  {showNewLandingBlockForm ? t('adminConsole.closeForm') : t('adminConsole.createBlock')}
-                </button>
-              </div>
-
-              <div style={{ display: 'grid', gap: '20px' }}>
-                {showNewLandingBlockForm ? (
-                  <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
-                    <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>{t('adminConsole.createBlock')}</h2>
-                    <form className="auth-form" onSubmit={submitNewLandingBlock}>
-                      <label>{t('adminConsole.blockKey')}<input value={newLandingBlock.block_key} onChange={(e) => setNewLandingBlock((prev) => ({ ...prev, block_key: e.target.value }))} placeholder="hero_main" list="landing-allowed-keys" required /></label>
-                      <label>{t('adminConsole.adminLabel')}<input value={newLandingBlock.label} onChange={(e) => setNewLandingBlock((prev) => ({ ...prev, label: e.target.value }))} /></label>
-                      <label>{t('adminConsole.title')}<input value={newLandingBlock.title} onChange={(e) => setNewLandingBlock((prev) => ({ ...prev, title: e.target.value }))} /></label>
-                      <label>{t('adminConsole.subtitle')}<input value={newLandingBlock.subtitle} onChange={(e) => setNewLandingBlock((prev) => ({ ...prev, subtitle: e.target.value }))} /></label>
-                      <label>{t('adminConsole.description')}<textarea rows={4} value={newLandingBlock.description} onChange={(e) => setNewLandingBlock((prev) => ({ ...prev, description: e.target.value }))} /></label>
-                      <label>{t('adminConsole.imageUrl2')}<input value={newLandingBlock.image_url} onChange={(e) => setNewLandingBlock((prev) => ({ ...prev, image_url: e.target.value }))} placeholder="https://..." /></label>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                        <label>{t('adminConsole.ctaLabel')}<input value={newLandingBlock.cta_label} onChange={(e) => setNewLandingBlock((prev) => ({ ...prev, cta_label: e.target.value }))} /></label>
-                        <label>{t('adminConsole.ctaLink')}<input value={newLandingBlock.cta_href} onChange={(e) => setNewLandingBlock((prev) => ({ ...prev, cta_href: e.target.value }))} /></label>
-                      </div>
-                      <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                        <label>{t('adminConsole.badge')}<input value={newLandingBlock.badge_text} onChange={(e) => setNewLandingBlock((prev) => ({ ...prev, badge_text: e.target.value }))} /></label>
-                        <label>{t('adminConsole.order')}<input type="number" min="0" value={newLandingBlock.display_order} onChange={(e) => setNewLandingBlock((prev) => ({ ...prev, display_order: e.target.value }))} /></label>
-                      </div>
-                      <label style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-                        <input type="checkbox" checked={newLandingBlock.is_active} onChange={(e) => setNewLandingBlock((prev) => ({ ...prev, is_active: e.target.checked }))} />
-                        {t('adminConsole.activeBlock')}
-                      </label>
-                      <button type="submit" className="btn-primary" disabled={busySaveKey === `create:landing:${String(newLandingBlock.block_key || '').trim().toLowerCase()}`}>
-                        {busySaveKey === `create:landing:${String(newLandingBlock.block_key || '').trim().toLowerCase()}` ? t('adminConsole.saving') : t('adminConsole.createBlock2')}
-                      </button>
-                      <button
-                        type="button"
-                        className="btn-secondary"
-                        onClick={() => {
-                          setShowNewLandingBlockForm(false);
-                          setNewLandingMessage('');
-                        }}
-                      >
-                        {t('adminConsole.cancel')}
-                      </button>
-                    </form>
-                    {newLandingMessage ? <p className="session-meta" style={{ marginTop: '8px' }}>{newLandingMessage}</p> : null}
-                  </div>
-                ) : null}
-
-                {editingLandingBlock ? (
-                  <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-primary, #4f46e5)', borderRadius: '10px', padding: '20px 24px' }}>
-                    <h2 style={{ fontSize: '15px', fontWeight: 700, marginTop: 0, marginBottom: '12px' }}>{t('adminConsole.editBlock')}</h2>
-                    <form className="auth-form" onSubmit={submitEditLandingBlock}>
-                      <label>{t('adminConsole.blockKey')}<input value={editingLandingBlock.block_key} onChange={(e) => setEditingLandingBlock((prev) => ({ ...prev, block_key: e.target.value }))} list="landing-allowed-keys" required /></label>
-                        <label>{t('adminConsole.adminLabel')}<input value={editingLandingBlock.label} onChange={(e) => setEditingLandingBlock((prev) => ({ ...prev, label: e.target.value }))} /></label>
-                        <label>{t('adminConsole.title')}<input value={editingLandingBlock.title} onChange={(e) => setEditingLandingBlock((prev) => ({ ...prev, title: e.target.value }))} /></label>
-                        <label>{t('adminConsole.subtitle')}<input value={editingLandingBlock.subtitle} onChange={(e) => setEditingLandingBlock((prev) => ({ ...prev, subtitle: e.target.value }))} /></label>
-                        <label>{t('adminConsole.description')}<textarea rows={4} value={editingLandingBlock.description} onChange={(e) => setEditingLandingBlock((prev) => ({ ...prev, description: e.target.value }))} /></label>
-                        <label>{t('adminConsole.imageUrl2')}<input value={editingLandingBlock.image_url} onChange={(e) => setEditingLandingBlock((prev) => ({ ...prev, image_url: e.target.value }))} /></label>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                          <label>{t('adminConsole.ctaLabel')}<input value={editingLandingBlock.cta_label} onChange={(e) => setEditingLandingBlock((prev) => ({ ...prev, cta_label: e.target.value }))} /></label>
-                          <label>{t('adminConsole.ctaLink')}<input value={editingLandingBlock.cta_href} onChange={(e) => setEditingLandingBlock((prev) => ({ ...prev, cta_href: e.target.value }))} /></label>
-                        </div>
-                        <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '10px' }}>
-                          <label>{t('adminConsole.badge')}<input value={editingLandingBlock.badge_text} onChange={(e) => setEditingLandingBlock((prev) => ({ ...prev, badge_text: e.target.value }))} /></label>
-                          <label>{t('adminConsole.order')}<input type="number" min="0" value={editingLandingBlock.display_order} onChange={(e) => setEditingLandingBlock((prev) => ({ ...prev, display_order: e.target.value }))} /></label>
-                        </div>
-                        <label style={{ display: 'inline-flex', alignItems: 'center', gap: '8px' }}>
-                          <input type="checkbox" checked={editingLandingBlock.is_active} onChange={(e) => setEditingLandingBlock((prev) => ({ ...prev, is_active: e.target.checked }))} />
-                          {t('adminConsole.activeBlock')}
-                        </label>
-                        <div style={{ display: 'flex', gap: '8px', marginTop: '4px' }}>
-                          <button type="submit" className="btn-primary" disabled={busySaveKey === `save:landing:${String(editingLandingBlock.block_key || '').trim().toLowerCase()}`}>
-                            {busySaveKey === `save:landing:${String(editingLandingBlock.block_key || '').trim().toLowerCase()}` ? t('adminConsole.saving') : t('adminConsole.save')}
-                          </button>
-                          <button type="button" className="btn-secondary" onClick={() => setEditingLandingBlock(null)}>{t('adminConsole.cancel')}</button>
-                        </div>
-                    </form>
-                  </div>
-                ) : null}
-
-                <div style={{ background: 'var(--color-surface, #fff)', border: '1px solid var(--color-border, #e5e7eb)', borderRadius: '10px', padding: '20px 24px' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: '12px', flexWrap: 'wrap', marginBottom: '12px' }}>
-                    <h2 style={{ fontSize: '15px', fontWeight: 700, margin: 0 }}>
-                      {t('adminConsole.blocks')} {landingBlocks.length > 0 ? <span style={{ fontWeight: 400, color: 'var(--color-muted, #6b7280)', fontSize: '13px' }}>({filteredLandingBlocks.length}/{landingBlocks.length})</span> : null}
-                    </h2>
-                    <input
-                      type="search"
-                      className="inline-input"
-                      placeholder={t('adminConsole.searchABlock')}
-                      value={landingQuery}
-                      onChange={(e) => setLandingQuery(e.target.value)}
-                      style={{ width: 'min(360px, 100%)' }}
-                    />
-                  </div>
-
-                  <ul className="session-list" style={{ margin: 0 }}>
-                    {filteredLandingBlocks.length === 0 ? <li className="list-empty">{t('adminConsole.noMatchingBlock')}</li> : null}
-                    {filteredLandingBlocks.map((block) => (
-                      <li key={String(block.id)} className="session-item" style={{ alignItems: 'center' }}>
-                        <div style={{ minWidth: 0, flex: '1 1 auto' }}>
-                          <p className="session-title">{block.label || block.block_key}</p>
-                          <p className="session-meta">{block.block_key} · {block.is_active ? t('adminConsole.active') : t('adminConsole.inactive')}</p>
-                        </div>
-                        <div className="session-item-actions icon-only-actions" style={{ flexShrink: 0 }}>
-                          <button
-                            type="button"
-                            className="icon-action-btn"
-                            onClick={() => beginEditLandingBlock(block)}
-                            title={t('adminConsole.edit')}
-                            aria-label={t('adminConsole.editLandingBlock')}
-                          >
-                            ✎
-                          </button>
-                          <button
-                            type="button"
-                            className="icon-action-btn icon-action-danger"
-                            onClick={() => handleDeleteLandingBlock(block)}
-                            disabled={busyDeleteKey === `landing:${block.block_key}`}
-                            title={t('adminConsole.delete')}
-                            aria-label={t('adminConsole.deleteLandingBlock')}
-                          >
-                            {busyDeleteKey === `landing:${block.block_key}` ? '…' : '🗑'}
-                          </button>
-                        </div>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-              </div>
-            </div>
+            <LandingTab
+              beginEditLandingBlock={beginEditLandingBlock}
+              busyDeleteKey={busyDeleteKey}
+              busySaveKey={busySaveKey}
+              editingLandingBlock={editingLandingBlock}
+              filteredLandingBlocks={filteredLandingBlocks}
+              handleDeleteLandingBlock={handleDeleteLandingBlock}
+              landingBlocks={landingBlocks}
+              landingQuery={landingQuery}
+              newLandingBlock={newLandingBlock}
+              newLandingMessage={newLandingMessage}
+              setEditingLandingBlock={setEditingLandingBlock}
+              setLandingQuery={setLandingQuery}
+              setNewLandingBlock={setNewLandingBlock}
+              setNewLandingMessage={setNewLandingMessage}
+              setShowNewLandingBlockForm={setShowNewLandingBlockForm}
+              showNewLandingBlockForm={showNewLandingBlockForm}
+              submitEditLandingBlock={submitEditLandingBlock}
+              submitNewLandingBlock={submitNewLandingBlock}
+              t={t}
+            />
           ) : null}
 
         </main>
