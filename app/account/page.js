@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useMemo, useState } from 'react';
-import { CreditCard, Download, ReceiptText, ShieldCheck, UserRound } from 'lucide-react';
+import { CreditCard, ReceiptText, ShieldCheck, UserRound } from 'lucide-react';
 import AppNav from '@/components/AppNav';
 import AvatarPickerModal from '@/components/AvatarPickerModal';
 import Footer from '@/components/Footer';
@@ -20,7 +20,6 @@ import {
   updateMyParticipantPassword,
   resetMyPassword,
   listPricingPlans,
-  updateMyPlan,
   capturePaypalOrder,
   getStoredCurrentUser,
   setStoredCurrentUser,
@@ -37,8 +36,6 @@ import {
   buildInvoiceDownload,
   formatDhAmount,
   getAccountPlanPriceLabel,
-  getPlanCycleLabel,
-  getRenewalDate,
   normalizePlanList,
   resolveHistoryAmountLabel,
 } from '@/lib/account-page/pricing';
@@ -74,7 +71,6 @@ export default function AccountPage() {
     new_password: '',
     confirm_password: '',
   });
-  const [selectedPlanId, setSelectedPlanId] = useState('');
   const [selectedBilling, setSelectedBilling] = useState('monthly');
   const [planHistory, setPlanHistory] = useState([]);
   const [activeTab, setActiveTab] = useState('profile');
@@ -85,7 +81,6 @@ export default function AccountPage() {
 
   const [savingProfile, setSavingProfile] = useState(false);
   const [savingPassword, setSavingPassword] = useState(false);
-  const [savingPlan, setSavingPlan] = useState(false);
   const [resettingPassword, setResettingPassword] = useState(false);
   const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
@@ -147,7 +142,6 @@ export default function AccountPage() {
           const [updatedMe, updatedPlans] = await Promise.all([getMe(), listPricingPlans()]);
           if (updatedMe) {
             setMe(updatedMe);
-            setSelectedPlanId(updatedMe.pricing_plan_id ? String(updatedMe.pricing_plan_id) : '');
             const mergedUser = {
               ...(guard.user || {}),
               pricing_plan_id: updatedMe.pricing_plan_id || null,
@@ -199,7 +193,6 @@ export default function AccountPage() {
         const dhMap = buildDhPriceByPlanId(normalizedPlans);
         if (updatedMe) {
           setMe(updatedMe);
-          setSelectedPlanId(updatedMe.pricing_plan_id ? String(updatedMe.pricing_plan_id) : '');
           const mergedUser = {
             ...(guard.user || {}),
             pricing_plan_id: updatedMe.pricing_plan_id || null,
@@ -280,7 +273,6 @@ export default function AccountPage() {
           job_title: isParticipantAccount ? '' : String(mePayload?.job_title || '').trim(),
           department: isParticipantAccount ? '' : normalizeDepartmentDisplay(mePayload?.department),
         });
-        setSelectedPlanId(mePayload?.pricing_plan_id ? String(mePayload.pricing_plan_id) : '');
 
         const existingHistory = parseHistory();
         setPlanHistory(existingHistory);
@@ -339,14 +331,11 @@ export default function AccountPage() {
   const isPaywallEntry = entrySource === 'paywall';
   const isParticipantAccount = String(guard.user?.role || '').toLowerCase() === 'participant';
   const currentPlanLabel = activePlan?.localized_content?.[locale]?.name || activePlan?.name || t('account.noPlan');
-  const historyCount = planHistory.length;
   const roleLabel = isParticipantAccount
     ? t('account.roleParticipant')
     : String(guard.user?.role || '').toLowerCase() === 'admin'
       ? t('account.roleAdmin')
       : t('account.roleManager');
-  const cycleLabel = getPlanCycleLabel(locale, me, activePlan);
-  const renewalLabel = getRenewalDate(me, locale);
   const planSeats = activePlan?.plan_code === 'enterprise'
     ? (me?.participant_limit || activePlan?.max_users || 100)
     : (activePlan?.max_users || me?.max_users || 0);
@@ -486,61 +475,6 @@ export default function AccountPage() {
     }
   }
 
-  async function handleChangePlan(event) {
-    event.preventDefault();
-    if (savingPlan) return;
-
-    const nextPlanId = selectedPlanId || null;
-    if (String(nextPlanId || '') === String(currentPlanId || '')) {
-      showError(t('account.currentPlanAlreadyActive'));
-      return;
-    }
-
-    setSavingPlan(true);
-    try {
-      const updatedUser = await updateMyPlan(nextPlanId);
-      const previousPlan = activePlan;
-      const latestPlanId = updatedUser?.pricing_plan_id ? String(updatedUser.pricing_plan_id) : '';
-      const latestPlan = plans.find((plan) => String(plan.id) === latestPlanId) || null;
-      const amountDh = Number(dhPriceByPlanId[latestPlanId] || 0);
-
-      setMe(updatedUser);
-      setSelectedPlanId(latestPlanId);
-
-      const mergedUser = {
-        ...(guard.user || {}),
-        pricing_plan_id: updatedUser?.pricing_plan_id || null,
-        pricing_plan: updatedUser?.pricing_plan || null,
-      };
-      const withAvatarProfile = ensureUserAvatarProfile(mergedUser);
-      setStoredCurrentUser(withAvatarProfile);
-      setGuard((prev) => ({ ...prev, user: withAvatarProfile }));
-
-      const historyEntry = {
-        id: Date.now(),
-        at: new Date().toISOString(),
-        from: previousPlan ? previousPlan.name : 'Aucune formule',
-        to: latestPlan ? latestPlan.name : 'Aucune formule',
-        to_plan_id: latestPlanId || null,
-        amount_dh: amountDh,
-        amount_label: `${formatDhAmount(amountDh)} HT`,
-      };
-      const nextHistory = [historyEntry, ...planHistory].slice(0, 15);
-      setPlanHistory(nextHistory);
-      saveHistory(nextHistory);
-
-      showSuccess(t('account.planUpdated'));
-    } catch (err) {
-      if (err.code === 'PRICING_SCHEMA_UNAVAILABLE') {
-        showError(t('account.pricingUnavailable'));
-      } else {
-        showError(err.message || t('account.planChangeError'));
-      }
-    } finally {
-      setSavingPlan(false);
-    }
-  }
-
   async function handleGoToCheckout(method, planId) {
     const targetPlanId = planId || recommendedPlan?.id || activePlan?.id;
     if (!targetPlanId) {
@@ -562,7 +496,6 @@ export default function AccountPage() {
 
     const targetPlan = plans.find((plan) => String(plan.id) === String(targetPlanId)) || null;
     if (Number(targetPlan?.price_cents || 0) <= 0) {
-      setSelectedPlanId(String(targetPlanId));
       showSuccess('Formule Free sélectionnée.');
       return;
     }
