@@ -136,13 +136,9 @@ export default function SessionBuilder() {
   const [isSavingSessionInfo, setIsSavingSessionInfo] = useState(false);
   const [isCreatingSession, setIsCreatingSession] = useState(false);
   const [isSavingDraft, setIsSavingDraft] = useState(false);
-  const [lastLocalDraftSaveAt, setLastLocalDraftSaveAt] = useState('');
-  const [lastBackendSaveAt, setLastBackendSaveAt] = useState('');
   const [draftParticipantIds, setDraftParticipantIds] = useState([]);
   const [availableParticipantsCount, setAvailableParticipantsCount] = useState(0);
   const [participantsInventoryLoaded, setParticipantsInventoryLoaded] = useState(false);
-  const [loadedFromLocalDraft, setLoadedFromLocalDraft] = useState(false);
-  const [selectedChallengesSnapshot, setSelectedChallengesSnapshot] = useState('[]');
   const [sessionInvite, setSessionInvite] = useState(null);
   const [inviteCopyState, setInviteCopyState] = useState('');
   const inviteCopyTimerRef = useRef(null);
@@ -150,7 +146,6 @@ export default function SessionBuilder() {
   const hasHydratedSessionSelectionRef = useRef(false);
   const sessionStatusRef = useRef('');
   const lastAutosavedChallengeIdsRef = useRef('');
-  const onboardingRedirectedRef = useRef(false);
   const shouldResetScrollAfterCreationRef = useRef(false);
 
   const handleParticipantsLoaded = useCallback((count) => {
@@ -183,10 +178,6 @@ export default function SessionBuilder() {
     () => selectedChallenges.find((c) => c.id === configuring) || null,
     [configuring, selectedChallenges]
   );
-  const selectedChallengesJson = useMemo(
-    () => JSON.stringify(selectedChallenges),
-    [selectedChallenges]
-  );
   const nameError =
     creationTouched.sessionName && !sessionName.trim()
       ? t('sessionBuilder.sessionNameRequired')
@@ -197,7 +188,6 @@ export default function SessionBuilder() {
     if (Number.isNaN(parsed.getTime())) return t('sessionBuilder.invalidDateTimeDetailed');
     return isPastDateTime(parsed) ? t('sessionBuilder.pastDateTime') : '';
   }, [creationTouched.sessionDateTime, sessionDateTime, t]);
-  const participantsError = '';
   const canCreateSessionNow =
     Boolean(sessionName.trim()) &&
     !dateError &&
@@ -425,8 +415,6 @@ export default function SessionBuilder() {
         await ensureChallengesLinkedToSession(selectedChallengeIds, token, true);
       }
 
-      setSelectedChallengesSnapshot(JSON.stringify(selectedChallenges));
-      setLastBackendSaveAt(new Date().toISOString());
     },
     [
       apiRequest,
@@ -520,8 +508,6 @@ export default function SessionBuilder() {
           });
         }
 
-        setSelectedChallengesSnapshot(JSON.stringify(mergedSelectedChallenges));
-        setLastBackendSaveAt(new Date().toISOString());
         showSuccessToast(t('sessionBuilder.challengeConfigApplied'));
       } catch (err) {
         if (redirectToUpgrade(err)) return;
@@ -737,10 +723,7 @@ export default function SessionBuilder() {
   useEffect(() => {
     if (!sessionId || !hasHydratedSessionSelectionRef.current) return;
 
-    const savedAt = persistDraftToStorage(sessionId, selectedChallenges);
-    if (savedAt) {
-      setLastLocalDraftSaveAt(savedAt);
-    }
+    persistDraftToStorage(sessionId, selectedChallenges);
   }, [selectedChallenges, sessionId]);
 
   // The selection used to reach the session only through the save icon or the launch: leaving the
@@ -762,7 +745,6 @@ export default function SessionBuilder() {
       try {
         await ensureChallengesLinkedToSession(challengeIds, token, false);
         lastAutosavedChallengeIdsRef.current = serializedIds;
-        setSelectedChallengesSnapshot(JSON.stringify(selectedChallenges));
       } catch {
         // Keep the local draft; the explicit save and the launch report the error.
       }
@@ -954,7 +936,6 @@ export default function SessionBuilder() {
 
           restoreSelectedChallenges(sessionChallenges);
 
-          setLoadedFromLocalDraft(false);
           const savedDraft = readDraftFromStorage(sessionId);
           if (
             savedDraft &&
@@ -962,13 +943,8 @@ export default function SessionBuilder() {
             shouldApplyLocalDraftOverSession(savedDraft, session)
           ) {
             restoreSelectedChallenges(savedDraft.selectedChallenges);
-            setLoadedFromLocalDraft(true);
-            if (savedDraft.updatedAt) {
-              setLastLocalDraftSaveAt(savedDraft.updatedAt);
-            }
           }
 
-          setSelectedChallengesSnapshot(JSON.stringify(sessionChallenges));
           sessionStatusRef.current = String(session?.status || '').trim().toLowerCase();
           lastAutosavedChallengeIdsRef.current = JSON.stringify(
             sessionChallenges.map((challenge) => toIntegerId(challenge?.id)).filter((id) => id !== null)
@@ -1020,8 +996,6 @@ export default function SessionBuilder() {
     let cancelled = false;
     setIsLoading(true);
     const loadingId = showLoadingToast(t('sessionBuilder.loading'));
-
-    const token = getAuthToken();
 
     fetchWithRetry(getApiUrl(`/challenges?_t=${Date.now()}`), {
       headers: getAuthHeaders({

@@ -2441,6 +2441,7 @@ export default function AdminClient() {
               filteredUsers={filteredUsers}
               handleAdminUserVerificationOverride={handleAdminUserVerificationOverride}
               handleDeleteUser={handleDeleteUser}
+              handleResetUserPassword={handleResetUserPassword}
               handleResendVerificationLink={handleResendVerificationLink}
               handleToggleUserStatus={handleToggleUserStatus}
               newUser={newUser}
@@ -2470,6 +2471,7 @@ export default function AdminClient() {
               filteredParticipants={filteredParticipants}
               handleAdminParticipantVerificationOverride={handleAdminParticipantVerificationOverride}
               handleDeleteParticipant={handleDeleteParticipant}
+              handleResetParticipantPassword={handleResetParticipantPassword}
               handleResendParticipantVerificationLink={handleResendParticipantVerificationLink}
               handleToggleParticipantStatus={handleToggleParticipantStatus}
               newParticipant={newParticipant}
