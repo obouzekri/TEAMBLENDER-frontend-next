@@ -11,6 +11,7 @@ export default function UsersTab({
   filteredUsers,
   handleAdminUserVerificationOverride,
   handleDeleteUser,
+  handleResetUserPassword,
   handleResendVerificationLink,
   handleToggleUserStatus,
   newUser,
@@ -163,6 +164,16 @@ export default function UsersTab({
                     aria-label={t('adminConsole.editUser')}
                   >
                     ✎
+                  </button>
+                  <button
+                    type="button"
+                    className="icon-action-btn"
+                    onClick={() => handleResetUserPassword(u)}
+                    disabled={busySaveKey === `password:user:${u.id}`}
+                    title={t('adminConsole.resetPassword')}
+                    aria-label={t('adminConsole.resetUserPassword')}
+                  >
+                    {busySaveKey === `password:user:${u.id}` ? '…' : '🔑'}
                   </button>
                   <button
                     type="button"

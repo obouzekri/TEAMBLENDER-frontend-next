@@ -10,6 +10,7 @@ export default function ParticipantsTab({
   filteredParticipants,
   handleAdminParticipantVerificationOverride,
   handleDeleteParticipant,
+  handleResetParticipantPassword,
   handleResendParticipantVerificationLink,
   handleToggleParticipantStatus,
   newParticipant,
@@ -136,6 +137,16 @@ export default function ParticipantsTab({
                     aria-label={t('adminConsole.editParticipant')}
                   >
                     ✎
+                  </button>
+                  <button
+                    type="button"
+                    className="icon-action-btn"
+                    onClick={() => handleResetParticipantPassword(p)}
+                    disabled={busySaveKey === `password:participant:${p.id}`}
+                    title={t('adminConsole.resetPassword')}
+                    aria-label={t('adminConsole.resetParticipantPassword')}
+                  >
+                    {busySaveKey === `password:participant:${p.id}` ? '…' : '🔑'}
                   </button>
                   <button
                     type="button"
