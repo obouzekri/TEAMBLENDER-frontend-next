@@ -35,7 +35,7 @@
     "test:unit:i18n": "node scripts/test-i18n-plural.mjs",
     "test:ux:preferences-results": "node scripts/test-preferences-results-ux.mjs",
     "test:unit:builder": "node scripts/test-session-builder-drafts.mjs && node scripts/test-session-builder-utils.mjs && node scripts/test-session-program.mjs && node scripts/test-catalog-rule-locales.mjs",
-    "test:ux:builder": "node scripts/test-session-builder-ux.mjs",
+    "test:ux:builder": "node scripts/test-session-builder-ux.mjs && node scripts/test-session-builder-persistence.mjs",
     "test:ux:planning": "node scripts/test-session-planning-ux.mjs",
     "test:ux:admin": "node scripts/test-admin-tabs-ux.mjs && node scripts/test-admin-theme.mjs",
     "test:ux:account": "node scripts/test-account-navigation-ux.mjs && node scripts/test-account-security-ux.mjs",
