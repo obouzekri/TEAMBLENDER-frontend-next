@@ -10,7 +10,7 @@ import { hasAnalyticsConsent } from '@/lib/consent';
 const POSTHOG_PROJECT_TOKEN = String(
   process.env.NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN || process.env.NEXT_PUBLIC_POSTHOG_KEY || ''
 ).trim();
-const POSTHOG_HOST = String(process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://eu.i.posthog.com').trim();
+const POSTHOG_HOST = String(process.env.NEXT_PUBLIC_POSTHOG_HOST || 'https://us.i.posthog.com').trim();
 const POSTHOG_API_HOST = process.env.NODE_ENV === 'development' ? POSTHOG_HOST : '/ingest';
 
 function getPostHogUiHost(ingestHost) {
@@ -22,7 +22,7 @@ function getPostHogUiHost(ingestHost) {
     url.hash = '';
     return url.toString().replace(/\/$/, '');
   } catch {
-    return 'https://eu.posthog.com';
+    return 'https://us.posthog.com';
   }
 }
 

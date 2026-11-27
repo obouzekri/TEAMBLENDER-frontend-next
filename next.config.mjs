@@ -68,7 +68,7 @@ function parseRemoteImageHosts(rawValue) {
 }
 
 function normalizePosthogHost(rawValue) {
-  const fallback = 'https://eu.i.posthog.com';
+  const fallback = 'https://us.i.posthog.com';
   const normalized = String(rawValue || '').trim().replace(/\/+$/, '');
   if (!normalized) return fallback;
   return normalized;
@@ -81,7 +81,7 @@ function getPosthogIngestDestinations(rawHost) {
   try {
     parsedHost = new URL(normalizedHost);
   } catch {
-    parsedHost = new URL('https://eu.i.posthog.com');
+    parsedHost = new URL('https://us.i.posthog.com');
   }
 
   const host = parsedHost.hostname.toLowerCase();

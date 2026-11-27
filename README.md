@@ -329,8 +329,9 @@ Variables importantes:
 - `NEXT_PUBLIC_API_URL` (alias accepte, normalise vers la meme logique que `NEXT_PUBLIC_API_BASE`)
 - `BACKEND_ORIGIN` (obligatoire hors dev, cible rewrite Next.js vers backend actif)
 - `PREVIEW_BACKEND_ORIGIN` (optionnel, fallback Vercel preview vers Railway dev)
-- `NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN` (optionnel, active PostHog frontend)
-- `NEXT_PUBLIC_POSTHOG_HOST` (optionnel, defaut `https://eu.i.posthog.com`, doit correspondre a la region du projet PostHog ; l'interface PostHog associee est derivee automatiquement)
+- `NEXT_PUBLIC_POSTHOG_PROJECT_TOKEN` ou `NEXT_PUBLIC_POSTHOG_KEY` (optionnel, cle publique `phc_...` : active PostHog frontend apres consentement ; sans elle, aucun evenement navigateur n'est envoye)
+- `NEXT_PUBLIC_POSTHOG_HOST` (optionnel, defaut `https://us.i.posthog.com`, doit correspondre a la region du projet PostHog, ici les Etats-Unis ; l'interface PostHog associee est derivee automatiquement)
+- Les variables `NEXT_PUBLIC_*` sont figees au build : apres un ajout ou une modification dans Vercel, redeployer. PostHog ignore les navigateurs automatises (headless), y compris les tests Playwright.
 - `NEXT_PUBLIC_GA_MEASUREMENT_ID` (optionnel, active Google Analytics 4 pageview)
 - `NEXT_PUBLIC_GTM_ID` (optionnel, injecte Google Tag Manager sur toutes les pages)
 - `NEXT_PUBLIC_PLAUSIBLE_DOMAIN` (optionnel, ex. `teamblender.io` : active Plausible, mesure d'audience sans cookie ni consentement, sur les pages publiques uniquement ; script et evenements passent par `/pa/*` sur notre domaine ; desactive en preview)
